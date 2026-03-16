@@ -96,10 +96,24 @@ const BOOK_ABBREV = {
   "II John": "2JN", "III John": "3JN", "Jude": "JUD", "Revelation": "REV",
 };
 
+// Brand colors from The Ten Minute Bible Hour
+const C = {
+  yellow: "#F5D000",
+  yellowLight: "#FBE96C",
+  yellowPale: "#FDF4B7",
+  teal: "#1B3A4B",
+  tealLight: "#2A5568",
+  tealDark: "#0F2530",
+  white: "#FFFFFF",
+  offWhite: "#FFFEF5",
+  done: "#1B6B3A",
+  doneBg: "rgba(27,107,58,0.1)",
+  doneBorder: "rgba(27,107,58,0.25)",
+};
+
 function buildYouVersionUrl(book, ref) {
   const abbrev = BOOK_ABBREV[book];
   if (!abbrev) return null;
-  // ref like "12:2-3" or "50:20" or "52:13-53:12"
   const match = ref.match(/^(\d+):(.+)$/);
   if (!match) return null;
   const chapter = match[1];
@@ -108,18 +122,14 @@ function buildYouVersionUrl(book, ref) {
 }
 
 function parseRefs(book, refsStr) {
-  // Split on " and " and ", " to get individual refs
-  // Filter out non-verse text like "any five random proverbs from chapters 10-29"
   const parts = refsStr.split(/\s+and\s+|,\s*/);
   const results = [];
   for (const part of parts) {
     const trimmed = part.trim();
-    // Only match verse-like patterns: "12:2-3" or "52:13-53:12"
     if (/^\d+:\S+$/.test(trimmed)) {
       const url = buildYouVersionUrl(book, trimmed);
       results.push({ text: trimmed, url });
     } else {
-      // Keep non-linkable text as-is
       results.push({ text: trimmed, url: null });
     }
   }
@@ -142,16 +152,17 @@ function VerseLinks({ book, refs, done }) {
                 rel="noopener noreferrer"
                 onClick={e => e.stopPropagation()}
                 style={{
-                  color: done ? "#2d6a4f" : "#8b6914",
+                  color: done ? C.done : C.teal,
                   textDecoration: "none",
-                  borderBottom: `1px dashed ${done ? "rgba(45,106,79,0.4)" : "rgba(139,105,20,0.4)"}`,
+                  borderBottom: `1px dashed ${done ? "rgba(27,107,58,0.4)" : "rgba(27,58,75,0.35)"}`,
+                  fontWeight: 600,
                   transition: "all .2s",
                 }}
-                onMouseEnter={e => { e.target.style.borderBottomStyle = "solid"; e.target.style.color = done ? "#1b5e3b" : "#6b4f00"; }}
-                onMouseLeave={e => { e.target.style.borderBottomStyle = "dashed"; e.target.style.color = done ? "#2d6a4f" : "#8b6914"; }}
+                onMouseEnter={e => { e.target.style.borderBottomStyle = "solid"; e.target.style.opacity = "0.8"; }}
+                onMouseLeave={e => { e.target.style.borderBottomStyle = "dashed"; e.target.style.opacity = "1"; }}
               >
                 {p.text}
-                <svg width="10" height="10" viewBox="0 0 12 12" fill="none" style={{ marginLeft: 2, verticalAlign: "middle", opacity: 0.5 }}>
+                <svg width="10" height="10" viewBox="0 0 12 12" fill="none" style={{ marginLeft: 2, verticalAlign: "middle", opacity: 0.45 }}>
                   <path d="M4.5 2H3C2.44772 2 2 2.44772 2 3V9C2 9.55228 2.44772 10 3 10H9C9.55228 10 10 9.55228 10 9V7.5M7 2H10M10 2V5M10 2L5.5 6.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </a>
@@ -184,21 +195,23 @@ function remove(key) {
   try { localStorage.removeItem(key); } catch {}
 }
 
-function generateColor(name) {
-  let h = 0;
-  for (let i = 0; i < name.length; i++) h = name.charCodeAt(i) + ((h << 5) - h);
-  const palette = ["#6b4c3b","#2d6a4f","#7c5cbf","#b5705a","#3a7ca5","#c9882c","#8b5e3c","#5a6e3c"];
-  return palette[Math.abs(h) % palette.length];
-}
-
 function Avatar({ name, size = 34 }) {
   return (
     <div style={{
-      width: size, height: size, borderRadius: "50%", background: generateColor(name),
+      width: size, height: size, borderRadius: "50%", background: C.yellow,
       display: "flex", alignItems: "center", justifyContent: "center",
-      color: "#fff", fontFamily: "'EB Garamond', Georgia, serif",
-      fontSize: size * 0.48, fontWeight: 700, flexShrink: 0,
+      color: C.teal, fontFamily: "'DM Sans',sans-serif",
+      fontSize: size * 0.48, fontWeight: 800, flexShrink: 0,
+      border: `2px solid ${C.teal}`,
     }}>{(name || "?")[0].toUpperCase()}</div>
+  );
+}
+
+function LightningIcon({ size = 24, color = C.yellow }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={color} style={{ flexShrink: 0 }}>
+      <path d="M13 2L4.09 12.11C3.68 12.59 3.48 12.84 3.49 13.05C3.49 13.23 3.58 13.4 3.72 13.51C3.89 13.63 4.21 13.63 4.86 13.63H12L11 22L19.91 11.89C20.32 11.41 20.52 11.16 20.51 10.95C20.51 10.77 20.42 10.6 20.28 10.49C20.11 10.37 19.79 10.37 19.14 10.37H12L13 2Z" />
+    </svg>
   );
 }
 
@@ -213,10 +226,13 @@ function LoginScreen({ onLogin, error }) {
   return (
     <div style={s.loginOuter}>
       <div style={s.loginCard}>
-        <div style={{ fontSize: 52, marginBottom: 4 }}>&#9889;</div>
+        <LightningIcon size={48} color={C.yellow} />
         <h1 style={s.loginTitle}>Tour of the Bible</h1>
         <p style={s.loginSub}>Taste every book in 90 minutes</p>
-        <p style={s.loginCredit}>Inspired by Matt Whitman</p>
+        <a href="https://www.thetmbh.com/tourofthebible" target="_blank" rel="noopener noreferrer"
+          style={s.loginCredit}>
+          Based on The Ten Minute Bible Hour
+        </a>
 
         <div style={s.fieldGroup}>
           <label style={s.label}>Your name</label>
@@ -229,13 +245,13 @@ function LoginScreen({ onLogin, error }) {
           <label style={s.label}>4-digit PIN</label>
           <div style={s.pinRow}>
             <input id="pin-input" type={showPin ? "text" : "password"}
-              inputMode="numeric" pattern="[0-9]*" placeholder="••••"
+              inputMode="numeric" pattern="[0-9]*" placeholder="----"
               value={pin} onChange={e => { const v = e.target.value.replace(/\D/g,""); if(v.length<=4) setPin(v); }}
               style={{ ...s.input, letterSpacing: showPin ? "0.1em" : "0.3em", flex: 1 }}
               onKeyDown={e => e.key === "Enter" && go()} />
             <button onClick={() => setShowPin(!showPin)} style={s.eyeBtn}
               title={showPin ? "Hide PIN" : "Show PIN"}>
-              {showPin ? "🙈" : "👁"}
+              {showPin ? "Hide" : "Show"}
             </button>
           </div>
         </div>
@@ -247,7 +263,7 @@ function LoginScreen({ onLogin, error }) {
           Sign In
         </button>
 
-        <p style={s.hint}>First time? Just pick any name and PIN — your account will be created automatically.</p>
+        <p style={s.hint}>First time? Just pick any name and PIN to get started.</p>
       </div>
     </div>
   );
@@ -279,7 +295,7 @@ function ChecklistView({ user, checked, onToggle, onReset, onLogout }) {
     <div style={s.outer}>
       {showCelebrate && (
         <div style={s.celebrate}>
-          <span style={{ fontSize: 44 }}>&#127881;</span>
+          <LightningIcon size={36} color={C.yellow} />
           <p style={s.celebrateText}>Amazing, {user}! All 66 books!</p>
         </div>
       )}
@@ -288,7 +304,7 @@ function ChecklistView({ user, checked, onToggle, onReset, onLogout }) {
         <div style={s.headerRow}>
           <div style={{ flex: 1 }} />
           <div style={s.headerCenter}>
-            <span style={{ fontSize: 24 }}>&#9889;</span>
+            <LightningIcon size={22} color={C.yellow} />
             <h1 style={s.title}>Tour of the Bible</h1>
           </div>
           <div style={{ flex: 1, display: "flex", justifyContent: "flex-end", alignItems: "center" }}>
@@ -315,7 +331,7 @@ function ChecklistView({ user, checked, onToggle, onReset, onLogout }) {
         <div style={s.progressTrack}>
           <div style={{
             ...s.progressBar, width: `${pct}%`,
-            background: pct === 100 ? "linear-gradient(90deg,#2d6a4f,#40916c)" : "linear-gradient(90deg,#c9882c,#e0a84a)",
+            background: pct === 100 ? `linear-gradient(90deg,${C.done},#2d8a4e)` : `linear-gradient(90deg,${C.teal},${C.tealLight})`,
           }} />
         </div>
         <div style={s.progressMini}>
@@ -369,8 +385,14 @@ function ChecklistView({ user, checked, onToggle, onReset, onLogout }) {
       </div>
 
       <footer style={s.footer}>
-        <p>Taste every book of the Bible in 90 minutes</p>
-        <p style={{ fontSize: 12, marginTop: 4 }}>Inspired by Matt Whitman</p>
+        <p style={{ margin: "0 0 6px" }}>Taste every book of the Bible in 90 minutes</p>
+        <a href="https://www.thetmbh.com/tourofthebible" target="_blank" rel="noopener noreferrer"
+          style={s.footerLink}>
+          The Ten Minute Bible Hour
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none" style={{ marginLeft: 3, verticalAlign: "middle" }}>
+            <path d="M4.5 2H3C2.44772 2 2 2.44772 2 3V9C2 9.55228 2.44772 10 3 10H9C9.55228 10 10 9.55228 10 9V7.5M7 2H10M10 2V5M10 2L5.5 6.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </a>
       </footer>
     </div>
   );
@@ -447,7 +469,7 @@ export default function Page() {
   if (phase === "loading") {
     return (
       <div style={s.loadWrap}>
-        <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet" />
         <div style={s.spinner} />
       </div>
     );
@@ -455,11 +477,13 @@ export default function Page() {
 
   return (
     <>
-      <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+      <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet" />
       <style>{`
         @keyframes spin{to{transform:rotate(360deg)}}
         @keyframes popIn{from{opacity:0;transform:translateY(-16px)scale(.95)}to{opacity:1;transform:translateY(0)scale(1)}}
         @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+        input::placeholder{color:rgba(27,58,75,0.3)}
+        input:focus{border-color:${C.teal} !important;box-shadow:0 0 0 3px rgba(27,58,75,0.1)}
       `}</style>
       {phase === "login" && <LoginScreen onLogin={handleLogin} error={loginError} />}
       {phase === "checklist" && (
@@ -471,57 +495,75 @@ export default function Page() {
 }
 
 const s = {
-  loadWrap: { minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#fdf6ec" },
-  spinner: { width: 28, height: 28, border: "3px solid #e0d5c5", borderTopColor: "#c9882c", borderRadius: "50%", animation: "spin .8s linear infinite" },
-  loginOuter: { minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "linear-gradient(180deg,#2d2016,#4a3728)", padding: 20 },
-  loginCard: { background: "#fdf6ec", borderRadius: 20, padding: "44px 32px 36px", textAlign: "center", maxWidth: 380, width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.4)" },
-  loginTitle: { fontFamily: "'EB Garamond',Georgia,serif", fontSize: 28, fontWeight: 700, color: "#2d2016", margin: "0 0 4px" },
-  loginSub: { fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: "#9a8b78", margin: 0, textTransform: "uppercase", letterSpacing: "0.1em" },
-  loginCredit: { fontFamily: "'EB Garamond',Georgia,serif", fontSize: 13, fontStyle: "italic", color: "#b5a58a", margin: "8px 0 24px" },
-  fieldGroup: { textAlign: "left", marginBottom: 16 },
-  label: { display: "block", fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 600, color: "#7a6b5a", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 },
-  input: { width: "100%", padding: "11px 14px", border: "1.5px solid #d4c4ae", borderRadius: 10, fontFamily: "'DM Sans',sans-serif", fontSize: 15, color: "#3a2e22", background: "#fff", outline: "none", boxSizing: "border-box" },
+  // Loading
+  loadWrap: { minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: C.yellow },
+  spinner: { width: 28, height: 28, border: `3px solid rgba(27,58,75,0.15)`, borderTopColor: C.teal, borderRadius: "50%", animation: "spin .8s linear infinite" },
+
+  // Login
+  loginOuter: { minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: C.teal, padding: 20 },
+  loginCard: { background: C.yellow, borderRadius: 16, padding: "40px 32px 32px", textAlign: "center", maxWidth: 380, width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.35)", display: "flex", flexDirection: "column", alignItems: "center" },
+  loginTitle: { fontFamily: "'Oswald',sans-serif", fontSize: 30, fontWeight: 700, color: C.teal, margin: "8px 0 4px", textTransform: "uppercase", letterSpacing: "0.02em" },
+  loginSub: { fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: C.tealLight, margin: 0, textTransform: "uppercase", letterSpacing: "0.12em", fontWeight: 600 },
+  loginCredit: { fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: C.teal, margin: "8px 0 28px", textDecoration: "none", borderBottom: `1px dashed rgba(27,58,75,0.3)`, fontWeight: 500 },
+  fieldGroup: { textAlign: "left", marginBottom: 16, width: "100%" },
+  label: { display: "block", fontFamily: "'DM Sans',sans-serif", fontSize: 11, fontWeight: 700, color: C.teal, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 6 },
+  input: { width: "100%", padding: "11px 14px", border: `2px solid rgba(27,58,75,0.2)`, borderRadius: 8, fontFamily: "'DM Sans',sans-serif", fontSize: 15, color: C.teal, background: C.white, outline: "none", boxSizing: "border-box", fontWeight: 500 },
   pinRow: { display: "flex", gap: 8, alignItems: "center" },
-  eyeBtn: { background: "none", border: "none", fontSize: 18, cursor: "pointer", padding: "8px 4px", lineHeight: 1 },
-  errorMsg: { fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: "#c0392b", margin: "0 0 12px", animation: "shake 0.4s ease" },
-  goBtn: { width: "100%", padding: "13px 24px", border: "none", borderRadius: 10, background: "#4a3728", color: "#f5ebe0", fontFamily: "'DM Sans',sans-serif", fontSize: 15, fontWeight: 600, cursor: "pointer", transition: "opacity .2s", marginBottom: 16 },
-  hint: { fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: "#b5a58a", lineHeight: 1.5, margin: 0 },
-  outer: { minHeight: "100vh", background: "linear-gradient(180deg,#fdf6ec 0%,#f5ebe0 50%,#eddfce 100%)", fontFamily: "'DM Sans',sans-serif", color: "#3a2e22" },
-  header: { background: "linear-gradient(135deg,#2d2016,#4a3728)", padding: "16px 20px 12px" },
+  eyeBtn: { background: "none", border: `1.5px solid rgba(27,58,75,0.2)`, borderRadius: 8, fontSize: 12, cursor: "pointer", padding: "10px 12px", lineHeight: 1, fontFamily: "'DM Sans',sans-serif", fontWeight: 600, color: C.teal },
+  errorMsg: { fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: "#c0392b", margin: "0 0 12px", animation: "shake 0.4s ease", fontWeight: 600 },
+  goBtn: { width: "100%", padding: "13px 24px", border: "none", borderRadius: 8, background: C.teal, color: C.yellow, fontFamily: "'DM Sans',sans-serif", fontSize: 15, fontWeight: 700, cursor: "pointer", transition: "opacity .2s", marginBottom: 16, textTransform: "uppercase", letterSpacing: "0.05em" },
+  hint: { fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: C.tealLight, lineHeight: 1.5, margin: 0, opacity: 0.7 },
+
+  // Checklist
+  outer: { minHeight: "100vh", background: C.yellow, fontFamily: "'DM Sans',sans-serif", color: C.teal },
+  header: { background: C.teal, padding: "16px 20px 12px" },
   headerRow: { display: "flex", alignItems: "center" },
   headerCenter: { display: "flex", alignItems: "center", gap: 8, justifyContent: "center" },
-  title: { fontFamily: "'EB Garamond',Georgia,serif", fontSize: 22, fontWeight: 700, color: "#f5ebe0", margin: 0 },
+  title: { fontFamily: "'Oswald',sans-serif", fontSize: 22, fontWeight: 700, color: C.white, margin: 0, textTransform: "uppercase", letterSpacing: "0.02em" },
   headerMeta: { display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginTop: 8 },
-  greeting: { fontSize: 13, color: "#c9b99a" },
-  logoutBtn: { background: "none", border: "none", color: "#9a8b78", fontSize: 12, cursor: "pointer", textDecoration: "underline", fontFamily: "'DM Sans',sans-serif", padding: 0 },
+  greeting: { fontSize: 13, color: C.yellowLight, fontWeight: 500 },
+  logoutBtn: { background: "none", border: "none", color: "rgba(255,255,255,0.5)", fontSize: 12, cursor: "pointer", textDecoration: "underline", fontFamily: "'DM Sans',sans-serif", padding: 0, fontWeight: 500 },
+
+  // Progress
   progressSection: { padding: "20px 20px 12px", maxWidth: 600, margin: "0 auto" },
   progressStats: { display: "flex", justifyContent: "center", gap: 40, marginBottom: 10 },
   statBox: { display: "flex", flexDirection: "column", alignItems: "center" },
-  statNum: { fontFamily: "'EB Garamond',Georgia,serif", fontSize: 26, fontWeight: 700, color: "#5c4a3a" },
-  statLabel: { fontSize: 11, fontWeight: 500, color: "#9a8b78", textTransform: "uppercase", letterSpacing: "0.08em" },
-  progressTrack: { height: 7, background: "#e0d5c5", borderRadius: 4, overflow: "hidden" },
+  statNum: { fontFamily: "'Oswald',sans-serif", fontSize: 28, fontWeight: 700, color: C.teal },
+  statLabel: { fontSize: 11, fontWeight: 600, color: C.tealLight, textTransform: "uppercase", letterSpacing: "0.1em", opacity: 0.7 },
+  progressTrack: { height: 8, background: "rgba(27,58,75,0.1)", borderRadius: 4, overflow: "hidden" },
   progressBar: { height: "100%", borderRadius: 4, transition: "width .5s ease, background .5s ease" },
-  progressMini: { display: "flex", justifyContent: "space-between", fontSize: 11, color: "#9a8b78", marginTop: 5, fontWeight: 500 },
+  progressMini: { display: "flex", justifyContent: "space-between", fontSize: 11, color: C.tealLight, marginTop: 5, fontWeight: 600, opacity: 0.7 },
+
+  // Filters
   filters: { display: "flex", justifyContent: "center", gap: 8, padding: "0 20px 16px", flexWrap: "wrap" },
-  filterBtn: { padding: "7px 16px", border: "1.5px solid #d4c4ae", borderRadius: 22, background: "transparent", fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 500, color: "#7a6b5a", cursor: "pointer", transition: "all .2s" },
-  filterActive: { background: "#4a3728", color: "#f5ebe0", borderColor: "#4a3728" },
-  resetBtn: { padding: "7px 16px", border: "1.5px solid #d4c4ae", borderRadius: 22, background: "transparent", fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 500, color: "#b5705a", cursor: "pointer" },
+  filterBtn: { padding: "7px 16px", border: `2px solid rgba(27,58,75,0.2)`, borderRadius: 22, background: "transparent", fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 600, color: C.teal, cursor: "pointer", transition: "all .2s" },
+  filterActive: { background: C.teal, color: C.yellow, borderColor: C.teal },
+  resetBtn: { padding: "7px 16px", border: `2px solid rgba(27,58,75,0.15)`, borderRadius: 22, background: "transparent", fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 600, color: "#b53a2a", cursor: "pointer" },
+
+  // List
   listWrap: { maxWidth: 680, margin: "0 auto", padding: "0 16px 40px" },
-  secHeader: { display: "flex", alignItems: "baseline", justifyContent: "space-between", padding: "18px 4px 10px", borderBottom: "2px solid #d4c4ae", marginBottom: 12 },
-  secTitle: { fontFamily: "'EB Garamond',Georgia,serif", fontSize: 20, fontWeight: 700, color: "#4a3728", margin: 0 },
-  secCount: { fontSize: 13, fontWeight: 600, color: "#9a8b78" },
+  secHeader: { display: "flex", alignItems: "baseline", justifyContent: "space-between", padding: "18px 4px 10px", borderBottom: `3px solid ${C.teal}`, marginBottom: 12 },
+  secTitle: { fontFamily: "'Oswald',sans-serif", fontSize: 20, fontWeight: 700, color: C.teal, margin: 0, textTransform: "uppercase", letterSpacing: "0.02em" },
+  secCount: { fontSize: 13, fontWeight: 700, color: C.tealLight },
+
+  // Cards
   grid: { display: "flex", flexDirection: "column", gap: 5 },
-  card: { display: "flex", flexDirection: "column", gap: 2, padding: "11px 14px", background: "rgba(255,255,255,0.65)", border: "1px solid rgba(212,196,174,0.5)", borderRadius: 10, cursor: "pointer", transition: "all .2s", textAlign: "left", fontFamily: "'DM Sans',sans-serif", width: "100%", boxSizing: "border-box" },
-  cardDone: { background: "rgba(45,106,79,0.08)", borderColor: "rgba(45,106,79,0.2)" },
+  card: { display: "flex", flexDirection: "column", gap: 2, padding: "11px 14px", background: "rgba(255,255,255,0.55)", border: `1.5px solid rgba(27,58,75,0.12)`, borderRadius: 10, cursor: "pointer", transition: "all .2s", textAlign: "left", fontFamily: "'DM Sans',sans-serif", width: "100%", boxSizing: "border-box" },
+  cardDone: { background: C.doneBg, borderColor: C.doneBorder },
   cardTop: { display: "flex", alignItems: "center", gap: 10 },
-  chk: { width: 21, height: 21, borderRadius: 6, border: "2px solid #c9b99a", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all .2s" },
-  chkDone: { background: "#2d6a4f", borderColor: "#2d6a4f" },
-  bookName: { fontFamily: "'EB Garamond',Georgia,serif", fontSize: 16, fontWeight: 600, color: "#3a2e22" },
-  bookDone: { color: "#2d6a4f" },
-  refs: { fontSize: 13, color: "#7a6b5a", margin: "0 0 0 31px", lineHeight: 1.4 },
-  refsDone: { color: "#5a8a6e" },
-  note: { fontSize: 12, fontStyle: "italic", color: "#b5925a", margin: "2px 0 0 31px" },
-  footer: { textAlign: "center", padding: "20px 20px 28px", fontFamily: "'EB Garamond',Georgia,serif", fontSize: 14, fontStyle: "italic", color: "#9a8b78" },
-  celebrate: { position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)", zIndex: 1000, background: "linear-gradient(135deg,#2d6a4f,#40916c)", color: "#fff", padding: "18px 28px", borderRadius: 14, textAlign: "center", boxShadow: "0 12px 40px rgba(45,106,79,0.3)", animation: "popIn .4s ease forwards" },
-  celebrateText: { fontFamily: "'EB Garamond',Georgia,serif", fontSize: 17, fontWeight: 600, margin: "6px 0 0" },
+  chk: { width: 21, height: 21, borderRadius: 6, border: `2px solid rgba(27,58,75,0.25)`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all .2s" },
+  chkDone: { background: C.done, borderColor: C.done },
+  bookName: { fontFamily: "'Oswald',sans-serif", fontSize: 16, fontWeight: 600, color: C.teal },
+  bookDone: { color: C.done },
+  refs: { fontSize: 13, color: C.tealLight, margin: "0 0 0 31px", lineHeight: 1.4 },
+  refsDone: { color: C.done },
+  note: { fontSize: 12, fontStyle: "italic", color: C.tealLight, margin: "2px 0 0 31px", opacity: 0.7 },
+
+  // Footer
+  footer: { textAlign: "center", padding: "20px 20px 28px", fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: C.tealLight },
+  footerLink: { color: C.teal, fontWeight: 700, textDecoration: "none", borderBottom: `1px solid rgba(27,58,75,0.3)`, fontSize: 14 },
+
+  // Celebrate
+  celebrate: { position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)", zIndex: 1000, background: C.teal, color: C.white, padding: "18px 28px", borderRadius: 14, textAlign: "center", boxShadow: "0 12px 40px rgba(0,0,0,0.3)", animation: "popIn .4s ease forwards", display: "flex", flexDirection: "column", alignItems: "center" },
+  celebrateText: { fontFamily: "'Oswald',sans-serif", fontSize: 18, fontWeight: 600, margin: "6px 0 0", color: C.yellow },
 };
