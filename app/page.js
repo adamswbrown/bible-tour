@@ -109,6 +109,19 @@ const API_BOOK_NAMES = {
   "I John": "1 John", "II John": "2 John", "III John": "3 John",
 };
 
+const TRANSLATIONS = [
+  { id: "kjv", name: "King James Version", abbr: "KJV", apiCode: "kjv", youVersionId: 1 },
+  { id: "nkjv", name: "New King James Version", abbr: "NKJV", apiCode: null, youVersionId: 114 },
+  { id: "niv", name: "New International Version", abbr: "NIV", apiCode: null, youVersionId: 111 },
+  { id: "nlt", name: "New Living Translation", abbr: "NLT", apiCode: null, youVersionId: 116 },
+  { id: "csb", name: "Christian Standard Bible", abbr: "CSB", apiCode: null, youVersionId: 1713 },
+  { id: "msg", name: "The Message", abbr: "MSG", apiCode: null, youVersionId: 97 },
+  { id: "web", name: "World English Bible", abbr: "WEB", apiCode: "web", youVersionId: 206 },
+  { id: "asv", name: "American Standard Version", abbr: "ASV", apiCode: "asv", youVersionId: 12 },
+];
+
+const DEFAULT_TRANSLATION = "kjv";
+
 // Brand colors from The Ten Minute Bible Hour
 const C = {
   yellow: "#FFCB21",
@@ -124,14 +137,15 @@ const C = {
   doneBorder: "rgba(27,107,58,0.25)",
 };
 
-function buildYouVersionUrl(book, ref) {
+function buildYouVersionUrl(book, ref, translationId) {
   const abbrev = BOOK_ABBREV[book];
   if (!abbrev) return null;
   const match = ref.match(/^(\d+):(.+)$/);
   if (!match) return null;
   const chapter = match[1];
   const verses = match[2];
-  return `https://www.bible.com/bible/111/${abbrev}.${chapter}.${verses}.NIV`;
+  const bibleId = translationId || 111;
+  return `https://www.bible.com/bible/${bibleId}/${abbrev}.${chapter}.${verses}`;
 }
 
 function buildApiQuery(book, ref) {
@@ -157,13 +171,13 @@ function parseRefs(book, refsStr) {
 function VerseLinks({ book, refs, done, onVerseClick }) {
   const parsed = parseRefs(book, refs);
   return (
-    <span>
+    <span style={{ display: "flex", flexWrap: "wrap", gap: 4, alignItems: "center" }}>
       {parsed.map((p, i) => {
         const separator = i > 0 ? (i === parsed.length - 1 ? " and " : ", ") : "";
         if (p.url) {
           return (
-            <span key={i}>
-              {separator}
+            <span key={i} style={{ display: "inline-flex", alignItems: "center" }}>
+              {separator && <span style={{ margin: "0 2px", fontSize: 13, color: done ? C.done : C.tealLight }}>{separator}</span>}
               <a
                 href={p.url}
                 onClick={e => {
@@ -172,35 +186,52 @@ function VerseLinks({ book, refs, done, onVerseClick }) {
                   onVerseClick(book, p.ref, p.url);
                 }}
                 style={{
+                  display: "inline-flex", alignItems: "center", gap: 4,
                   color: done ? C.done : C.teal,
                   textDecoration: "none",
-                  borderBottom: `1px dashed ${done ? "rgba(27,107,58,0.4)" : "rgba(27,58,75,0.35)"}`,
                   fontWeight: 600,
-                  transition: "all .2s",
+                  fontSize: 13,
+                  padding: "3px 8px",
+                  borderRadius: 6,
+                  background: done ? "rgba(27,107,58,0.08)" : "rgba(27,58,75,0.07)",
+                  border: `1px solid ${done ? "rgba(27,107,58,0.15)" : "rgba(27,58,75,0.12)"}`,
+                  transition: "all .15s",
                   cursor: "pointer",
                 }}
-                onMouseEnter={e => { e.target.style.borderBottomStyle = "solid"; e.target.style.opacity = "0.8"; }}
-                onMouseLeave={e => { e.target.style.borderBottomStyle = "dashed"; e.target.style.opacity = "1"; }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = done ? "rgba(27,107,58,0.15)" : "rgba(27,58,75,0.13)";
+                  e.currentTarget.style.borderColor = done ? "rgba(27,107,58,0.3)" : "rgba(27,58,75,0.25)";
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = done ? "rgba(27,107,58,0.08)" : "rgba(27,58,75,0.07)";
+                  e.currentTarget.style.borderColor = done ? "rgba(27,107,58,0.15)" : "rgba(27,58,75,0.12)";
+                }}
               >
                 {p.text}
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" style={{ marginLeft: 3, verticalAlign: "middle", opacity: 0.5 }}>
-                  <path d="M12 6.5V17.5M17.5 12H6.5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ opacity: 0.5, flexShrink: 0 }}>
+                  <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </a>
             </span>
           );
         }
-        return <span key={i}>{separator}{p.text}</span>;
+        return <span key={i} style={{ fontSize: 13, color: done ? C.done : C.tealLight }}>{separator}{p.text}</span>;
       })}
     </span>
   );
 }
 
-function VersePanel({ book, verseRef, youVersionUrl, onClose }) {
+function VersePanel({ book, verseRef, onClose }) {
   const [text, setText] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [translationId, setTranslationId] = useState(() => {
+    try { return localStorage.getItem("bt:translation") || DEFAULT_TRANSLATION; } catch { return DEFAULT_TRANSLATION; }
+  });
   const panelRef = useRef(null);
+
+  const tx = TRANSLATIONS.find(t => t.id === translationId) || TRANSLATIONS[0];
+  const youVersionUrl = buildYouVersionUrl(book, verseRef, tx.youVersionId);
 
   useEffect(() => {
     let cancelled = false;
@@ -208,8 +239,15 @@ function VersePanel({ book, verseRef, youVersionUrl, onClose }) {
     setError(null);
     setText(null);
 
+    // If this translation isn't available via bible-api.com, show YouVersion prompt
+    if (!tx.apiCode) {
+      setLoading(false);
+      setError("copyrighted");
+      return;
+    }
+
     const query = buildApiQuery(book, verseRef);
-    fetch(`https://bible-api.com/${encodeURIComponent(query)}?translation=kjv`)
+    fetch(`https://bible-api.com/${encodeURIComponent(query)}?translation=${tx.apiCode}`)
       .then(r => {
         if (!r.ok) throw new Error("not found");
         return r.json();
@@ -230,12 +268,17 @@ function VersePanel({ book, verseRef, youVersionUrl, onClose }) {
       })
       .catch(() => {
         if (cancelled) return;
-        setError(true);
+        setError("api");
         setLoading(false);
       });
 
     return () => { cancelled = true; };
-  }, [book, verseRef]);
+  }, [book, verseRef, tx.apiCode]);
+
+  const changeTranslation = (newId) => {
+    setTranslationId(newId);
+    try { localStorage.setItem("bt:translation", newId); } catch {}
+  };
 
   // Close on Escape
   useEffect(() => {
@@ -253,15 +296,30 @@ function VersePanel({ book, verseRef, youVersionUrl, onClose }) {
       {/* Panel */}
       <div ref={panelRef} style={ps.panel}>
         <div style={ps.panelHeader}>
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <h2 style={ps.panelTitle}>{displayRef}</h2>
-            <span style={ps.panelTranslation}>KJV</span>
           </div>
           <button onClick={onClose} style={ps.closeBtn} aria-label="Close">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
               <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
             </svg>
           </button>
+        </div>
+
+        {/* Translation picker */}
+        <div style={ps.translationBar}>
+          <select
+            value={translationId}
+            onChange={e => changeTranslation(e.target.value)}
+            onClick={e => e.stopPropagation()}
+            style={ps.translationSelect}
+          >
+            {TRANSLATIONS.map(t => (
+              <option key={t.id} value={t.id}>
+                {t.abbr} — {t.name}{!t.apiCode ? " (YouVersion)" : ""}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div style={ps.panelBody}>
@@ -272,9 +330,26 @@ function VersePanel({ book, verseRef, youVersionUrl, onClose }) {
             </div>
           )}
 
-          {error && (
+          {error === "copyrighted" && (
             <div style={ps.errorWrap}>
-              <p style={ps.errorText}>Could not load this verse from the API.</p>
+              <p style={ps.copyrightNote}>
+                {tx.name} is a copyrighted translation and can't be displayed inline.
+              </p>
+              <a href={youVersionUrl} target="_blank" rel="noopener noreferrer" style={ps.youVersionBtn}>
+                Read in {tx.abbr} on YouVersion
+                <svg width="13" height="13" viewBox="0 0 12 12" fill="none" style={{ marginLeft: 6, verticalAlign: "middle" }}>
+                  <path d="M4.5 2H3C2.44772 2 2 2.44772 2 3V9C2 9.55228 2.44772 10 3 10H9C9.55228 10 10 9.55228 10 9V7.5M7 2H10M10 2V5M10 2L5.5 6.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </a>
+              <p style={ps.copyrightHint}>
+                Or pick a public domain translation (KJV, WEB, ASV) to read inline.
+              </p>
+            </div>
+          )}
+
+          {error === "api" && (
+            <div style={ps.errorWrap}>
+              <p style={ps.errorText}>Could not load this verse.</p>
               <a href={youVersionUrl} target="_blank" rel="noopener noreferrer" style={ps.youVersionBtn}>
                 Read on YouVersion instead
               </a>
@@ -295,7 +370,7 @@ function VersePanel({ book, verseRef, youVersionUrl, onClose }) {
 
         <div style={ps.panelFooter}>
           <a href={youVersionUrl} target="_blank" rel="noopener noreferrer" style={ps.youVersionLink}>
-            Open in YouVersion
+            Open in YouVersion ({tx.abbr})
             <svg width="11" height="11" viewBox="0 0 12 12" fill="none" style={{ marginLeft: 4, verticalAlign: "middle" }}>
               <path d="M4.5 2H3C2.44772 2 2 2.44772 2 3V9C2 9.55228 2.44772 10 3 10H9C9.55228 10 10 9.55228 10 9V7.5M7 2H10M10 2V5M10 2L5.5 6.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
@@ -539,7 +614,6 @@ function ChecklistView({ user, checked, onToggle, onReset, onLogout }) {
         <VersePanel
           book={versePanel.book}
           verseRef={versePanel.ref}
-          youVersionUrl={versePanel.youVersionUrl}
           onClose={closeVerse}
         />
       )}
@@ -748,9 +822,26 @@ const ps = {
     fontFamily: "'Oswald',sans-serif", fontSize: 22, fontWeight: 700,
     color: C.yellow, margin: 0, textTransform: "uppercase", letterSpacing: "0.02em",
   },
-  panelTranslation: {
-    fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.5)",
-    textTransform: "uppercase", letterSpacing: "0.1em",
+  translationBar: {
+    display: "flex", alignItems: "center", gap: 8,
+    padding: "10px 20px",
+    background: "rgba(27,58,75,0.04)",
+    borderBottom: `1px solid rgba(27,58,75,0.08)`,
+  },
+  translationSelect: {
+    width: "100%", padding: "8px 12px",
+    border: `1.5px solid rgba(27,58,75,0.18)`, borderRadius: 8,
+    fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 600,
+    color: C.teal, background: C.white, outline: "none",
+    cursor: "pointer", appearance: "auto",
+  },
+  copyrightNote: {
+    fontSize: 15, color: C.teal, margin: "0 0 20px", lineHeight: 1.6,
+    fontWeight: 500,
+  },
+  copyrightHint: {
+    fontSize: 12, color: C.tealLight, margin: "16px 0 0", opacity: 0.7,
+    lineHeight: 1.5,
   },
   closeBtn: {
     background: "none", border: "none", cursor: "pointer",
