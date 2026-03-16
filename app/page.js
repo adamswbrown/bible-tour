@@ -76,6 +76,94 @@ const READING_PLAN = {
 
 const TOTAL = READING_PLAN["Old Testament"].length + READING_PLAN["New Testament"].length;
 
+const BOOK_ABBREV = {
+  "Genesis": "GEN", "Exodus": "EXO", "Leviticus": "LEV", "Numbers": "NUM",
+  "Deuteronomy": "DEU", "Joshua": "JOS", "Judges": "JDG", "Ruth": "RUT",
+  "I Samuel": "1SA", "II Samuel": "2SA", "I Kings": "1KI", "II Kings": "2KI",
+  "I Chronicles": "1CH", "II Chronicles": "2CH", "Ezra": "EZR", "Nehemiah": "NEH",
+  "Esther": "EST", "Job": "JOB", "Psalms": "PSA", "Proverbs": "PRO",
+  "Ecclesiastes": "ECC", "Song of Songs": "SNG", "Isaiah": "ISA", "Jeremiah": "JER",
+  "Lamentations": "LAM", "Ezekiel": "EZK", "Daniel": "DAN", "Hosea": "HOS",
+  "Joel": "JOL", "Amos": "AMO", "Obadiah": "OBA", "Jonah": "JON",
+  "Micah": "MIC", "Nahum": "NAM", "Habakkuk": "HAB", "Zephaniah": "ZEP",
+  "Haggai": "HAG", "Zechariah": "ZEC", "Malachi": "MAL",
+  "Matthew": "MAT", "Mark": "MRK", "Luke": "LUK", "John": "JHN",
+  "Acts": "ACT", "Romans": "ROM", "I Corinthians": "1CO", "II Corinthians": "2CO",
+  "Galatians": "GAL", "Ephesians": "EPH", "Philippians": "PHP", "Colossians": "COL",
+  "I Thessalonians": "1TH", "II Thessalonians": "2TH", "I Timothy": "1TI",
+  "II Timothy": "2TI", "Titus": "TIT", "Philemon": "PHM", "Hebrews": "HEB",
+  "James": "JAS", "I Peter": "1PE", "II Peter": "2PE", "I John": "1JN",
+  "II John": "2JN", "III John": "3JN", "Jude": "JUD", "Revelation": "REV",
+};
+
+function buildYouVersionUrl(book, ref) {
+  const abbrev = BOOK_ABBREV[book];
+  if (!abbrev) return null;
+  // ref like "12:2-3" or "50:20" or "52:13-53:12"
+  const match = ref.match(/^(\d+):(.+)$/);
+  if (!match) return null;
+  const chapter = match[1];
+  const verses = match[2];
+  return `https://www.bible.com/bible/111/${abbrev}.${chapter}.${verses}.NIV`;
+}
+
+function parseRefs(book, refsStr) {
+  // Split on " and " and ", " to get individual refs
+  // Filter out non-verse text like "any five random proverbs from chapters 10-29"
+  const parts = refsStr.split(/\s+and\s+|,\s*/);
+  const results = [];
+  for (const part of parts) {
+    const trimmed = part.trim();
+    // Only match verse-like patterns: "12:2-3" or "52:13-53:12"
+    if (/^\d+:\S+$/.test(trimmed)) {
+      const url = buildYouVersionUrl(book, trimmed);
+      results.push({ text: trimmed, url });
+    } else {
+      // Keep non-linkable text as-is
+      results.push({ text: trimmed, url: null });
+    }
+  }
+  return results;
+}
+
+function VerseLinks({ book, refs, done }) {
+  const parsed = parseRefs(book, refs);
+  return (
+    <span>
+      {parsed.map((p, i) => {
+        const separator = i > 0 ? (i === parsed.length - 1 ? " and " : ", ") : "";
+        if (p.url) {
+          return (
+            <span key={i}>
+              {separator}
+              <a
+                href={p.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={e => e.stopPropagation()}
+                style={{
+                  color: done ? "#2d6a4f" : "#8b6914",
+                  textDecoration: "none",
+                  borderBottom: `1px dashed ${done ? "rgba(45,106,79,0.4)" : "rgba(139,105,20,0.4)"}`,
+                  transition: "all .2s",
+                }}
+                onMouseEnter={e => { e.target.style.borderBottomStyle = "solid"; e.target.style.color = done ? "#1b5e3b" : "#6b4f00"; }}
+                onMouseLeave={e => { e.target.style.borderBottomStyle = "dashed"; e.target.style.color = done ? "#2d6a4f" : "#8b6914"; }}
+              >
+                {p.text}
+                <svg width="10" height="10" viewBox="0 0 12 12" fill="none" style={{ marginLeft: 2, verticalAlign: "middle", opacity: 0.5 }}>
+                  <path d="M4.5 2H3C2.44772 2 2 2.44772 2 3V9C2 9.55228 2.44772 10 3 10H9C9.55228 10 10 9.55228 10 9V7.5M7 2H10M10 2V5M10 2L5.5 6.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </a>
+            </span>
+          );
+        }
+        return <span key={i}>{separator}{p.text}</span>;
+      })}
+    </span>
+  );
+}
+
 function userKey(name, pin) {
   const raw = `${name.toLowerCase().trim()}:${pin}`;
   let hash = 0;
@@ -267,7 +355,9 @@ function ChecklistView({ user, checked, onToggle, onReset, onLogout }) {
                         </div>
                         <span style={{ ...s.bookName, ...(done ? s.bookDone : {}) }}>{r.book}</span>
                       </div>
-                      <p style={{ ...s.refs, ...(done ? s.refsDone : {}) }}>{r.refs}</p>
+                      <p style={{ ...s.refs, ...(done ? s.refsDone : {}) }}>
+                        <VerseLinks book={r.book} refs={r.refs} done={done} />
+                      </p>
                       {r.note && <p style={s.note}>{r.note}</p>}
                     </button>
                   );
@@ -429,7 +519,7 @@ const s = {
   bookName: { fontFamily: "'EB Garamond',Georgia,serif", fontSize: 16, fontWeight: 600, color: "#3a2e22" },
   bookDone: { color: "#2d6a4f" },
   refs: { fontSize: 13, color: "#7a6b5a", margin: "0 0 0 31px", lineHeight: 1.4 },
-  refsDone: { color: "#5a8a6e", textDecoration: "line-through", textDecorationColor: "rgba(45,106,79,0.3)" },
+  refsDone: { color: "#5a8a6e" },
   note: { fontSize: 12, fontStyle: "italic", color: "#b5925a", margin: "2px 0 0 31px" },
   footer: { textAlign: "center", padding: "20px 20px 28px", fontFamily: "'EB Garamond',Georgia,serif", fontSize: 14, fontStyle: "italic", color: "#9a8b78" },
   celebrate: { position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)", zIndex: 1000, background: "linear-gradient(135deg,#2d6a4f,#40916c)", color: "#fff", padding: "18px 28px", borderRadius: 14, textAlign: "center", boxShadow: "0 12px 40px rgba(45,106,79,0.3)", animation: "popIn .4s ease forwards" },
