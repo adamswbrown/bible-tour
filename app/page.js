@@ -98,9 +98,9 @@ const BOOK_ABBREV = {
 
 // Brand colors from The Ten Minute Bible Hour
 const C = {
-  yellow: "#F5D000",
-  yellowLight: "#FBE96C",
-  yellowPale: "#FDF4B7",
+  yellow: "#FFCB21",
+  yellowLight: "#FFE066",
+  yellowPale: "#FFF2B3",
   teal: "#1B3A4B",
   tealLight: "#2A5568",
   tealDark: "#0F2530",
