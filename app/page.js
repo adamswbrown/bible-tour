@@ -505,9 +505,19 @@ function LoginScreen({ onLogin, error }) {
         <LightningIcon size={48} color={C.yellow} />
         <h1 style={s.loginTitle}>Tour of the Bible</h1>
         <p style={s.loginSub}>Taste every book in 90 minutes</p>
-        <a href="https://www.thetmbh.com/tourofthebible" target="_blank" rel="noopener noreferrer"
-          style={s.loginCredit}>
-          Based on The Ten Minute Bible Hour
+        <p style={s.loginDisclaimer}>
+          Inspired by Matt Whitman&rsquo;s{" "}
+          <a href="https://www.thetmbh.com/tourofthebible" target="_blank" rel="noopener noreferrer" style={s.loginCreditLink}>
+            Lightning-Fast Field Guide to the Bible
+          </a>
+          .{" "}Not affiliated with or endorsed by The Ten Minute Bible Hour.
+        </p>
+        <a href="https://youtu.be/XdMuZCTChJE?si=DRfBFUnDc2mt3Yq2" target="_blank" rel="noopener noreferrer"
+          style={s.ytLink}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill={C.teal} style={{ flexShrink: 0 }}>
+            <path d="M23.5 6.2c-.3-1-1-1.8-2-2.1C19.6 3.5 12 3.5 12 3.5s-7.6 0-9.5.6c-1 .3-1.8 1-2.1 2C0 8.1 0 12 0 12s0 3.9.4 5.8c.3 1 1 1.8 2 2.1 1.9.6 9.6.6 9.6.6s7.6 0 9.5-.6c1-.3 1.8-1 2.1-2 .4-1.9.4-5.8.4-5.8s0-3.9-.5-5.8zM9.5 15.6V8.4l6.4 3.6-6.4 3.6z"/>
+          </svg>
+          Watch Matt explain the tour
         </a>
 
         <div style={s.fieldGroup}>
@@ -670,13 +680,21 @@ function ChecklistView({ user, checked, onToggle, onReset, onLogout }) {
       </div>
 
       <footer style={s.footer}>
-        <p style={{ margin: "0 0 6px" }}>Taste every book of the Bible in 90 minutes</p>
-        <a href="https://www.thetmbh.com/tourofthebible" target="_blank" rel="noopener noreferrer"
-          style={s.footerLink}>
-          The Ten Minute Bible Hour
-          <svg width="11" height="11" viewBox="0 0 12 12" fill="none" style={{ marginLeft: 3, verticalAlign: "middle" }}>
-            <path d="M4.5 2H3C2.44772 2 2 2.44772 2 3V9C2 9.55228 2.44772 10 3 10H9C9.55228 10 10 9.55228 10 9V7.5M7 2H10M10 2V5M10 2L5.5 6.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+        <p style={{ margin: "0 0 8px" }}>
+          Inspired by Matt Whitman&rsquo;s{" "}
+          <a href="https://www.thetmbh.com/tourofthebible" target="_blank" rel="noopener noreferrer" style={s.footerLink}>
+            Lightning-Fast Field Guide to the Bible
+          </a>
+        </p>
+        <p style={s.footerDisclaimer}>
+          Not affiliated with or endorsed by The Ten Minute Bible Hour.
+        </p>
+        <a href="https://youtu.be/XdMuZCTChJE?si=DRfBFUnDc2mt3Yq2" target="_blank" rel="noopener noreferrer"
+          style={s.footerYt}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style={{ flexShrink: 0 }}>
+            <path d="M23.5 6.2c-.3-1-1-1.8-2-2.1C19.6 3.5 12 3.5 12 3.5s-7.6 0-9.5.6c-1 .3-1.8 1-2.1 2C0 8.1 0 12 0 12s0 3.9.4 5.8c.3 1 1 1.8 2 2.1 1.9.6 9.6.6 9.6.6s7.6 0 9.5-.6c1-.3 1.8-1 2.1-2 .4-1.9.4-5.8.4-5.8s0-3.9-.5-5.8zM9.5 15.6V8.4l6.4 3.6-6.4 3.6z"/>
           </svg>
+          Watch Matt explain the tour
         </a>
       </footer>
 
@@ -803,7 +821,9 @@ const s = {
   loginCard: { background: C.yellow, borderRadius: 16, padding: "40px 32px 32px", textAlign: "center", maxWidth: 380, width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.35)", display: "flex", flexDirection: "column", alignItems: "center" },
   loginTitle: { fontFamily: "'Oswald',sans-serif", fontSize: 30, fontWeight: 700, color: C.teal, margin: "8px 0 4px", textTransform: "uppercase", letterSpacing: "0.02em" },
   loginSub: { fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: C.tealLight, margin: 0, textTransform: "uppercase", letterSpacing: "0.12em", fontWeight: 600 },
-  loginCredit: { fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: C.teal, margin: "8px 0 28px", textDecoration: "none", borderBottom: `1px dashed rgba(27,58,75,0.3)`, fontWeight: 500 },
+  loginDisclaimer: { fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: C.tealLight, margin: "8px 0 6px", lineHeight: 1.6, maxWidth: 300 },
+  loginCreditLink: { color: C.teal, fontWeight: 600, textDecoration: "none", borderBottom: `1px dashed rgba(27,58,75,0.3)` },
+  ytLink: { display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 600, color: C.teal, textDecoration: "none", margin: "4px 0 28px", padding: "6px 12px", borderRadius: 6, background: "rgba(27,58,75,0.08)", border: `1px solid rgba(27,58,75,0.12)` },
   fieldGroup: { textAlign: "left", marginBottom: 16, width: "100%" },
   label: { display: "block", fontFamily: "'DM Sans',sans-serif", fontSize: 11, fontWeight: 700, color: C.teal, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 6 },
   input: { width: "100%", padding: "11px 14px", border: `2px solid rgba(27,58,75,0.2)`, borderRadius: 8, fontFamily: "'DM Sans',sans-serif", fontSize: 15, color: C.teal, background: C.white, outline: "none", boxSizing: "border-box", fontWeight: 500 },
@@ -861,6 +881,8 @@ const s = {
   // Footer
   footer: { textAlign: "center", padding: "20px 20px 28px", fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: C.tealLight },
   footerLink: { color: C.teal, fontWeight: 700, textDecoration: "none", borderBottom: `1px solid rgba(27,58,75,0.3)`, fontSize: 14 },
+  footerDisclaimer: { fontSize: 11, color: C.tealLight, margin: "0 0 12px", opacity: 0.6, lineHeight: 1.5 },
+  footerYt: { display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: C.teal, textDecoration: "none", borderBottom: `1px dashed rgba(27,58,75,0.3)` },
 
   // Celebrate
   celebrate: { position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)", zIndex: 1000, background: C.teal, color: C.white, padding: "18px 28px", borderRadius: 14, textAlign: "center", boxShadow: "0 12px 40px rgba(0,0,0,0.3)", animation: "popIn .4s ease forwards", display: "flex", flexDirection: "column", alignItems: "center" },
