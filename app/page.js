@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 const READING_PLAN = {
   "Old Testament": [
@@ -96,6 +96,19 @@ const BOOK_ABBREV = {
   "II John": "2JN", "III John": "3JN", "Jude": "JUD", "Revelation": "REV",
 };
 
+// bible-api.com uses slightly different book names
+const API_BOOK_NAMES = {
+  "I Samuel": "1 Samuel", "II Samuel": "2 Samuel",
+  "I Kings": "1 Kings", "II Kings": "2 Kings",
+  "I Chronicles": "1 Chronicles", "II Chronicles": "2 Chronicles",
+  "Song of Songs": "Song of Solomon",
+  "I Corinthians": "1 Corinthians", "II Corinthians": "2 Corinthians",
+  "I Thessalonians": "1 Thessalonians", "II Thessalonians": "2 Thessalonians",
+  "I Timothy": "1 Timothy", "II Timothy": "2 Timothy",
+  "I Peter": "1 Peter", "II Peter": "2 Peter",
+  "I John": "1 John", "II John": "2 John", "III John": "3 John",
+};
+
 // Brand colors from The Ten Minute Bible Hour
 const C = {
   yellow: "#FFCB21",
@@ -121,6 +134,11 @@ function buildYouVersionUrl(book, ref) {
   return `https://www.bible.com/bible/111/${abbrev}.${chapter}.${verses}.NIV`;
 }
 
+function buildApiQuery(book, ref) {
+  const apiName = API_BOOK_NAMES[book] || book;
+  return `${apiName} ${ref}`;
+}
+
 function parseRefs(book, refsStr) {
   const parts = refsStr.split(/\s+and\s+|,\s*/);
   const results = [];
@@ -128,15 +146,15 @@ function parseRefs(book, refsStr) {
     const trimmed = part.trim();
     if (/^\d+:\S+$/.test(trimmed)) {
       const url = buildYouVersionUrl(book, trimmed);
-      results.push({ text: trimmed, url });
+      results.push({ text: trimmed, url, ref: trimmed });
     } else {
-      results.push({ text: trimmed, url: null });
+      results.push({ text: trimmed, url: null, ref: null });
     }
   }
   return results;
 }
 
-function VerseLinks({ book, refs, done }) {
+function VerseLinks({ book, refs, done, onVerseClick }) {
   const parsed = parseRefs(book, refs);
   return (
     <span>
@@ -148,22 +166,25 @@ function VerseLinks({ book, refs, done }) {
               {separator}
               <a
                 href={p.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={e => e.stopPropagation()}
+                onClick={e => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onVerseClick(book, p.ref, p.url);
+                }}
                 style={{
                   color: done ? C.done : C.teal,
                   textDecoration: "none",
                   borderBottom: `1px dashed ${done ? "rgba(27,107,58,0.4)" : "rgba(27,58,75,0.35)"}`,
                   fontWeight: 600,
                   transition: "all .2s",
+                  cursor: "pointer",
                 }}
                 onMouseEnter={e => { e.target.style.borderBottomStyle = "solid"; e.target.style.opacity = "0.8"; }}
                 onMouseLeave={e => { e.target.style.borderBottomStyle = "dashed"; e.target.style.opacity = "1"; }}
               >
                 {p.text}
-                <svg width="10" height="10" viewBox="0 0 12 12" fill="none" style={{ marginLeft: 2, verticalAlign: "middle", opacity: 0.45 }}>
-                  <path d="M4.5 2H3C2.44772 2 2 2.44772 2 3V9C2 9.55228 2.44772 10 3 10H9C9.55228 10 10 9.55228 10 9V7.5M7 2H10M10 2V5M10 2L5.5 6.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" style={{ marginLeft: 3, verticalAlign: "middle", opacity: 0.5 }}>
+                  <path d="M12 6.5V17.5M17.5 12H6.5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
                 </svg>
               </a>
             </span>
@@ -172,6 +193,116 @@ function VerseLinks({ book, refs, done }) {
         return <span key={i}>{separator}{p.text}</span>;
       })}
     </span>
+  );
+}
+
+function VersePanel({ book, verseRef, youVersionUrl, onClose }) {
+  const [text, setText] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const panelRef = useRef(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    setText(null);
+
+    const query = buildApiQuery(book, verseRef);
+    fetch(`https://bible-api.com/${encodeURIComponent(query)}?translation=kjv`)
+      .then(r => {
+        if (!r.ok) throw new Error("not found");
+        return r.json();
+      })
+      .then(data => {
+        if (cancelled) return;
+        if (data.verses && data.verses.length > 0) {
+          setText(data.verses.map(v => ({
+            verse: v.verse,
+            text: v.text.trim(),
+          })));
+        } else if (data.text) {
+          setText([{ verse: null, text: data.text.trim() }]);
+        } else {
+          throw new Error("empty");
+        }
+        setLoading(false);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setError(true);
+        setLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [book, verseRef]);
+
+  // Close on Escape
+  useEffect(() => {
+    const handler = (e) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onClose]);
+
+  const displayRef = `${book} ${verseRef}`;
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div onClick={onClose} style={ps.backdrop} />
+      {/* Panel */}
+      <div ref={panelRef} style={ps.panel}>
+        <div style={ps.panelHeader}>
+          <div style={{ flex: 1 }}>
+            <h2 style={ps.panelTitle}>{displayRef}</h2>
+            <span style={ps.panelTranslation}>KJV</span>
+          </div>
+          <button onClick={onClose} style={ps.closeBtn} aria-label="Close">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+            </svg>
+          </button>
+        </div>
+
+        <div style={ps.panelBody}>
+          {loading && (
+            <div style={ps.loadingWrap}>
+              <div style={ps.panelSpinner} />
+              <p style={ps.loadingText}>Loading verse...</p>
+            </div>
+          )}
+
+          {error && (
+            <div style={ps.errorWrap}>
+              <p style={ps.errorText}>Could not load this verse from the API.</p>
+              <a href={youVersionUrl} target="_blank" rel="noopener noreferrer" style={ps.youVersionBtn}>
+                Read on YouVersion instead
+              </a>
+            </div>
+          )}
+
+          {text && (
+            <div style={ps.verseContent}>
+              {text.map((v, i) => (
+                <p key={i} style={ps.verseLine}>
+                  {v.verse && <sup style={ps.verseNum}>{v.verse}</sup>}
+                  {v.text}
+                </p>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div style={ps.panelFooter}>
+          <a href={youVersionUrl} target="_blank" rel="noopener noreferrer" style={ps.youVersionLink}>
+            Open in YouVersion
+            <svg width="11" height="11" viewBox="0 0 12 12" fill="none" style={{ marginLeft: 4, verticalAlign: "middle" }}>
+              <path d="M4.5 2H3C2.44772 2 2 2.44772 2 3V9C2 9.55228 2.44772 10 3 10H9C9.55228 10 10 9.55228 10 9V7.5M7 2H10M10 2V5M10 2L5.5 6.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -272,6 +403,7 @@ function LoginScreen({ onLogin, error }) {
 function ChecklistView({ user, checked, onToggle, onReset, onLogout }) {
   const [section, setSection] = useState("all");
   const [showCelebrate, setShowCelebrate] = useState(false);
+  const [versePanel, setVersePanel] = useState(null); // { book, ref, youVersionUrl }
 
   const doneCount = Object.values(checked).filter(Boolean).length;
   const otDone = READING_PLAN["Old Testament"].filter(r => checked[r.book]).length;
@@ -286,6 +418,14 @@ function ChecklistView({ user, checked, onToggle, onReset, onLogout }) {
       setTimeout(() => setShowCelebrate(false), 4000);
     }
   };
+
+  const openVerse = useCallback((book, ref, youVersionUrl) => {
+    setVersePanel({ book, ref, youVersionUrl });
+  }, []);
+
+  const closeVerse = useCallback(() => {
+    setVersePanel(null);
+  }, []);
 
   const vis = section === "ot" ? { "Old Testament": READING_PLAN["Old Testament"] }
     : section === "nt" ? { "New Testament": READING_PLAN["New Testament"] }
@@ -372,7 +512,7 @@ function ChecklistView({ user, checked, onToggle, onReset, onLogout }) {
                         <span style={{ ...s.bookName, ...(done ? s.bookDone : {}) }}>{r.book}</span>
                       </div>
                       <p style={{ ...s.refs, ...(done ? s.refsDone : {}) }}>
-                        <VerseLinks book={r.book} refs={r.refs} done={done} />
+                        <VerseLinks book={r.book} refs={r.refs} done={done} onVerseClick={openVerse} />
                       </p>
                       {r.note && <p style={s.note}>{r.note}</p>}
                     </button>
@@ -394,6 +534,15 @@ function ChecklistView({ user, checked, onToggle, onReset, onLogout }) {
           </svg>
         </a>
       </footer>
+
+      {versePanel && (
+        <VersePanel
+          book={versePanel.book}
+          verseRef={versePanel.ref}
+          youVersionUrl={versePanel.youVersionUrl}
+          onClose={closeVerse}
+        />
+      )}
     </div>
   );
 }
@@ -482,8 +631,14 @@ export default function Page() {
         @keyframes spin{to{transform:rotate(360deg)}}
         @keyframes popIn{from{opacity:0;transform:translateY(-16px)scale(.95)}to{opacity:1;transform:translateY(0)scale(1)}}
         @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+        @keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
         input::placeholder{color:rgba(27,58,75,0.3)}
         input:focus{border-color:${C.teal} !important;box-shadow:0 0 0 3px rgba(27,58,75,0.1)}
+        @media(max-width:600px){
+          .verse-panel{width:100% !important;max-width:100% !important;border-radius:20px 20px 0 0 !important;top:auto !important;bottom:0 !important;max-height:75vh !important;animation:slideUp .3s ease forwards !important}
+        }
+        @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
       `}</style>
       {phase === "login" && <LoginScreen onLogin={handleLogin} error={loginError} />}
       {phase === "checklist" && (
@@ -566,4 +721,83 @@ const s = {
   // Celebrate
   celebrate: { position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)", zIndex: 1000, background: C.teal, color: C.white, padding: "18px 28px", borderRadius: 14, textAlign: "center", boxShadow: "0 12px 40px rgba(0,0,0,0.3)", animation: "popIn .4s ease forwards", display: "flex", flexDirection: "column", alignItems: "center" },
   celebrateText: { fontFamily: "'Oswald',sans-serif", fontSize: 18, fontWeight: 600, margin: "6px 0 0", color: C.yellow },
+};
+
+// Panel styles
+const ps = {
+  backdrop: {
+    position: "fixed", inset: 0, background: "rgba(15,37,48,0.5)",
+    zIndex: 900, animation: "fadeIn .2s ease forwards",
+  },
+  panel: {
+    position: "fixed", top: 0, right: 0, bottom: 0,
+    width: 420, maxWidth: "90vw",
+    background: C.white, zIndex: 901,
+    display: "flex", flexDirection: "column",
+    boxShadow: "-8px 0 40px rgba(0,0,0,0.25)",
+    animation: "slideIn .3s ease forwards",
+    fontFamily: "'DM Sans',sans-serif",
+  },
+  panelHeader: {
+    display: "flex", alignItems: "flex-start", gap: 12,
+    padding: "20px 20px 16px",
+    borderBottom: `2px solid ${C.yellow}`,
+    background: C.teal,
+  },
+  panelTitle: {
+    fontFamily: "'Oswald',sans-serif", fontSize: 22, fontWeight: 700,
+    color: C.yellow, margin: 0, textTransform: "uppercase", letterSpacing: "0.02em",
+  },
+  panelTranslation: {
+    fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.5)",
+    textTransform: "uppercase", letterSpacing: "0.1em",
+  },
+  closeBtn: {
+    background: "none", border: "none", cursor: "pointer",
+    color: "rgba(255,255,255,0.6)", padding: 4, flexShrink: 0,
+    marginTop: 2,
+  },
+  panelBody: {
+    flex: 1, overflow: "auto", padding: "24px 20px",
+  },
+  loadingWrap: {
+    display: "flex", flexDirection: "column", alignItems: "center",
+    justifyContent: "center", padding: "60px 0", gap: 12,
+  },
+  panelSpinner: {
+    width: 24, height: 24, border: `3px solid rgba(27,58,75,0.12)`,
+    borderTopColor: C.teal, borderRadius: "50%", animation: "spin .8s linear infinite",
+  },
+  loadingText: {
+    fontSize: 13, color: C.tealLight, margin: 0,
+  },
+  errorWrap: {
+    textAlign: "center", padding: "40px 0",
+  },
+  errorText: {
+    fontSize: 14, color: C.tealLight, margin: "0 0 16px",
+  },
+  youVersionBtn: {
+    display: "inline-block", padding: "10px 20px", background: C.teal,
+    color: C.yellow, borderRadius: 8, textDecoration: "none",
+    fontWeight: 700, fontSize: 14, fontFamily: "'DM Sans',sans-serif",
+  },
+  verseContent: {
+    lineHeight: 1.8, color: C.teal,
+  },
+  verseLine: {
+    fontSize: 16, margin: "0 0 12px", lineHeight: 1.8,
+  },
+  verseNum: {
+    fontSize: 11, fontWeight: 700, color: C.tealLight, marginRight: 4,
+    verticalAlign: "super", opacity: 0.7,
+  },
+  panelFooter: {
+    padding: "14px 20px", borderTop: `1px solid rgba(27,58,75,0.1)`,
+    textAlign: "center",
+  },
+  youVersionLink: {
+    fontSize: 13, fontWeight: 600, color: C.teal, textDecoration: "none",
+    borderBottom: `1px dashed rgba(27,58,75,0.3)`,
+  },
 };
