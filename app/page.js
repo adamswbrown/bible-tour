@@ -110,14 +110,19 @@ const API_BOOK_NAMES = {
 };
 
 const TRANSLATIONS = [
-  { id: "kjv", name: "King James Version", abbr: "KJV", apiCode: "kjv", youVersionId: 1 },
-  { id: "nkjv", name: "New King James Version", abbr: "NKJV", apiCode: null, youVersionId: 114 },
-  { id: "niv", name: "New International Version", abbr: "NIV", apiCode: null, youVersionId: 111 },
-  { id: "nlt", name: "New Living Translation", abbr: "NLT", apiCode: null, youVersionId: 116 },
-  { id: "csb", name: "Christian Standard Bible", abbr: "CSB", apiCode: null, youVersionId: 1713 },
-  { id: "msg", name: "The Message", abbr: "MSG", apiCode: null, youVersionId: 97 },
-  { id: "web", name: "World English Bible", abbr: "WEB", apiCode: "web", youVersionId: 206 },
-  { id: "asv", name: "American Standard Version", abbr: "ASV", apiCode: "asv", youVersionId: 12 },
+  { id: "kjv", name: "King James Version", abbr: "KJV", apiCode: "kjv", youVersionId: 1, yvLicensed: false },
+  { id: "niv", name: "New International Version", abbr: "NIV", apiCode: null, youVersionId: 111, yvLicensed: true,
+    copyright: "Holy Bible, New International Version\u00ae, NIV\u00ae Copyright \u00a91973, 1978, 1984, 2011 by Biblica, Inc.\u00ae Used by permission. All rights reserved worldwide." },
+  { id: "nirv", name: "New International Reader\u2019s Version", abbr: "NIrV", apiCode: null, youVersionId: 110, yvLicensed: true,
+    copyright: "Copyright \u00a91995, 1996, 1998, 2014 by Biblica, Inc.\u00ae Used by permission. All rights reserved worldwide." },
+  { id: "nivuk", name: "NIV (Anglicised)", abbr: "NIVUK", apiCode: null, youVersionId: 113, yvLicensed: true,
+    copyright: "Holy Bible, New International Version\u00ae Anglicised, NIV\u00ae Copyright \u00a91979, 1984, 2011 by Biblica, Inc.\u00ae Used by permission. All rights reserved worldwide." },
+  { id: "nkjv", name: "New King James Version", abbr: "NKJV", apiCode: null, youVersionId: 114, yvLicensed: false },
+  { id: "nlt", name: "New Living Translation", abbr: "NLT", apiCode: null, youVersionId: 116, yvLicensed: false },
+  { id: "csb", name: "Christian Standard Bible", abbr: "CSB", apiCode: null, youVersionId: 1713, yvLicensed: false },
+  { id: "msg", name: "The Message", abbr: "MSG", apiCode: null, youVersionId: 97, yvLicensed: false },
+  { id: "web", name: "World English Bible", abbr: "WEB", apiCode: "web", youVersionId: 206, yvLicensed: false },
+  { id: "asv", name: "American Standard Version", abbr: "ASV", apiCode: "asv", youVersionId: 12, yvLicensed: false },
 ];
 
 const DEFAULT_TRANSLATION = "kjv";
@@ -151,6 +156,37 @@ function buildYouVersionUrl(book, ref, translationId) {
 function buildApiQuery(book, ref) {
   const apiName = API_BOOK_NAMES[book] || book;
   return `${apiName} ${ref}`;
+}
+
+// Returns an array of USFM strings (multiple for cross-chapter ranges)
+function buildUsfmParts(book, ref) {
+  const abbrev = BOOK_ABBREV[book];
+  if (!abbrev) return null;
+  // ref like "3:16", "12:2-3", or "52:13-53:12"
+  const dashMatch = ref.match(/^(\d+:\d+)-(\d+(?::\d+)?)$/);
+  if (!dashMatch) {
+    // Single verse: "3:16" → "GEN.3.16"
+    return [abbrev + "." + ref.replace(":", ".")];
+  }
+  const start = dashMatch[1];
+  const end = dashMatch[2];
+  if (end.includes(":")) {
+    // Cross-chapter range: "52:13-53:12" → two fetches
+    const [startCh, startV] = start.split(":");
+    const [endCh, endV] = end.split(":");
+    const parts = [];
+    // First partial chapter: e.g. ISA.52.13-15 (use 200 as generous end)
+    parts.push(abbrev + "." + startCh + "." + startV + "-200");
+    // Middle full chapters
+    for (let ch = parseInt(startCh) + 1; ch < parseInt(endCh); ch++) {
+      parts.push(abbrev + "." + ch);
+    }
+    // Last partial chapter: e.g. ISA.53.1-12
+    parts.push(abbrev + "." + endCh + ".1-" + endV);
+    return parts;
+  }
+  // Same-chapter range: "12:2-3" → "GEN.12.2-3"
+  return [abbrev + "." + start.replace(":", ".") + "-" + end];
 }
 
 function parseRefs(book, refsStr) {
@@ -225,6 +261,7 @@ function VersePanel({ book, verseRef, onClose }) {
   const [text, setText] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [copyright, setCopyright] = useState(null);
   const [translationId, setTranslationId] = useState(() => {
     try { return localStorage.getItem("bt:translation") || DEFAULT_TRANSLATION; } catch { return DEFAULT_TRANSLATION; }
   });
@@ -238,42 +275,72 @@ function VersePanel({ book, verseRef, onClose }) {
     setLoading(true);
     setError(null);
     setText(null);
+    setCopyright(null);
 
-    // If this translation isn't available via bible-api.com, show YouVersion prompt
-    if (!tx.apiCode) {
+    if (tx.yvLicensed) {
+      // Fetch from YouVersion API via our server proxy
+      const parts = buildUsfmParts(book, verseRef);
+      if (!parts) { setError("api"); setLoading(false); return; }
+      Promise.all(
+        parts.map(usfm =>
+          fetch(`/api/verse?bible_id=${tx.youVersionId}&usfm=${encodeURIComponent(usfm)}`)
+            .then(r => { if (!r.ok) throw new Error("not found"); return r.json(); })
+        )
+      )
+        .then(results => {
+          if (cancelled) return;
+          const combined = results
+            .map(data => (data.content || data.text || "").trim())
+            .filter(Boolean)
+            .join("\n\n");
+          if (combined) {
+            setText([{ verse: null, text: combined }]);
+            if (tx.copyright) setCopyright(tx.copyright);
+          } else {
+            throw new Error("empty");
+          }
+          setLoading(false);
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setError("api");
+          setLoading(false);
+        });
+    } else if (tx.apiCode) {
+      // Fetch from bible-api.com (public domain translations)
+      const query = buildApiQuery(book, verseRef);
+      fetch(`https://bible-api.com/${encodeURIComponent(query)}?translation=${tx.apiCode}`)
+        .then(r => {
+          if (!r.ok) throw new Error("not found");
+          return r.json();
+        })
+        .then(data => {
+          if (cancelled) return;
+          if (data.verses && data.verses.length > 0) {
+            setText(data.verses.map(v => ({
+              verse: v.verse,
+              text: v.text.trim(),
+            })));
+          } else if (data.text) {
+            setText([{ verse: null, text: data.text.trim() }]);
+          } else {
+            throw new Error("empty");
+          }
+          setLoading(false);
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setError("api");
+          setLoading(false);
+        });
+    } else {
+      // Copyrighted translation without API access
       setLoading(false);
       setError("copyrighted");
-      return;
     }
 
-    const query = buildApiQuery(book, verseRef);
-    fetch(`https://bible-api.com/${encodeURIComponent(query)}?translation=${tx.apiCode}`)
-      .then(r => {
-        if (!r.ok) throw new Error("not found");
-        return r.json();
-      })
-      .then(data => {
-        if (cancelled) return;
-        if (data.verses && data.verses.length > 0) {
-          setText(data.verses.map(v => ({
-            verse: v.verse,
-            text: v.text.trim(),
-          })));
-        } else if (data.text) {
-          setText([{ verse: null, text: data.text.trim() }]);
-        } else {
-          throw new Error("empty");
-        }
-        setLoading(false);
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setError("api");
-        setLoading(false);
-      });
-
     return () => { cancelled = true; };
-  }, [book, verseRef, tx.apiCode]);
+  }, [book, verseRef, tx.apiCode, tx.yvLicensed, tx.youVersionId, tx.copyright]);
 
   const changeTranslation = (newId) => {
     setTranslationId(newId);
@@ -316,7 +383,7 @@ function VersePanel({ book, verseRef, onClose }) {
           >
             {TRANSLATIONS.map(t => (
               <option key={t.id} value={t.id}>
-                {t.abbr} — {t.name}{!t.apiCode ? " (YouVersion)" : ""}
+                {t.abbr} — {t.name}{!t.apiCode && !t.yvLicensed ? " (YouVersion)" : ""}
               </option>
             ))}
           </select>
@@ -364,6 +431,9 @@ function VersePanel({ book, verseRef, onClose }) {
                   {v.text}
                 </p>
               ))}
+              {copyright && (
+                <p style={ps.copyrightAttrib}>{copyright}</p>
+              )}
             </div>
           )}
         </div>
@@ -890,5 +960,9 @@ const ps = {
   youVersionLink: {
     fontSize: 13, fontWeight: 600, color: C.teal, textDecoration: "none",
     borderBottom: `1px dashed rgba(27,58,75,0.3)`,
+  },
+  copyrightAttrib: {
+    fontSize: 11, color: C.tealLight, margin: "20px 0 0", lineHeight: 1.5,
+    opacity: 0.6, fontStyle: "italic",
   },
 };
