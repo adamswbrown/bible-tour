@@ -1,0 +1,437 @@
+"use client";
+import { useState, useEffect, useCallback } from "react";
+
+const READING_PLAN = {
+  "Old Testament": [
+    { book: "Genesis", refs: "12:2-3 and 50:20" },
+    { book: "Exodus", refs: "3:7-8 and 20:1-17" },
+    { book: "Leviticus", refs: "19:1-2" },
+    { book: "Numbers", refs: "14:33-34" },
+    { book: "Deuteronomy", refs: "6:4-5" },
+    { book: "Joshua", refs: "1:6 and 24:15" },
+    { book: "Judges", refs: "21:25" },
+    { book: "Ruth", refs: "1:16" },
+    { book: "I Samuel", refs: "8:5, 15:22 and 16:7" },
+    { book: "II Samuel", refs: "7:16" },
+    { book: "I Kings", refs: "9:1-9 and 18:21" },
+    { book: "II Kings", refs: "17:13-14" },
+    { book: "I Chronicles", refs: "29:10-11" },
+    { book: "II Chronicles", refs: "7:14" },
+    { book: "Ezra", refs: "1:3 and 7:10" },
+    { book: "Nehemiah", refs: "1:4-11 and 2:18" },
+    { book: "Esther", refs: "4:14-16" },
+    { book: "Job", refs: "1:21" },
+    { book: "Psalms", refs: "23:1 and 46:1" },
+    { book: "Proverbs", refs: "1:7, 9:10 and any five random proverbs from chapters 10-29" },
+    { book: "Ecclesiastes", refs: "1:2 and 12:13" },
+    { book: "Song of Songs", refs: "8:6-7" },
+    { book: "Isaiah", refs: "1:18 and 52:13-53:12" },
+    { book: "Jeremiah", refs: "3:12-13 and 31:33" },
+    { book: "Lamentations", refs: "3:22-23" },
+    { book: "Ezekiel", refs: "36:26" },
+    { book: "Daniel", refs: "2:44 and 7:13-14" },
+    { book: "Hosea", refs: "6:6" },
+    { book: "Joel", refs: "2:13-14" },
+    { book: "Amos", refs: "5:24 and 7:7-8" },
+    { book: "Obadiah", refs: "1:13-15 and 1:21" },
+    { book: "Jonah", refs: "4:2" },
+    { book: "Micah", refs: "6:8" },
+    { book: "Nahum", refs: "1:7-8" },
+    { book: "Habakkuk", refs: "2:4" },
+    { book: "Zephaniah", refs: "3:17" },
+    { book: "Haggai", refs: "1:8" },
+    { book: "Zechariah", refs: "9:9-10" },
+    { book: "Malachi", refs: "3:1 and 4:2" },
+  ],
+  "New Testament": [
+    { book: "Matthew", refs: "5:17, 16:6 and 28:18-20", note: "If you have extra time, also read 5:1-29" },
+    { book: "Mark", refs: "1:1 and 10:45" },
+    { book: "Luke", refs: "19:10 and 24:1-12" },
+    { book: "John", refs: "1:1-3, 3:16, 14:6 and 20:31" },
+    { book: "Acts", refs: "1:8 and 2:38" },
+    { book: "Romans", refs: "1:16-17, 3:23, 6:23 and 10:9" },
+    { book: "I Corinthians", refs: "1:10 and 15:3-4" },
+    { book: "II Corinthians", refs: "5:17 and 5:20" },
+    { book: "Galatians", refs: "2:16, 5:1 and 5:22-26" },
+    { book: "Ephesians", refs: "2:8-10 and 6:10-17" },
+    { book: "Philippians", refs: "2:5-11" },
+    { book: "Colossians", refs: "1:15-18" },
+    { book: "I Thessalonians", refs: "4:16-18" },
+    { book: "II Thessalonians", refs: "2:15 and 3:13" },
+    { book: "I Timothy", refs: "1:15, 2:5-6 and 3:15" },
+    { book: "II Timothy", refs: "4:7-8" },
+    { book: "Titus", refs: "2:11-15" },
+    { book: "Philemon", refs: "1:15-16" },
+    { book: "Hebrews", refs: "4:4 and 12:1" },
+    { book: "James", refs: "1:22" },
+    { book: "I Peter", refs: "1:3-5 and 2:9-12" },
+    { book: "II Peter", refs: "1:3-7 and 3:9" },
+    { book: "I John", refs: "1:5-7" },
+    { book: "II John", refs: "1:6" },
+    { book: "III John", refs: "1:8" },
+    { book: "Jude", refs: "1:3 and 1:23-24" },
+    { book: "Revelation", refs: "1:7-8, 21:5 and 22:20-21" },
+  ],
+};
+
+const TOTAL = READING_PLAN["Old Testament"].length + READING_PLAN["New Testament"].length;
+
+function userKey(name, pin) {
+  const raw = `${name.toLowerCase().trim()}:${pin}`;
+  let hash = 0;
+  for (let i = 0; i < raw.length; i++) {
+    hash = ((hash << 5) - hash) + raw.charCodeAt(i);
+    hash |= 0;
+  }
+  return `bt:${Math.abs(hash).toString(36)}`;
+}
+
+function store(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
+}
+function load(key) {
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : null; } catch { return null; }
+}
+function remove(key) {
+  try { localStorage.removeItem(key); } catch {}
+}
+
+function generateColor(name) {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = name.charCodeAt(i) + ((h << 5) - h);
+  const palette = ["#6b4c3b","#2d6a4f","#7c5cbf","#b5705a","#3a7ca5","#c9882c","#8b5e3c","#5a6e3c"];
+  return palette[Math.abs(h) % palette.length];
+}
+
+function Avatar({ name, size = 34 }) {
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: "50%", background: generateColor(name),
+      display: "flex", alignItems: "center", justifyContent: "center",
+      color: "#fff", fontFamily: "'EB Garamond', Georgia, serif",
+      fontSize: size * 0.48, fontWeight: 700, flexShrink: 0,
+    }}>{(name || "?")[0].toUpperCase()}</div>
+  );
+}
+
+function LoginScreen({ onLogin, error }) {
+  const [name, setName] = useState("");
+  const [pin, setPin] = useState("");
+  const [showPin, setShowPin] = useState(false);
+
+  const canSubmit = name.trim().length > 0 && /^\d{4}$/.test(pin);
+  const go = () => { if (canSubmit) onLogin(name.trim(), pin); };
+
+  return (
+    <div style={s.loginOuter}>
+      <div style={s.loginCard}>
+        <div style={{ fontSize: 52, marginBottom: 4 }}>&#9889;</div>
+        <h1 style={s.loginTitle}>Tour of the Bible</h1>
+        <p style={s.loginSub}>Taste every book in 90 minutes</p>
+        <p style={s.loginCredit}>Inspired by Matt Whitman</p>
+
+        <div style={s.fieldGroup}>
+          <label style={s.label}>Your name</label>
+          <input autoFocus type="text" placeholder="e.g. Adam" value={name}
+            onChange={e => setName(e.target.value)} style={s.input} maxLength={20}
+            onKeyDown={e => e.key === "Enter" && document.getElementById("pin-input")?.focus()} />
+        </div>
+
+        <div style={s.fieldGroup}>
+          <label style={s.label}>4-digit PIN</label>
+          <div style={s.pinRow}>
+            <input id="pin-input" type={showPin ? "text" : "password"}
+              inputMode="numeric" pattern="[0-9]*" placeholder="••••"
+              value={pin} onChange={e => { const v = e.target.value.replace(/\D/g,""); if(v.length<=4) setPin(v); }}
+              style={{ ...s.input, letterSpacing: showPin ? "0.1em" : "0.3em", flex: 1 }}
+              onKeyDown={e => e.key === "Enter" && go()} />
+            <button onClick={() => setShowPin(!showPin)} style={s.eyeBtn}
+              title={showPin ? "Hide PIN" : "Show PIN"}>
+              {showPin ? "🙈" : "👁"}
+            </button>
+          </div>
+        </div>
+
+        {error && <p style={s.errorMsg}>{error}</p>}
+
+        <button onClick={go} disabled={!canSubmit}
+          style={{ ...s.goBtn, opacity: canSubmit ? 1 : 0.35 }}>
+          Sign In
+        </button>
+
+        <p style={s.hint}>First time? Just pick any name and PIN — your account will be created automatically.</p>
+      </div>
+    </div>
+  );
+}
+
+function ChecklistView({ user, checked, onToggle, onReset, onLogout }) {
+  const [section, setSection] = useState("all");
+  const [showCelebrate, setShowCelebrate] = useState(false);
+
+  const doneCount = Object.values(checked).filter(Boolean).length;
+  const otDone = READING_PLAN["Old Testament"].filter(r => checked[r.book]).length;
+  const ntDone = READING_PLAN["New Testament"].filter(r => checked[r.book]).length;
+  const pct = Math.round((doneCount / TOTAL) * 100);
+
+  const toggle = (book) => {
+    const willBeDone = !checked[book];
+    onToggle(book);
+    if (willBeDone && (doneCount + 1) === TOTAL) {
+      setShowCelebrate(true);
+      setTimeout(() => setShowCelebrate(false), 4000);
+    }
+  };
+
+  const vis = section === "ot" ? { "Old Testament": READING_PLAN["Old Testament"] }
+    : section === "nt" ? { "New Testament": READING_PLAN["New Testament"] }
+    : READING_PLAN;
+
+  return (
+    <div style={s.outer}>
+      {showCelebrate && (
+        <div style={s.celebrate}>
+          <span style={{ fontSize: 44 }}>&#127881;</span>
+          <p style={s.celebrateText}>Amazing, {user}! All 66 books!</p>
+        </div>
+      )}
+
+      <header style={s.header}>
+        <div style={s.headerRow}>
+          <div style={{ flex: 1 }} />
+          <div style={s.headerCenter}>
+            <span style={{ fontSize: 24 }}>&#9889;</span>
+            <h1 style={s.title}>Tour of the Bible</h1>
+          </div>
+          <div style={{ flex: 1, display: "flex", justifyContent: "flex-end", alignItems: "center" }}>
+            <Avatar name={user} size={30} />
+          </div>
+        </div>
+        <div style={s.headerMeta}>
+          <span style={s.greeting}>Hi, {user}</span>
+          <button onClick={onLogout} style={s.logoutBtn}>Sign out</button>
+        </div>
+      </header>
+
+      <div style={s.progressSection}>
+        <div style={s.progressStats}>
+          <div style={s.statBox}>
+            <span style={s.statNum}>{doneCount}</span>
+            <span style={s.statLabel}>of {TOTAL}</span>
+          </div>
+          <div style={s.statBox}>
+            <span style={s.statNum}>{pct}%</span>
+            <span style={s.statLabel}>done</span>
+          </div>
+        </div>
+        <div style={s.progressTrack}>
+          <div style={{
+            ...s.progressBar, width: `${pct}%`,
+            background: pct === 100 ? "linear-gradient(90deg,#2d6a4f,#40916c)" : "linear-gradient(90deg,#c9882c,#e0a84a)",
+          }} />
+        </div>
+        <div style={s.progressMini}>
+          <span>OT: {otDone}/{READING_PLAN["Old Testament"].length}</span>
+          <span>NT: {ntDone}/{READING_PLAN["New Testament"].length}</span>
+        </div>
+      </div>
+
+      <div style={s.filters}>
+        {[["all","All"],["ot","Old Testament"],["nt","New Testament"]].map(([k,l]) => (
+          <button key={k} onClick={() => setSection(k)}
+            style={{ ...s.filterBtn, ...(section===k ? s.filterActive : {}) }}>{l}</button>
+        ))}
+        <button onClick={onReset} style={s.resetBtn}>Reset</button>
+      </div>
+
+      <div style={s.listWrap}>
+        {Object.entries(vis).map(([sec, readings]) => {
+          const secDone = readings.filter(r => checked[r.book]).length;
+          return (
+            <div key={sec}>
+              <div style={s.secHeader}>
+                <h2 style={s.secTitle}>{sec}</h2>
+                <span style={s.secCount}>{secDone}/{readings.length}</span>
+              </div>
+              <div style={s.grid}>
+                {readings.map((r, i) => {
+                  const done = !!checked[r.book];
+                  return (
+                    <button key={r.book} onClick={() => toggle(r.book)}
+                      style={{ ...s.card, ...(done ? s.cardDone : {}) }}>
+                      <div style={s.cardTop}>
+                        <div style={{ ...s.chk, ...(done ? s.chkDone : {}) }}>
+                          {done && <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <path d="M2.5 7.5L5.5 10.5L11.5 3.5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>}
+                        </div>
+                        <span style={{ ...s.bookName, ...(done ? s.bookDone : {}) }}>{r.book}</span>
+                      </div>
+                      <p style={{ ...s.refs, ...(done ? s.refsDone : {}) }}>{r.refs}</p>
+                      {r.note && <p style={s.note}>{r.note}</p>}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <footer style={s.footer}>
+        <p>Taste every book of the Bible in 90 minutes</p>
+        <p style={{ fontSize: 12, marginTop: 4 }}>Inspired by Matt Whitman</p>
+      </footer>
+    </div>
+  );
+}
+
+export default function Page() {
+  const [phase, setPhase] = useState("loading");
+  const [user, setUser] = useState(null);
+  const [storageKey, setStorageKey] = useState(null);
+  const [checked, setChecked] = useState({});
+  const [loginError, setLoginError] = useState("");
+
+  useEffect(() => {
+    const sess = load("bt:_session");
+    if (sess?.name && sess?.key) {
+      const data = load(sess.key);
+      setUser(sess.name);
+      setStorageKey(sess.key);
+      setChecked(data?.progress || {});
+      setPhase("checklist");
+    } else {
+      setPhase("login");
+    }
+  }, []);
+
+  const handleLogin = useCallback((name, pin) => {
+    const k = userKey(name, pin);
+    setLoginError("");
+    const existing = load(k);
+    if (existing && existing._name && existing._name.toLowerCase() !== name.toLowerCase()) {
+      setLoginError("Incorrect name or PIN. Please try again.");
+      return;
+    }
+    const data = existing || { _name: name, progress: {} };
+    if (!data._name) data._name = name;
+    if (!data.progress) data.progress = {};
+    store(k, data);
+    store("bt:_session", { name, key: k });
+    setUser(name);
+    setStorageKey(k);
+    setChecked(data.progress);
+    setPhase("checklist");
+  }, []);
+
+  const handleToggle = useCallback((book) => {
+    setChecked(prev => {
+      const next = { ...prev, [book]: !prev[book] };
+      Object.keys(next).forEach(b => { if (!next[b]) delete next[b]; });
+      const data = load(storageKey) || { _name: user };
+      data.progress = next;
+      store(storageKey, data);
+      return next;
+    });
+  }, [storageKey, user]);
+
+  const handleReset = useCallback(() => {
+    if (window.confirm("Reset all your reading progress? This can't be undone.")) {
+      setChecked({});
+      const data = load(storageKey) || { _name: user };
+      data.progress = {};
+      store(storageKey, data);
+    }
+  }, [storageKey, user]);
+
+  const handleLogout = useCallback(() => {
+    remove("bt:_session");
+    setUser(null);
+    setStorageKey(null);
+    setChecked({});
+    setLoginError("");
+    setPhase("login");
+  }, []);
+
+  if (phase === "loading") {
+    return (
+      <div style={s.loadWrap}>
+        <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <div style={s.spinner} />
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+      <style>{`
+        @keyframes spin{to{transform:rotate(360deg)}}
+        @keyframes popIn{from{opacity:0;transform:translateY(-16px)scale(.95)}to{opacity:1;transform:translateY(0)scale(1)}}
+        @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+      `}</style>
+      {phase === "login" && <LoginScreen onLogin={handleLogin} error={loginError} />}
+      {phase === "checklist" && (
+        <ChecklistView user={user} checked={checked}
+          onToggle={handleToggle} onReset={handleReset} onLogout={handleLogout} />
+      )}
+    </>
+  );
+}
+
+const s = {
+  loadWrap: { minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#fdf6ec" },
+  spinner: { width: 28, height: 28, border: "3px solid #e0d5c5", borderTopColor: "#c9882c", borderRadius: "50%", animation: "spin .8s linear infinite" },
+  loginOuter: { minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "linear-gradient(180deg,#2d2016,#4a3728)", padding: 20 },
+  loginCard: { background: "#fdf6ec", borderRadius: 20, padding: "44px 32px 36px", textAlign: "center", maxWidth: 380, width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.4)" },
+  loginTitle: { fontFamily: "'EB Garamond',Georgia,serif", fontSize: 28, fontWeight: 700, color: "#2d2016", margin: "0 0 4px" },
+  loginSub: { fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: "#9a8b78", margin: 0, textTransform: "uppercase", letterSpacing: "0.1em" },
+  loginCredit: { fontFamily: "'EB Garamond',Georgia,serif", fontSize: 13, fontStyle: "italic", color: "#b5a58a", margin: "8px 0 24px" },
+  fieldGroup: { textAlign: "left", marginBottom: 16 },
+  label: { display: "block", fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 600, color: "#7a6b5a", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 },
+  input: { width: "100%", padding: "11px 14px", border: "1.5px solid #d4c4ae", borderRadius: 10, fontFamily: "'DM Sans',sans-serif", fontSize: 15, color: "#3a2e22", background: "#fff", outline: "none", boxSizing: "border-box" },
+  pinRow: { display: "flex", gap: 8, alignItems: "center" },
+  eyeBtn: { background: "none", border: "none", fontSize: 18, cursor: "pointer", padding: "8px 4px", lineHeight: 1 },
+  errorMsg: { fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: "#c0392b", margin: "0 0 12px", animation: "shake 0.4s ease" },
+  goBtn: { width: "100%", padding: "13px 24px", border: "none", borderRadius: 10, background: "#4a3728", color: "#f5ebe0", fontFamily: "'DM Sans',sans-serif", fontSize: 15, fontWeight: 600, cursor: "pointer", transition: "opacity .2s", marginBottom: 16 },
+  hint: { fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: "#b5a58a", lineHeight: 1.5, margin: 0 },
+  outer: { minHeight: "100vh", background: "linear-gradient(180deg,#fdf6ec 0%,#f5ebe0 50%,#eddfce 100%)", fontFamily: "'DM Sans',sans-serif", color: "#3a2e22" },
+  header: { background: "linear-gradient(135deg,#2d2016,#4a3728)", padding: "16px 20px 12px" },
+  headerRow: { display: "flex", alignItems: "center" },
+  headerCenter: { display: "flex", alignItems: "center", gap: 8, justifyContent: "center" },
+  title: { fontFamily: "'EB Garamond',Georgia,serif", fontSize: 22, fontWeight: 700, color: "#f5ebe0", margin: 0 },
+  headerMeta: { display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginTop: 8 },
+  greeting: { fontSize: 13, color: "#c9b99a" },
+  logoutBtn: { background: "none", border: "none", color: "#9a8b78", fontSize: 12, cursor: "pointer", textDecoration: "underline", fontFamily: "'DM Sans',sans-serif", padding: 0 },
+  progressSection: { padding: "20px 20px 12px", maxWidth: 600, margin: "0 auto" },
+  progressStats: { display: "flex", justifyContent: "center", gap: 40, marginBottom: 10 },
+  statBox: { display: "flex", flexDirection: "column", alignItems: "center" },
+  statNum: { fontFamily: "'EB Garamond',Georgia,serif", fontSize: 26, fontWeight: 700, color: "#5c4a3a" },
+  statLabel: { fontSize: 11, fontWeight: 500, color: "#9a8b78", textTransform: "uppercase", letterSpacing: "0.08em" },
+  progressTrack: { height: 7, background: "#e0d5c5", borderRadius: 4, overflow: "hidden" },
+  progressBar: { height: "100%", borderRadius: 4, transition: "width .5s ease, background .5s ease" },
+  progressMini: { display: "flex", justifyContent: "space-between", fontSize: 11, color: "#9a8b78", marginTop: 5, fontWeight: 500 },
+  filters: { display: "flex", justifyContent: "center", gap: 8, padding: "0 20px 16px", flexWrap: "wrap" },
+  filterBtn: { padding: "7px 16px", border: "1.5px solid #d4c4ae", borderRadius: 22, background: "transparent", fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 500, color: "#7a6b5a", cursor: "pointer", transition: "all .2s" },
+  filterActive: { background: "#4a3728", color: "#f5ebe0", borderColor: "#4a3728" },
+  resetBtn: { padding: "7px 16px", border: "1.5px solid #d4c4ae", borderRadius: 22, background: "transparent", fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 500, color: "#b5705a", cursor: "pointer" },
+  listWrap: { maxWidth: 680, margin: "0 auto", padding: "0 16px 40px" },
+  secHeader: { display: "flex", alignItems: "baseline", justifyContent: "space-between", padding: "18px 4px 10px", borderBottom: "2px solid #d4c4ae", marginBottom: 12 },
+  secTitle: { fontFamily: "'EB Garamond',Georgia,serif", fontSize: 20, fontWeight: 700, color: "#4a3728", margin: 0 },
+  secCount: { fontSize: 13, fontWeight: 600, color: "#9a8b78" },
+  grid: { display: "flex", flexDirection: "column", gap: 5 },
+  card: { display: "flex", flexDirection: "column", gap: 2, padding: "11px 14px", background: "rgba(255,255,255,0.65)", border: "1px solid rgba(212,196,174,0.5)", borderRadius: 10, cursor: "pointer", transition: "all .2s", textAlign: "left", fontFamily: "'DM Sans',sans-serif", width: "100%", boxSizing: "border-box" },
+  cardDone: { background: "rgba(45,106,79,0.08)", borderColor: "rgba(45,106,79,0.2)" },
+  cardTop: { display: "flex", alignItems: "center", gap: 10 },
+  chk: { width: 21, height: 21, borderRadius: 6, border: "2px solid #c9b99a", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all .2s" },
+  chkDone: { background: "#2d6a4f", borderColor: "#2d6a4f" },
+  bookName: { fontFamily: "'EB Garamond',Georgia,serif", fontSize: 16, fontWeight: 600, color: "#3a2e22" },
+  bookDone: { color: "#2d6a4f" },
+  refs: { fontSize: 13, color: "#7a6b5a", margin: "0 0 0 31px", lineHeight: 1.4 },
+  refsDone: { color: "#5a8a6e", textDecoration: "line-through", textDecorationColor: "rgba(45,106,79,0.3)" },
+  note: { fontSize: 12, fontStyle: "italic", color: "#b5925a", margin: "2px 0 0 31px" },
+  footer: { textAlign: "center", padding: "20px 20px 28px", fontFamily: "'EB Garamond',Georgia,serif", fontSize: 14, fontStyle: "italic", color: "#9a8b78" },
+  celebrate: { position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)", zIndex: 1000, background: "linear-gradient(135deg,#2d6a4f,#40916c)", color: "#fff", padding: "18px 28px", borderRadius: 14, textAlign: "center", boxShadow: "0 12px 40px rgba(45,106,79,0.3)", animation: "popIn .4s ease forwards" },
+  celebrateText: { fontFamily: "'EB Garamond',Georgia,serif", fontSize: 17, fontWeight: 600, margin: "6px 0 0" },
+};
