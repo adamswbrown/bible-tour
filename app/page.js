@@ -696,6 +696,12 @@ function ChecklistView({ user, checked, onToggle, onReset, onLogout }) {
           </svg>
           Watch Matt explain the tour
         </a>
+        <p style={s.madeBy}>
+          Made by{" "}
+          <a href="https://askadam.cloud/" target="_blank" rel="noopener noreferrer" style={s.madeByLink}>Adam Brown</a>
+          {" & "}
+          <span style={{ fontWeight: 600 }}>Claude</span>
+        </p>
       </footer>
 
       {versePanel && (
@@ -883,6 +889,8 @@ const s = {
   footerLink: { color: C.teal, fontWeight: 700, textDecoration: "none", borderBottom: `1px solid rgba(27,58,75,0.3)`, fontSize: 14 },
   footerDisclaimer: { fontSize: 11, color: C.tealLight, margin: "0 0 12px", opacity: 0.6, lineHeight: 1.5 },
   footerYt: { display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: C.teal, textDecoration: "none", borderBottom: `1px dashed rgba(27,58,75,0.3)` },
+  madeBy: { fontSize: 12, color: C.tealLight, margin: "16px 0 0", opacity: 0.5 },
+  madeByLink: { color: C.teal, fontWeight: 600, textDecoration: "none", borderBottom: `1px dashed rgba(27,58,75,0.3)` },
 
   // Celebrate
   celebrate: { position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)", zIndex: 1000, background: C.teal, color: C.white, padding: "18px 28px", borderRadius: 14, textAlign: "center", boxShadow: "0 12px 40px rgba(0,0,0,0.3)", animation: "popIn .4s ease forwards", display: "flex", flexDirection: "column", alignItems: "center" },
