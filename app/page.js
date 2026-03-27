@@ -344,15 +344,6 @@ function VersePanel({ book, verseRef, onClose }) {
   );
 }
 
-function userKey(name, pin) {
-  const raw = `${name.toLowerCase().trim()}:${pin}`;
-  let hash = 0;
-  for (let i = 0; i < raw.length; i++) {
-    hash = ((hash << 5) - hash) + raw.charCodeAt(i);
-    hash |= 0;
-  }
-  return `bt:${Math.abs(hash).toString(36)}`;
-}
 
 function store(key, value) {
   try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
@@ -364,17 +355,6 @@ function remove(key) {
   try { localStorage.removeItem(key); } catch {}
 }
 
-function Avatar({ name, size = 34 }) {
-  return (
-    <div style={{
-      width: size, height: size, borderRadius: "50%", background: C.yellow,
-      display: "flex", alignItems: "center", justifyContent: "center",
-      color: C.teal, fontFamily: "'DM Sans',sans-serif",
-      fontSize: size * 0.48, fontWeight: 800, flexShrink: 0,
-      border: `2px solid ${C.teal}`,
-    }}>{(name || "?")[0].toUpperCase()}</div>
-  );
-}
 
 function LightningIcon({ size = 24, color = C.yellow }) {
   return (
@@ -384,71 +364,7 @@ function LightningIcon({ size = 24, color = C.yellow }) {
   );
 }
 
-function LoginScreen({ onLogin, error }) {
-  const [name, setName] = useState("");
-  const [pin, setPin] = useState("");
-  const [showPin, setShowPin] = useState(false);
-
-  const canSubmit = name.trim().length > 0 && /^\d{4}$/.test(pin);
-  const go = () => { if (canSubmit) onLogin(name.trim(), pin); };
-
-  return (
-    <div style={s.loginOuter}>
-      <div style={s.loginCard}>
-        <LightningIcon size={48} color={C.yellow} />
-        <h1 style={s.loginTitle}>Tour of the Bible</h1>
-        <p style={s.loginSub}>Taste every book in 90 minutes</p>
-        <p style={s.loginDisclaimer}>
-          Inspired by Matt Whitman&rsquo;s{" "}
-          <a href="https://www.thetmbh.com/tourofthebible" target="_blank" rel="noopener noreferrer" style={s.loginCreditLink}>
-            Lightning-Fast Field Guide to the Bible
-          </a>
-          .{" "}Not affiliated with or endorsed by The Ten Minute Bible Hour.
-        </p>
-        <a href="https://youtu.be/XdMuZCTChJE?si=DRfBFUnDc2mt3Yq2" target="_blank" rel="noopener noreferrer"
-          style={s.ytLink}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill={C.teal} style={{ flexShrink: 0 }}>
-            <path d="M23.5 6.2c-.3-1-1-1.8-2-2.1C19.6 3.5 12 3.5 12 3.5s-7.6 0-9.5.6c-1 .3-1.8 1-2.1 2C0 8.1 0 12 0 12s0 3.9.4 5.8c.3 1 1 1.8 2 2.1 1.9.6 9.6.6 9.6.6s7.6 0 9.5-.6c1-.3 1.8-1 2.1-2 .4-1.9.4-5.8.4-5.8s0-3.9-.5-5.8zM9.5 15.6V8.4l6.4 3.6-6.4 3.6z"/>
-          </svg>
-          Watch Matt explain the tour
-        </a>
-
-        <div style={s.fieldGroup}>
-          <label style={s.label}>Your name</label>
-          <input autoFocus type="text" placeholder="e.g. Adam" value={name}
-            onChange={e => setName(e.target.value)} style={s.input} maxLength={20}
-            onKeyDown={e => e.key === "Enter" && document.getElementById("pin-input")?.focus()} />
-        </div>
-
-        <div style={s.fieldGroup}>
-          <label style={s.label}>4-digit PIN</label>
-          <div style={s.pinRow}>
-            <input id="pin-input" type={showPin ? "text" : "password"}
-              inputMode="numeric" pattern="[0-9]*" placeholder="----"
-              value={pin} onChange={e => { const v = e.target.value.replace(/\D/g,""); if(v.length<=4) setPin(v); }}
-              style={{ ...s.input, letterSpacing: showPin ? "0.1em" : "0.3em", flex: 1 }}
-              onKeyDown={e => e.key === "Enter" && go()} />
-            <button onClick={() => setShowPin(!showPin)} style={s.eyeBtn}
-              title={showPin ? "Hide PIN" : "Show PIN"}>
-              {showPin ? "Hide" : "Show"}
-            </button>
-          </div>
-        </div>
-
-        {error && <p style={s.errorMsg}>{error}</p>}
-
-        <button onClick={go} disabled={!canSubmit}
-          style={{ ...s.goBtn, opacity: canSubmit ? 1 : 0.35 }}>
-          Sign In
-        </button>
-
-        <p style={s.hint}>First time? Just pick any name and PIN to get started.</p>
-      </div>
-    </div>
-  );
-}
-
-function ChecklistView({ user, checked, onToggle, onReset, onLogout }) {
+function ChecklistView({ checked, onToggle, onReset }) {
   const [section, setSection] = useState("all");
   const [showCelebrate, setShowCelebrate] = useState(false);
   const [versePanel, setVersePanel] = useState(null); // { book, ref, youVersionUrl }
@@ -484,24 +400,14 @@ function ChecklistView({ user, checked, onToggle, onReset, onLogout }) {
       {showCelebrate && (
         <div style={s.celebrate}>
           <LightningIcon size={36} color={C.yellow} />
-          <p style={s.celebrateText}>Amazing, {user}! All 66 books!</p>
+          <p style={s.celebrateText}>Amazing! All 66 books!</p>
         </div>
       )}
 
       <header style={s.header}>
-        <div style={s.headerRow}>
-          <div style={{ flex: 1 }} />
-          <div style={s.headerCenter}>
-            <LightningIcon size={22} color={C.yellow} />
-            <h1 style={s.title}>Tour of the Bible</h1>
-          </div>
-          <div style={{ flex: 1, display: "flex", justifyContent: "flex-end", alignItems: "center" }}>
-            <Avatar name={user} size={30} />
-          </div>
-        </div>
-        <div style={s.headerMeta}>
-          <span style={s.greeting}>Hi, {user}</span>
-          <button onClick={onLogout} style={s.logoutBtn}>Sign out</button>
+        <div style={s.headerCenter}>
+          <LightningIcon size={22} color={C.yellow} />
+          <h1 style={s.title}>Tour of the Bible</h1>
         </div>
       </header>
 
@@ -633,102 +539,44 @@ function ChecklistView({ user, checked, onToggle, onReset, onLogout }) {
   );
 }
 
+const PROGRESS_KEY = "bt:progress";
+
 export default function Page() {
-  const [phase, setPhase] = useState("loading");
-  const [user, setUser] = useState(null);
-  const [storageKey, setStorageKey] = useState(null);
   const [checked, setChecked] = useState({});
-  const [loginError, setLoginError] = useState("");
 
   useEffect(() => {
-    const sess = load("bt:_session");
-    if (sess?.name && sess?.key) {
-      const data = load(sess.key);
-      setUser(sess.name);
-      setStorageKey(sess.key);
-      setChecked(data?.progress || {});
-      setPhase("checklist");
-    } else {
-      setPhase("login");
-    }
-  }, []);
-
-  const handleLogin = useCallback((name, pin) => {
-    const k = userKey(name, pin);
-    setLoginError("");
-    const existing = load(k);
-    if (existing && existing._name && existing._name.toLowerCase() !== name.toLowerCase()) {
-      setLoginError("Incorrect name or PIN. Please try again.");
-      return;
-    }
-    const data = existing || { _name: name, progress: {} };
-    if (!data._name) data._name = name;
-    if (!data.progress) data.progress = {};
-    store(k, data);
-    store("bt:_session", { name, key: k });
-    setUser(name);
-    setStorageKey(k);
-    setChecked(data.progress);
-    setPhase("checklist");
+    setChecked(load(PROGRESS_KEY) || {});
   }, []);
 
   const handleToggle = useCallback((book) => {
     setChecked(prev => {
       const next = { ...prev, [book]: !prev[book] };
       Object.keys(next).forEach(b => { if (!next[b]) delete next[b]; });
-      const data = load(storageKey) || { _name: user };
-      data.progress = next;
-      store(storageKey, data);
+      store(PROGRESS_KEY, next);
       return next;
     });
-  }, [storageKey, user]);
+  }, []);
 
   const handleReset = useCallback(() => {
     if (window.confirm("Reset all your reading progress? This can't be undone.")) {
       setChecked({});
-      const data = load(storageKey) || { _name: user };
-      data.progress = {};
-      store(storageKey, data);
+      remove(PROGRESS_KEY);
     }
-  }, [storageKey, user]);
-
-  const handleLogout = useCallback(() => {
-    remove("bt:_session");
-    setUser(null);
-    setStorageKey(null);
-    setChecked({});
-    setLoginError("");
-    setPhase("login");
   }, []);
-
-  if (phase === "loading") {
-    return (
-      <div style={s.loadWrap}>
-        <div style={s.spinner} />
-      </div>
-    );
-  }
 
   return (
     <>
       <style>{`
         @keyframes spin{to{transform:rotate(360deg)}}
         @keyframes popIn{from{opacity:0;transform:translateY(-16px)scale(.95)}to{opacity:1;transform:translateY(0)scale(1)}}
-        @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
         @keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
         @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-        input::placeholder{color:rgba(27,58,75,0.3)}
-        input:focus{border-color:${C.teal} !important;box-shadow:0 0 0 3px rgba(27,58,75,0.1)}
         @media(max-width:600px){
           .verse-panel{width:100% !important;max-width:100% !important;border-radius:20px 20px 0 0 !important;top:auto !important;bottom:0 !important;max-height:75vh !important;animation:slideUp .3s ease forwards !important}
         }
         @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
       `}</style>
-      {phase === "login" && <LoginScreen onLogin={handleLogin} error={loginError} />}
-      {phase === "checklist" && (
-        <ChecklistView user={user} checked={checked}
-          onToggle={handleToggle} onReset={handleReset} onLogout={handleLogout} />
-      )}
+      <ChecklistView checked={checked} onToggle={handleToggle} onReset={handleReset} />
     </>
   );
 }
