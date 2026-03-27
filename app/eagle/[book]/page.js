@@ -11,6 +11,7 @@ import {
   hasMeaningfulBookInfo,
 } from "../../lib/book-data";
 import { getIqBookInfo, getIqVerseCount } from "../../lib/iq-bible";
+import VersePreviewPanel from "./VersePreviewPanel";
 
 const C = {
   sand: "#f6f1e5",
@@ -857,6 +858,8 @@ export default async function EagleBookPage({ params }) {
               </div>
             </div>
           </div>
+
+          <VersePreviewPanel book={entry.book} refs={parsedRefs} />
 
           <div className="eagle-map-grid">
             {Array.from({ length: chapterCount }, (_, index) => {

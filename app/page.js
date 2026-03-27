@@ -1,24 +1,14 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
-import { API_BOOK_NAMES, BOOK_ABBREV, READING_PLAN, TOTAL } from "./lib/bible";
-
-const TRANSLATIONS = [
-  { id: "kjv", name: "King James Version", abbr: "KJV", apiCode: "kjv", youVersionId: 1, yvLicensed: false },
-  { id: "niv", name: "New International Version", abbr: "NIV", apiCode: null, youVersionId: 111, yvLicensed: true,
-    copyright: "Holy Bible, New International Version\u00ae, NIV\u00ae Copyright \u00a91973, 1978, 1984, 2011 by Biblica, Inc.\u00ae Used by permission. All rights reserved worldwide." },
-  { id: "nirv", name: "New International Reader\u2019s Version", abbr: "NIrV", apiCode: null, youVersionId: 110, yvLicensed: true,
-    copyright: "Copyright \u00a91995, 1996, 1998, 2014 by Biblica, Inc.\u00ae Used by permission. All rights reserved worldwide." },
-  { id: "nivuk", name: "NIV (Anglicised)", abbr: "NIVUK", apiCode: null, youVersionId: 113, yvLicensed: true,
-    copyright: "Holy Bible, New International Version\u00ae Anglicised, NIV\u00ae Copyright \u00a91979, 1984, 2011 by Biblica, Inc.\u00ae Used by permission. All rights reserved worldwide." },
-  { id: "nkjv", name: "New King James Version", abbr: "NKJV", apiCode: null, youVersionId: 114, yvLicensed: false },
-  { id: "nlt", name: "New Living Translation", abbr: "NLT", apiCode: null, youVersionId: 116, yvLicensed: false },
-  { id: "csb", name: "Christian Standard Bible", abbr: "CSB", apiCode: null, youVersionId: 1713, yvLicensed: false },
-  { id: "msg", name: "The Message", abbr: "MSG", apiCode: null, youVersionId: 97, yvLicensed: false },
-  { id: "web", name: "World English Bible", abbr: "WEB", apiCode: "web", youVersionId: 206, yvLicensed: false },
-  { id: "asv", name: "American Standard Version", abbr: "ASV", apiCode: "asv", youVersionId: 12, yvLicensed: false },
-];
-
-const DEFAULT_TRANSLATION = "kjv";
+import { READING_PLAN, TOTAL } from "./lib/bible";
+import {
+  TRANSLATIONS,
+  MAIN_DEFAULT_TRANSLATION,
+  MAIN_TRANSLATION_STORAGE_KEY,
+  buildApiQuery,
+  buildUsfmParts,
+  buildYouVersionUrl,
+} from "./lib/translations";
 
 // Brand colors from The Ten Minute Bible Hour
 const C = {
@@ -34,53 +24,6 @@ const C = {
   doneBg: "rgba(27,107,58,0.1)",
   doneBorder: "rgba(27,107,58,0.25)",
 };
-
-function buildYouVersionUrl(book, ref, translationId) {
-  const abbrev = BOOK_ABBREV[book];
-  if (!abbrev) return null;
-  const match = ref.match(/^(\d+):(.+)$/);
-  if (!match) return null;
-  const chapter = match[1];
-  const verses = match[2];
-  const bibleId = translationId || 111;
-  return `https://www.bible.com/bible/${bibleId}/${abbrev}.${chapter}.${verses}`;
-}
-
-function buildApiQuery(book, ref) {
-  const apiName = API_BOOK_NAMES[book] || book;
-  return `${apiName} ${ref}`;
-}
-
-// Returns an array of USFM strings (multiple for cross-chapter ranges)
-function buildUsfmParts(book, ref) {
-  const abbrev = BOOK_ABBREV[book];
-  if (!abbrev) return null;
-  // ref like "3:16", "12:2-3", or "52:13-53:12"
-  const dashMatch = ref.match(/^(\d+:\d+)-(\d+(?::\d+)?)$/);
-  if (!dashMatch) {
-    // Single verse: "3:16" → "GEN.3.16"
-    return [abbrev + "." + ref.replace(":", ".")];
-  }
-  const start = dashMatch[1];
-  const end = dashMatch[2];
-  if (end.includes(":")) {
-    // Cross-chapter range: "52:13-53:12" → two fetches
-    const [startCh, startV] = start.split(":");
-    const [endCh, endV] = end.split(":");
-    const parts = [];
-    // First partial chapter: e.g. ISA.52.13-15 (use 200 as generous end)
-    parts.push(abbrev + "." + startCh + "." + startV + "-200");
-    // Middle full chapters
-    for (let ch = parseInt(startCh) + 1; ch < parseInt(endCh); ch++) {
-      parts.push(abbrev + "." + ch);
-    }
-    // Last partial chapter: e.g. ISA.53.1-12
-    parts.push(abbrev + "." + endCh + ".1-" + endV);
-    return parts;
-  }
-  // Same-chapter range: "12:2-3" → "GEN.12.2-3"
-  return [abbrev + "." + start.replace(":", ".") + "-" + end];
-}
 
 function parseRefs(book, refsStr) {
   const parts = refsStr.split(/\s+and\s+|,\s*/);
@@ -156,7 +99,7 @@ function VersePanel({ book, verseRef, onClose }) {
   const [error, setError] = useState(null);
   const [copyright, setCopyright] = useState(null);
   const [translationId, setTranslationId] = useState(() => {
-    try { return localStorage.getItem("bt:translation") || DEFAULT_TRANSLATION; } catch { return DEFAULT_TRANSLATION; }
+    try { return localStorage.getItem(MAIN_TRANSLATION_STORAGE_KEY) || MAIN_DEFAULT_TRANSLATION; } catch { return MAIN_DEFAULT_TRANSLATION; }
   });
   const panelRef = useRef(null);
 
@@ -237,7 +180,7 @@ function VersePanel({ book, verseRef, onClose }) {
 
   const changeTranslation = (newId) => {
     setTranslationId(newId);
-    try { localStorage.setItem("bt:translation", newId); } catch {}
+    try { localStorage.setItem(MAIN_TRANSLATION_STORAGE_KEY, newId); } catch {}
   };
 
   // Close on Escape
@@ -344,6 +287,7 @@ function VersePanel({ book, verseRef, onClose }) {
   );
 }
 
+const EAGLE_BANNER_DISMISSED_KEY = "bt:eagleBannerDismissed";
 
 function store(key, value) {
   try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
@@ -368,6 +312,8 @@ function ChecklistView({ checked, onToggle, onReset }) {
   const [section, setSection] = useState("all");
   const [showCelebrate, setShowCelebrate] = useState(false);
   const [versePanel, setVersePanel] = useState(null); // { book, ref, youVersionUrl }
+  const [showEagleBanner, setShowEagleBanner] = useState(false);
+  const [bannerReady, setBannerReady] = useState(false);
 
   const doneCount = Object.values(checked).filter(Boolean).length;
   const otDone = READING_PLAN["Old Testament"].filter(r => checked[r.book]).length;
@@ -391,6 +337,16 @@ function ChecklistView({ checked, onToggle, onReset }) {
     setVersePanel(null);
   }, []);
 
+  useEffect(() => {
+    setShowEagleBanner(!load(EAGLE_BANNER_DISMISSED_KEY));
+    setBannerReady(true);
+  }, []);
+
+  const dismissEagleBanner = useCallback(() => {
+    setShowEagleBanner(false);
+    store(EAGLE_BANNER_DISMISSED_KEY, true);
+  }, []);
+
   const vis = section === "ot" ? { "Old Testament": READING_PLAN["Old Testament"] }
     : section === "nt" ? { "New Testament": READING_PLAN["New Testament"] }
     : READING_PLAN;
@@ -410,6 +366,30 @@ function ChecklistView({ checked, onToggle, onReset }) {
           <h1 style={s.title}>Tour of the Bible</h1>
         </div>
       </header>
+
+      {bannerReady && showEagleBanner && (
+        <div style={s.eagleBannerWrap}>
+          <div style={s.eagleBannerShell}>
+            <a href="/eagle" style={s.eagleBanner}>
+              <span style={s.eagleBannerPill}>New</span>
+              <span style={s.eagleBannerText}>
+                Eagle Method — memorise a verse by seeing the whole book first
+              </span>
+              <span style={s.eagleBannerArrow} aria-hidden="true">→</span>
+            </a>
+            <button
+              type="button"
+              onClick={dismissEagleBanner}
+              aria-label="Dismiss Eagle Method banner"
+              style={s.eagleBannerClose}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
 
       <div style={s.progressSection}>
         <div style={s.progressStats}>
@@ -433,31 +413,6 @@ function ChecklistView({ checked, onToggle, onReset }) {
           <span>NT: {ntDone}/{READING_PLAN["New Testament"].length}</span>
         </div>
       </div>
-
-      <a href="/eagle" style={{
-        display: "flex", alignItems: "center", gap: 10,
-        margin: "0 0 12px",
-        padding: "12px 16px",
-        borderRadius: 14,
-        background: C.teal,
-        border: `1px solid rgba(0,0,0,0.15)`,
-        textDecoration: "none",
-        color: "#fff",
-        boxShadow: "0 2px 12px rgba(0,0,0,0.15)",
-        transition: "all .15s",
-      }}>
-        <span style={{
-          display: "inline-flex", alignItems: "center", justifyContent: "center",
-          padding: "2px 7px", borderRadius: 999,
-          background: C.yellow, color: C.teal,
-          fontSize: 10, fontWeight: 800, letterSpacing: "0.1em",
-          textTransform: "uppercase", flexShrink: 0,
-        }}>New</span>
-        <span style={{ flex: 1, fontSize: 14, fontWeight: 700 }}>
-          Eagle Method — memorise a verse by seeing the whole book first
-        </span>
-        <span style={{ fontSize: 16, opacity: 0.6 }}>→</span>
-      </a>
 
       <div style={s.filters}>
         {[["all","All"],["ot","Old Testament"],["nt","New Testament"]].map(([k,l]) => (
@@ -614,7 +569,39 @@ const s = {
   logoutBtn: { background: "none", border: "none", color: "rgba(255,255,255,0.5)", fontSize: 12, cursor: "pointer", textDecoration: "underline", fontFamily: "'DM Sans',sans-serif", padding: 0, fontWeight: 500 },
 
   // Progress
-  progressSection: { padding: "20px 20px 12px", maxWidth: 600, margin: "0 auto" },
+  eagleBannerWrap: { maxWidth: 600, margin: "0 auto", padding: "20px 20px 0" },
+  eagleBannerShell: { position: "relative" },
+  eagleBanner: {
+    display: "flex", alignItems: "center", gap: 10,
+    padding: "12px 48px 12px 16px",
+    borderRadius: 14,
+    background: C.teal,
+    border: `1px solid rgba(0,0,0,0.15)`,
+    textDecoration: "none",
+    color: "#fff",
+    boxShadow: "0 2px 12px rgba(0,0,0,0.15)",
+    transition: "all .15s",
+  },
+  eagleBannerPill: {
+    display: "inline-flex", alignItems: "center", justifyContent: "center",
+    padding: "2px 7px", borderRadius: 999,
+    background: C.yellow, color: C.teal,
+    fontSize: 10, fontWeight: 800, letterSpacing: "0.1em",
+    textTransform: "uppercase", flexShrink: 0,
+  },
+  eagleBannerText: { flex: 1, fontSize: 14, fontWeight: 700, lineHeight: 1.4 },
+  eagleBannerArrow: { fontSize: 16, opacity: 0.6, flexShrink: 0 },
+  eagleBannerClose: {
+    position: "absolute", top: 8, right: 8,
+    width: 28, height: 28,
+    borderRadius: 999,
+    border: "none",
+    background: "rgba(255,255,255,0.12)",
+    color: "rgba(255,255,255,0.82)",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    cursor: "pointer", padding: 0,
+  },
+  progressSection: { padding: "14px 20px 12px", maxWidth: 600, margin: "0 auto" },
   progressStats: { display: "flex", justifyContent: "center", gap: 40, marginBottom: 10 },
   statBox: { display: "flex", flexDirection: "column", alignItems: "center" },
   statNum: { fontFamily: "'Oswald',sans-serif", fontSize: 28, fontWeight: 700, color: C.teal },
