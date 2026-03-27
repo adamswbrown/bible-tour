@@ -1,113 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
-
-const READING_PLAN = {
-  "Old Testament": [
-    { book: "Genesis", refs: "12:2-3 and 50:20" },
-    { book: "Exodus", refs: "3:7-8 and 20:1-17" },
-    { book: "Leviticus", refs: "19:1-2" },
-    { book: "Numbers", refs: "14:33-34" },
-    { book: "Deuteronomy", refs: "6:4-5" },
-    { book: "Joshua", refs: "1:6 and 24:15" },
-    { book: "Judges", refs: "21:25" },
-    { book: "Ruth", refs: "1:16" },
-    { book: "I Samuel", refs: "8:5, 15:22 and 16:7" },
-    { book: "II Samuel", refs: "7:16" },
-    { book: "I Kings", refs: "9:1-9 and 18:21" },
-    { book: "II Kings", refs: "17:13-14" },
-    { book: "I Chronicles", refs: "29:10-11" },
-    { book: "II Chronicles", refs: "7:14" },
-    { book: "Ezra", refs: "1:3 and 7:10" },
-    { book: "Nehemiah", refs: "1:4-11 and 2:18" },
-    { book: "Esther", refs: "4:14-16" },
-    { book: "Job", refs: "1:21" },
-    { book: "Psalms", refs: "23:1 and 46:1" },
-    { book: "Proverbs", refs: "1:7, 9:10 and any five random proverbs from chapters 10-29" },
-    { book: "Ecclesiastes", refs: "1:2 and 12:13" },
-    { book: "Song of Songs", refs: "8:6-7" },
-    { book: "Isaiah", refs: "1:18 and 52:13-53:12" },
-    { book: "Jeremiah", refs: "3:12-13 and 31:33" },
-    { book: "Lamentations", refs: "3:22-23" },
-    { book: "Ezekiel", refs: "36:26" },
-    { book: "Daniel", refs: "2:44 and 7:13-14" },
-    { book: "Hosea", refs: "6:6" },
-    { book: "Joel", refs: "2:13-14" },
-    { book: "Amos", refs: "5:24 and 7:7-8" },
-    { book: "Obadiah", refs: "1:13-15 and 1:21" },
-    { book: "Jonah", refs: "4:2" },
-    { book: "Micah", refs: "6:8" },
-    { book: "Nahum", refs: "1:7-8" },
-    { book: "Habakkuk", refs: "2:4" },
-    { book: "Zephaniah", refs: "3:17" },
-    { book: "Haggai", refs: "1:8" },
-    { book: "Zechariah", refs: "9:9-10" },
-    { book: "Malachi", refs: "3:1 and 4:2" },
-  ],
-  "New Testament": [
-    { book: "Matthew", refs: "5:17, 16:6 and 28:18-20", note: "If you have extra time, also read 5:1-29" },
-    { book: "Mark", refs: "1:1 and 10:45" },
-    { book: "Luke", refs: "19:10 and 24:1-12" },
-    { book: "John", refs: "1:1-3, 3:16, 14:6 and 20:31" },
-    { book: "Acts", refs: "1:8 and 2:38" },
-    { book: "Romans", refs: "1:16-17, 3:23, 6:23 and 10:9" },
-    { book: "I Corinthians", refs: "1:10 and 15:3-4" },
-    { book: "II Corinthians", refs: "5:17 and 5:20" },
-    { book: "Galatians", refs: "2:16, 5:1 and 5:22-26" },
-    { book: "Ephesians", refs: "2:8-10 and 6:10-17" },
-    { book: "Philippians", refs: "2:5-11" },
-    { book: "Colossians", refs: "1:15-18" },
-    { book: "I Thessalonians", refs: "4:16-18" },
-    { book: "II Thessalonians", refs: "2:15 and 3:13" },
-    { book: "I Timothy", refs: "1:15, 2:5-6 and 3:15" },
-    { book: "II Timothy", refs: "4:7-8" },
-    { book: "Titus", refs: "2:11-15" },
-    { book: "Philemon", refs: "1:15-16" },
-    { book: "Hebrews", refs: "4:4 and 12:1" },
-    { book: "James", refs: "1:22" },
-    { book: "I Peter", refs: "1:3-5 and 2:9-12" },
-    { book: "II Peter", refs: "1:3-7 and 3:9" },
-    { book: "I John", refs: "1:5-7" },
-    { book: "II John", refs: "1:6" },
-    { book: "III John", refs: "1:8" },
-    { book: "Jude", refs: "1:3 and 1:23-24" },
-    { book: "Revelation", refs: "1:7-8, 21:5 and 22:20-21" },
-  ],
-};
-
-const TOTAL = READING_PLAN["Old Testament"].length + READING_PLAN["New Testament"].length;
-
-const BOOK_ABBREV = {
-  "Genesis": "GEN", "Exodus": "EXO", "Leviticus": "LEV", "Numbers": "NUM",
-  "Deuteronomy": "DEU", "Joshua": "JOS", "Judges": "JDG", "Ruth": "RUT",
-  "I Samuel": "1SA", "II Samuel": "2SA", "I Kings": "1KI", "II Kings": "2KI",
-  "I Chronicles": "1CH", "II Chronicles": "2CH", "Ezra": "EZR", "Nehemiah": "NEH",
-  "Esther": "EST", "Job": "JOB", "Psalms": "PSA", "Proverbs": "PRO",
-  "Ecclesiastes": "ECC", "Song of Songs": "SNG", "Isaiah": "ISA", "Jeremiah": "JER",
-  "Lamentations": "LAM", "Ezekiel": "EZK", "Daniel": "DAN", "Hosea": "HOS",
-  "Joel": "JOL", "Amos": "AMO", "Obadiah": "OBA", "Jonah": "JON",
-  "Micah": "MIC", "Nahum": "NAM", "Habakkuk": "HAB", "Zephaniah": "ZEP",
-  "Haggai": "HAG", "Zechariah": "ZEC", "Malachi": "MAL",
-  "Matthew": "MAT", "Mark": "MRK", "Luke": "LUK", "John": "JHN",
-  "Acts": "ACT", "Romans": "ROM", "I Corinthians": "1CO", "II Corinthians": "2CO",
-  "Galatians": "GAL", "Ephesians": "EPH", "Philippians": "PHP", "Colossians": "COL",
-  "I Thessalonians": "1TH", "II Thessalonians": "2TH", "I Timothy": "1TI",
-  "II Timothy": "2TI", "Titus": "TIT", "Philemon": "PHM", "Hebrews": "HEB",
-  "James": "JAS", "I Peter": "1PE", "II Peter": "2PE", "I John": "1JN",
-  "II John": "2JN", "III John": "3JN", "Jude": "JUD", "Revelation": "REV",
-};
-
-// bible-api.com uses slightly different book names
-const API_BOOK_NAMES = {
-  "I Samuel": "1 Samuel", "II Samuel": "2 Samuel",
-  "I Kings": "1 Kings", "II Kings": "2 Kings",
-  "I Chronicles": "1 Chronicles", "II Chronicles": "2 Chronicles",
-  "Song of Songs": "Song of Solomon",
-  "I Corinthians": "1 Corinthians", "II Corinthians": "2 Corinthians",
-  "I Thessalonians": "1 Thessalonians", "II Thessalonians": "2 Thessalonians",
-  "I Timothy": "1 Timothy", "II Timothy": "2 Timothy",
-  "I Peter": "1 Peter", "II Peter": "2 Peter",
-  "I John": "1 John", "II John": "2 John", "III John": "3 John",
-};
+import { API_BOOK_NAMES, BOOK_ABBREV, READING_PLAN, TOTAL } from "./lib/bible";
 
 const TRANSLATIONS = [
   { id: "kjv", name: "King James Version", abbr: "KJV", apiCode: "kjv", youVersionId: 1, yvLicensed: false },
@@ -635,6 +528,31 @@ function ChecklistView({ user, checked, onToggle, onReset, onLogout }) {
         </div>
       </div>
 
+      <a href="/eagle" style={{
+        display: "flex", alignItems: "center", gap: 10,
+        margin: "0 0 12px",
+        padding: "12px 16px",
+        borderRadius: 14,
+        background: C.teal,
+        border: `1px solid rgba(0,0,0,0.15)`,
+        textDecoration: "none",
+        color: "#fff",
+        boxShadow: "0 2px 12px rgba(0,0,0,0.15)",
+        transition: "all .15s",
+      }}>
+        <span style={{
+          display: "inline-flex", alignItems: "center", justifyContent: "center",
+          padding: "2px 7px", borderRadius: 999,
+          background: C.yellow, color: C.teal,
+          fontSize: 10, fontWeight: 800, letterSpacing: "0.1em",
+          textTransform: "uppercase", flexShrink: 0,
+        }}>New</span>
+        <span style={{ flex: 1, fontSize: 14, fontWeight: 700 }}>
+          Eagle Method — memorise a verse by seeing the whole book first
+        </span>
+        <span style={{ fontSize: 16, opacity: 0.6 }}>→</span>
+      </a>
+
       <div style={s.filters}>
         {[["all","All"],["ot","Old Testament"],["nt","New Testament"]].map(([k,l]) => (
           <button key={k} onClick={() => setSection(k)}
@@ -786,7 +704,6 @@ export default function Page() {
   if (phase === "loading") {
     return (
       <div style={s.loadWrap}>
-        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet" />
         <div style={s.spinner} />
       </div>
     );
@@ -794,7 +711,6 @@ export default function Page() {
 
   return (
     <>
-      <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet" />
       <style>{`
         @keyframes spin{to{transform:rotate(360deg)}}
         @keyframes popIn{from{opacity:0;transform:translateY(-16px)scale(.95)}to{opacity:1;transform:translateY(0)scale(1)}}
