@@ -21,7 +21,7 @@ const BASE_BOOKS = [
   { id: 20, testament: "Old Testament", book: "Proverbs", abbrev: "PRO", refs: "1:7, 9:10 and any five random proverbs from chapters 10-29" },
   { id: 21, testament: "Old Testament", book: "Ecclesiastes", abbrev: "ECC", refs: "1:2 and 12:13" },
   { id: 22, testament: "Old Testament", book: "Song of Songs", abbrev: "SNG", apiName: "Song of Solomon", refs: "8:6-7" },
-  { id: 23, testament: "Old Testament", book: "Isaiah", abbrev: "ISA", refs: "1:18 and 52:13-53:12" },
+  { id: 23, testament: "Old Testament", book: "Isaiah", abbrev: "ISA", refs: "1:18, 52:13-15 and 53:1-12" },
   { id: 24, testament: "Old Testament", book: "Jeremiah", abbrev: "JER", refs: "3:12-13 and 31:33" },
   { id: 25, testament: "Old Testament", book: "Lamentations", abbrev: "LAM", refs: "3:22-23" },
   { id: 26, testament: "Old Testament", book: "Ezekiel", abbrev: "EZK", refs: "36:26" },
