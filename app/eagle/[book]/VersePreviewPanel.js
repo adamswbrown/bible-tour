@@ -84,7 +84,7 @@ async function fetchRefText(book, refText, translation) {
       const data = await response.json();
 
       const text = data.verses?.length
-        ? data.verses.map((verse) => verse.text.trim()).join(" ")
+        ? data.verses.map((verse) => verse.text.trim()).join("\n\n")
         : (data.text || "").trim();
 
       if (!text) {
