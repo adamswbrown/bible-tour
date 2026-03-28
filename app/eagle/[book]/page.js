@@ -11,6 +11,7 @@ import {
   hasMeaningfulBookInfo,
 } from "../../lib/book-data";
 import { getIqBookInfo, getIqVerseCount } from "../../lib/iq-bible";
+import MarkStudiedButton from "./MarkStudiedButton";
 import VersePreviewPanel from "./VersePreviewPanel";
 
 const C = {
@@ -1007,6 +1008,8 @@ export default async function EagleBookPage({ params }) {
             <p className="eagle-empty">No chapter context could be derived from this reading plan entry.</p>
           )}
         </section>
+
+        <MarkStudiedButton book={entry.book} />
 
         <footer className="eagle-footer">
           <div>
