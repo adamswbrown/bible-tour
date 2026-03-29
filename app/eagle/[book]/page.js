@@ -743,6 +743,44 @@ export default async function EagleBookPage({ params }) {
             grid-template-columns: 1fr;
           }
         }
+
+        /* ── iPad portrait + landscape (721px – 1300px) ─────────────────── */
+        @media (min-width: 721px) and (max-width: 1300px) {
+          /* Sticky nav strip with blur */
+          .eagle-steps {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(12px) saturate(1.4);
+            -webkit-backdrop-filter: blur(12px) saturate(1.4);
+            background: rgba(246, 241, 229, 0.92);
+            border-radius: 0 0 18px 18px;
+            margin-left: -20px;
+            margin-right: -20px;
+            padding: 6px 20px;
+            box-shadow: 0 4px 20px rgba(22, 38, 54, 0.08);
+            border-top: none;
+          }
+          /* Typography */
+          .eagle-title { font-size: clamp(36px, 5vw, 54px); }
+          .eagle-hero { padding: 32px 36px; }
+          .eagle-subtitle { font-size: 19px; }
+          .eagle-summary-text { font-size: 17px; line-height: 1.8; }
+          .eagle-fact-value { font-size: 16px; line-height: 1.65; }
+          .eagle-intro { max-width: 68ch; font-size: 17px; }
+          /* Touch targets */
+          .eagle-chip { min-height: 44px; padding: 10px 18px; font-size: 15px; }
+          .eagle-step { min-height: 52px; }
+          .eagle-nav a { min-height: 44px; padding: 12px 18px; font-size: 15px; }
+        }
+
+        /* ── iPad portrait only (721px – 900px) — 2-column content cards ── */
+        @media (min-width: 721px) and (max-width: 900px) {
+          .eagle-summary-grid { grid-template-columns: repeat(2, 1fr); }
+          .eagle-targets { grid-template-columns: repeat(2, 1fr); }
+          .eagle-map-grid { grid-template-columns: repeat(2, 1fr); }
+          .eagle-questions { grid-template-columns: repeat(2, 1fr); }
+        }
       `}</style>
 
       <div className="eagle-wrap">

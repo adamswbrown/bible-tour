@@ -144,6 +144,7 @@ export default function EagleIndexPage() {
   const [mounted, setMounted] = useState(false);
   const [earnedIds, setEarnedIds] = useState([]);
   const [toast, setToast] = useState(null);
+  const [saveFlash, setSaveFlash] = useState(false);
   const earnedIdsRef = useRef([]);
 
   function getCtx(s) {
@@ -202,6 +203,12 @@ export default function EagleIndexPage() {
   function handleReset() {
     setStudied({});
     try { localStorage.removeItem(STORAGE_KEY); } catch {}
+  }
+
+  function handleSave() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(studied)); } catch {}
+    setSaveFlash(true);
+    setTimeout(() => setSaveFlash(false), 2000);
   }
 
   const studiedCount = Object.values(studied).filter(Boolean).length;
@@ -493,6 +500,57 @@ export default function EagleIndexPage() {
           .eagle-stages { flex-direction: column; }
           .eagle-toast { right: 12px; left: 12px; width: auto; bottom: 16px; }
         }
+
+        /* ── iPad portrait + landscape (721px – 1300px) ─────────────────── */
+        @media (min-width: 721px) and (max-width: 1300px) {
+          .eagle-index-wrap { padding: 32px 28px 72px; }
+          .eagle-hero { padding: 32px 36px; }
+          .eagle-title { font-size: clamp(36px, 5vw, 58px); }
+          .eagle-hero-text { max-width: 72ch; }
+          .eagle-stages { flex-direction: row; gap: 16px; }
+          .eagle-stage { flex: 1; padding: 20px; }
+        }
+        /* ── iPad portrait (721–900px): 3-col book grid ──────────────────── */
+        @media (min-width: 721px) and (max-width: 900px) {
+          .eagle-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        /* ── iPad landscape (901–1300px): 4-col book grid ─────────────────── */
+        @media (min-width: 901px) and (max-width: 1300px) {
+          .eagle-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+
+        /* ── Save pill ────────────────────────────────────────────────────── */
+        @keyframes eagle-save-in {
+          from { transform: translateY(8px); opacity: 0; }
+          to   { transform: translateY(0);   opacity: 1; }
+        }
+        .eagle-float-save {
+          position: fixed;
+          bottom: 90px;
+          right: 24px;
+          z-index: 200;
+          padding: 10px 18px;
+          border-radius: 999px;
+          font-family: "DM Sans", system-ui, sans-serif;
+          font-size: 13px;
+          font-weight: 700;
+          background: ${C.teal};
+          color: white;
+          border: none;
+          box-shadow: 0 4px 18px rgba(22, 38, 54, 0.22);
+          cursor: pointer;
+          transition: background 0.2s, transform 0.15s;
+          animation: eagle-save-in .25s ease forwards;
+          letter-spacing: 0.02em;
+        }
+        .eagle-float-save:hover { transform: translateY(-1px); }
+        .eagle-float-save.is-flash { background: ${C.green}; }
+        @media (max-width: 720px) {
+          .eagle-float-save { bottom: 70px; right: 14px; font-size: 12px; padding: 9px 15px; }
+        }
+        @media (min-width: 721px) and (max-width: 1300px) {
+          .eagle-float-save { bottom: 100px; }
+        }
       `}</style>
 
       <div className="eagle-index-wrap">
@@ -683,6 +741,17 @@ export default function EagleIndexPage() {
           );
         })}
       </div>
+
+      {/* Floating save pill */}
+      {mounted && (
+        <button
+          className={`eagle-float-save${saveFlash ? " is-flash" : ""}`}
+          onClick={handleSave}
+          aria-label="Save progress to browser"
+        >
+          {saveFlash ? "Saved ✓" : `${studiedCount} / ${BOOKS.length} auto-saved`}
+        </button>
+      )}
 
       {/* Milestone toast */}
       {toast && (

@@ -166,6 +166,11 @@ export default function VersePreviewPanel({ book, refs }) {
 
   return (
     <div style={styles.wrap}>
+      <style>{`
+        @media (min-width: 721px) and (max-width: 900px) {
+          .vpp-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+      `}</style>
       <div style={styles.header}>
         <div>
           <p style={styles.kicker}>Target Verses</p>
@@ -196,7 +201,7 @@ export default function VersePreviewPanel({ book, refs }) {
         </div>
       </div>
 
-      <div style={styles.grid}>
+      <div style={styles.grid} className="vpp-grid">
         {previewRefs.map((ref) => {
           const result = results[ref.text];
 
