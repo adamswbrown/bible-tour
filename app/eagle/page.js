@@ -51,7 +51,7 @@ const MILESTONES = [
   },
   {
     id: "gospels-and-acts",
-    name: "Gospels & Acts",
+    name: "Spreading Wings",
     desc: "Studied the four Gospels and Acts",
     check: (c) => ["Matthew", "Mark", "Luke", "John", "Acts"].every(b => c.studied[b]),
   },
