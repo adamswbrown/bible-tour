@@ -10,6 +10,19 @@ import {
   buildYouVersionUrl,
 } from "./lib/translations";
 
+// Detects iPad-sized screens (768px+) — enables persistent split-pane layout
+function useIsIpad() {
+  const [isIpad, setIsIpad] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    setIsIpad(mq.matches);
+    const handler = (e) => setIsIpad(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  return isIpad;
+}
+
 // Brand colors from The Ten Minute Bible Hour
 const C = {
   yellow: "#FFCB21",
@@ -93,7 +106,8 @@ function VerseLinks({ book, refs, done, onVerseClick }) {
   );
 }
 
-function VersePanel({ book, verseRef, onClose }) {
+function VersePanel({ book, verseRef, onClose, mode = "overlay" }) {
+  const isSidebar = mode === "sidebar";
   const [text, setText] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -194,15 +208,15 @@ function VersePanel({ book, verseRef, onClose }) {
 
   return (
     <>
-      {/* Backdrop */}
-      <div onClick={onClose} style={ps.backdrop} />
+      {/* Backdrop — only in overlay mode */}
+      {!isSidebar && <div onClick={onClose} style={ps.backdrop} />}
       {/* Panel */}
-      <div ref={panelRef} style={ps.panel}>
-        <div style={ps.panelHeader}>
+      <div ref={panelRef} style={isSidebar ? ps.panelSidebar : ps.panel} className="verse-panel">
+        <div style={isSidebar ? ps.panelHeaderSidebar : ps.panelHeader}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <h2 style={ps.panelTitle}>{displayRef}</h2>
+            <h2 style={isSidebar ? ps.panelTitleSidebar : ps.panelTitle}>{displayRef}</h2>
           </div>
-          <button onClick={onClose} style={ps.closeBtn} aria-label="Close">
+          <button onClick={onClose} style={isSidebar ? ps.closeBtnSidebar : ps.closeBtn} aria-label="Close">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
               <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
             </svg>
@@ -260,9 +274,9 @@ function VersePanel({ book, verseRef, onClose }) {
           )}
 
           {text && (
-            <div style={ps.verseContent}>
+            <div style={isSidebar ? ps.verseContentSidebar : ps.verseContent}>
               {text.map((v, i) => (
-                <p key={i} style={ps.verseLine}>
+                <p key={i} style={isSidebar ? ps.verseLineSidebar : ps.verseLine}>
                   {v.verse && <sup style={ps.verseNum}>{v.verse}</sup>}
                   {v.text}
                 </p>
@@ -314,6 +328,7 @@ function ChecklistView({ checked, onToggle, onReset }) {
   const [versePanel, setVersePanel] = useState(null); // { book, ref, youVersionUrl }
   const [showEagleBanner, setShowEagleBanner] = useState(false);
   const [bannerReady, setBannerReady] = useState(false);
+  const isIpad = useIsIpad();
 
   const doneCount = Object.values(checked).filter(Boolean).length;
   const otDone = READING_PLAN["Old Testament"].filter(r => checked[r.book]).length;
@@ -351,6 +366,167 @@ function ChecklistView({ checked, onToggle, onReset }) {
     : section === "nt" ? { "New Testament": READING_PLAN["New Testament"] }
     : READING_PLAN;
 
+  // Shared book list used in both layouts
+  const bookList = (
+    <div style={isIpad ? { ...s.listWrap, maxWidth: "none", padding: "0 16px 32px" } : s.listWrap}>
+      {Object.entries(vis).map(([sec, readings]) => {
+        const secDone = readings.filter(r => checked[r.book]).length;
+        return (
+          <div key={sec}>
+            <div style={s.secHeader}>
+              <h2 style={s.secTitle}>{sec}</h2>
+              <span style={s.secCount}>{secDone}/{readings.length}</span>
+            </div>
+            <div style={s.grid}>
+              {readings.map((r) => {
+                const done = !!checked[r.book];
+                return (
+                  <button key={r.book} onClick={() => toggle(r.book)}
+                    style={{ ...s.card, ...(done ? s.cardDone : {}), ...(isIpad && versePanel?.book === r.book ? s.cardActive : {}) }}>
+                    <div style={s.cardTop}>
+                      <div style={{ ...s.chk, ...(done ? s.chkDone : {}) }}>
+                        {done && <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                          <path d="M2.5 7.5L5.5 10.5L11.5 3.5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>}
+                      </div>
+                      <span style={{ ...s.bookName, ...(done ? s.bookDone : {}) }}>{r.book}</span>
+                    </div>
+                    <p style={{ ...s.refs, ...(done ? s.refsDone : {}) }}>
+                      <VerseLinks book={r.book} refs={r.refs} done={done} onVerseClick={openVerse} />
+                    </p>
+                    {r.note && <p style={s.note}>{r.note}</p>}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+
+  const footerEl = (
+    <footer style={s.footer}>
+      <p style={{ margin: "0 0 8px" }}>
+        Inspired by Matt Whitman&rsquo;s{" "}
+        <a href="https://www.thetmbh.com/tourofthebible" target="_blank" rel="noopener noreferrer" style={s.footerLink}>
+          Lightning-Fast Field Guide to the Bible
+        </a>
+      </p>
+      <p style={s.footerDisclaimer}>
+        Not affiliated with or endorsed by The Ten Minute Bible Hour.
+      </p>
+      <a href="https://youtu.be/XdMuZCTChJE?si=DRfBFUnDc2mt3Yq2" target="_blank" rel="noopener noreferrer"
+        style={s.footerYt}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style={{ flexShrink: 0 }}>
+          <path d="M23.5 6.2c-.3-1-1-1.8-2-2.1C19.6 3.5 12 3.5 12 3.5s-7.6 0-9.5.6c-1 .3-1.8 1-2.1 2C0 8.1 0 12 0 12s0 3.9.4 5.8c.3 1 1 1.8 2 2.1 1.9.6 9.6.6 9.6.6s7.6 0 9.5-.6c1-.3 1.8-1 2.1-2 .4-1.9.4-5.8.4-5.8s0-3.9-.5-5.8zM9.5 15.6V8.4l6.4 3.6-6.4 3.6z"/>
+        </svg>
+        Watch Matt explain the tour
+      </a>
+      <p style={s.madeBy}>
+        Made by{" "}
+        <a href="https://askadam.cloud/" target="_blank" rel="noopener noreferrer" style={s.madeByLink}>Adam Brown</a>
+        {" & "}
+        <span style={{ fontWeight: 600 }}>Claude</span>
+      </p>
+    </footer>
+  );
+
+  // ── iPad split-pane layout ──────────────────────────────────────────────
+  if (isIpad) {
+    return (
+      <div style={s.iPadOuter}>
+        {showCelebrate && (
+          <div style={s.celebrate}>
+            <LightningIcon size={36} color={C.yellow} />
+            <p style={s.celebrateText}>Amazing! All 66 books!</p>
+          </div>
+        )}
+
+        {/* LEFT PANE — scrollable book list */}
+        <div style={s.iPadLeft}>
+          <header style={s.header}>
+            <div style={s.headerCenter}>
+              <LightningIcon size={22} color={C.yellow} />
+              <h1 style={s.title}>Tour of the Bible</h1>
+            </div>
+          </header>
+
+          {bannerReady && showEagleBanner && (
+            <div style={{ ...s.eagleBannerWrap, maxWidth: "none" }}>
+              <div style={s.eagleBannerShell}>
+                <a href="/eagle" style={s.eagleBanner}>
+                  <span style={s.eagleBannerPill}>New</span>
+                  <span style={s.eagleBannerText}>Eagle Method — see the whole book first</span>
+                  <span style={s.eagleBannerArrow} aria-hidden="true">→</span>
+                </a>
+                <button type="button" onClick={dismissEagleBanner} aria-label="Dismiss Eagle Method banner" style={s.eagleBannerClose}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div style={{ ...s.progressSection, maxWidth: "none" }}>
+            <div style={s.progressStats}>
+              <div style={s.statBox}>
+                <span style={s.statNum}>{doneCount}</span>
+                <span style={s.statLabel}>of {TOTAL}</span>
+              </div>
+              <div style={s.statBox}>
+                <span style={s.statNum}>{pct}%</span>
+                <span style={s.statLabel}>done</span>
+              </div>
+            </div>
+            <div style={s.progressTrack}>
+              <div style={{ ...s.progressBar, width: `${pct}%`, background: pct === 100 ? `linear-gradient(90deg,${C.done},#2d8a4e)` : `linear-gradient(90deg,${C.teal},${C.tealLight})` }} />
+            </div>
+            <div style={s.progressMini}>
+              <span>OT: {otDone}/{READING_PLAN["Old Testament"].length}</span>
+              <span>NT: {ntDone}/{READING_PLAN["New Testament"].length}</span>
+            </div>
+          </div>
+
+          <div style={s.filters}>
+            {[["all","All"],["ot","Old Testament"],["nt","New Testament"]].map(([k,l]) => (
+              <button key={k} onClick={() => setSection(k)}
+                style={{ ...s.filterBtn, ...(section===k ? s.filterActive : {}) }}>{l}</button>
+            ))}
+            <button onClick={onReset} style={s.resetBtn}>Reset</button>
+          </div>
+
+          {bookList}
+          {footerEl}
+        </div>
+
+        {/* RIGHT PANE — persistent verse reader */}
+        <div style={s.iPadRight}>
+          {versePanel ? (
+            <VersePanel
+              mode="sidebar"
+              book={versePanel.book}
+              verseRef={versePanel.ref}
+              onClose={closeVerse}
+            />
+          ) : (
+            <div style={s.iPadPlaceholder}>
+              <div style={s.iPadPlaceholderIcon}>
+                <svg width="52" height="52" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" stroke="rgba(27,58,75,0.2)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <p style={s.iPadPlaceholderTitle}>Tap a verse to read it here</p>
+              <p style={s.iPadPlaceholderSub}>Select any verse reference from the book list</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Default (phone / small screen) layout ──────────────────────────────
   return (
     <div style={s.outer}>
       {showCelebrate && (
@@ -422,66 +598,8 @@ function ChecklistView({ checked, onToggle, onReset }) {
         <button onClick={onReset} style={s.resetBtn}>Reset</button>
       </div>
 
-      <div style={s.listWrap}>
-        {Object.entries(vis).map(([sec, readings]) => {
-          const secDone = readings.filter(r => checked[r.book]).length;
-          return (
-            <div key={sec}>
-              <div style={s.secHeader}>
-                <h2 style={s.secTitle}>{sec}</h2>
-                <span style={s.secCount}>{secDone}/{readings.length}</span>
-              </div>
-              <div style={s.grid}>
-                {readings.map((r, i) => {
-                  const done = !!checked[r.book];
-                  return (
-                    <button key={r.book} onClick={() => toggle(r.book)}
-                      style={{ ...s.card, ...(done ? s.cardDone : {}) }}>
-                      <div style={s.cardTop}>
-                        <div style={{ ...s.chk, ...(done ? s.chkDone : {}) }}>
-                          {done && <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                            <path d="M2.5 7.5L5.5 10.5L11.5 3.5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>}
-                        </div>
-                        <span style={{ ...s.bookName, ...(done ? s.bookDone : {}) }}>{r.book}</span>
-                      </div>
-                      <p style={{ ...s.refs, ...(done ? s.refsDone : {}) }}>
-                        <VerseLinks book={r.book} refs={r.refs} done={done} onVerseClick={openVerse} />
-                      </p>
-                      {r.note && <p style={s.note}>{r.note}</p>}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      <footer style={s.footer}>
-        <p style={{ margin: "0 0 8px" }}>
-          Inspired by Matt Whitman&rsquo;s{" "}
-          <a href="https://www.thetmbh.com/tourofthebible" target="_blank" rel="noopener noreferrer" style={s.footerLink}>
-            Lightning-Fast Field Guide to the Bible
-          </a>
-        </p>
-        <p style={s.footerDisclaimer}>
-          Not affiliated with or endorsed by The Ten Minute Bible Hour.
-        </p>
-        <a href="https://youtu.be/XdMuZCTChJE?si=DRfBFUnDc2mt3Yq2" target="_blank" rel="noopener noreferrer"
-          style={s.footerYt}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style={{ flexShrink: 0 }}>
-            <path d="M23.5 6.2c-.3-1-1-1.8-2-2.1C19.6 3.5 12 3.5 12 3.5s-7.6 0-9.5.6c-1 .3-1.8 1-2.1 2C0 8.1 0 12 0 12s0 3.9.4 5.8c.3 1 1 1.8 2 2.1 1.9.6 9.6.6 9.6.6s7.6 0 9.5-.6c1-.3 1.8-1 2.1-2 .4-1.9.4-5.8.4-5.8s0-3.9-.5-5.8zM9.5 15.6V8.4l6.4 3.6-6.4 3.6z"/>
-          </svg>
-          Watch Matt explain the tour
-        </a>
-        <p style={s.madeBy}>
-          Made by{" "}
-          <a href="https://askadam.cloud/" target="_blank" rel="noopener noreferrer" style={s.madeByLink}>Adam Brown</a>
-          {" & "}
-          <span style={{ fontWeight: 600 }}>Claude</span>
-        </p>
-      </footer>
+      {bookList}
+      {footerEl}
 
       {versePanel && (
         <VersePanel
@@ -646,6 +764,50 @@ const s = {
   // Celebrate
   celebrate: { position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)", zIndex: 1000, background: C.teal, color: C.white, padding: "18px 28px", borderRadius: 14, textAlign: "center", boxShadow: "0 12px 40px rgba(0,0,0,0.3)", animation: "popIn .4s ease forwards", display: "flex", flexDirection: "column", alignItems: "center" },
   celebrateText: { fontFamily: "'Oswald',sans-serif", fontSize: 18, fontWeight: 600, margin: "6px 0 0", color: C.yellow },
+
+  // ── iPad split-pane ──────────────────────────────────────────────────────
+  iPadOuter: {
+    display: "flex", flexDirection: "row",
+    height: "100dvh", overflow: "hidden",
+    background: C.yellow, fontFamily: "'DM Sans',sans-serif", color: C.teal,
+  },
+  iPadLeft: {
+    flex: "0 0 42%", minWidth: 320, maxWidth: 480,
+    display: "flex", flexDirection: "column",
+    overflowY: "auto", overflowX: "hidden",
+    borderRight: `2px solid rgba(27,58,75,0.12)`,
+  },
+  iPadRight: {
+    flex: 1,
+    display: "flex", flexDirection: "column",
+    overflowY: "auto",
+    background: C.white,
+    minWidth: 0,
+  },
+
+  // Placeholder shown in right pane when no verse is selected
+  iPadPlaceholder: {
+    flex: 1, display: "flex", flexDirection: "column",
+    alignItems: "center", justifyContent: "center",
+    padding: 48, textAlign: "center", gap: 12,
+    background: C.offWhite,
+  },
+  iPadPlaceholderIcon: { marginBottom: 8, opacity: 0.5 },
+  iPadPlaceholderTitle: {
+    fontFamily: "'Oswald',sans-serif", fontSize: 20, fontWeight: 600,
+    color: C.teal, margin: 0, textTransform: "uppercase", letterSpacing: "0.02em",
+    opacity: 0.35,
+  },
+  iPadPlaceholderSub: {
+    fontSize: 14, color: C.tealLight, margin: 0, opacity: 0.5, lineHeight: 1.5,
+  },
+
+  // Highlight the currently-open book card on iPad
+  cardActive: {
+    background: "rgba(27,58,75,0.07)",
+    borderColor: "rgba(27,58,75,0.3)",
+    boxShadow: `inset 3px 0 0 ${C.teal}`,
+  },
 };
 
 // Panel styles
@@ -745,5 +907,38 @@ const ps = {
   copyrightAttrib: {
     fontSize: 11, color: C.tealLight, margin: "20px 0 0", lineHeight: 1.5,
     opacity: 0.6, fontStyle: "italic",
+  },
+
+  // ── Sidebar (iPad) panel variants ────────────────────────────────────────
+  panelSidebar: {
+    display: "flex", flexDirection: "column",
+    width: "100%", height: "100%",
+    background: C.white,
+    fontFamily: "'DM Sans',sans-serif",
+  },
+  panelHeaderSidebar: {
+    display: "flex", alignItems: "flex-start", gap: 12,
+    padding: "24px 28px 20px",
+    borderBottom: `3px solid ${C.yellow}`,
+    background: C.teal,
+    flexShrink: 0,
+  },
+  panelTitleSidebar: {
+    fontFamily: "'Oswald',sans-serif", fontSize: 26, fontWeight: 700,
+    color: C.yellow, margin: 0, textTransform: "uppercase", letterSpacing: "0.02em",
+    lineHeight: 1.1,
+  },
+  closeBtnSidebar: {
+    background: "rgba(255,255,255,0.1)", border: "none", cursor: "pointer",
+    color: "rgba(255,255,255,0.7)", padding: 8, flexShrink: 0,
+    borderRadius: 8, marginTop: 0, transition: "background .15s",
+  },
+  // Larger, more readable verse text for the sidebar
+  verseContentSidebar: {
+    lineHeight: 1.9, color: C.teal, maxWidth: 620,
+  },
+  verseLineSidebar: {
+    fontSize: 19, margin: "0 0 18px", lineHeight: 1.9,
+    fontWeight: 400, letterSpacing: "0.01em",
   },
 };

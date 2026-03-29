@@ -487,6 +487,19 @@ export default function EagleIndexPage() {
           font-size: 13px; color: ${C.muted}; line-height: 1.4;
         }
 
+        /* iPad — wider comfortable reading layout */
+        @media (min-width: 768px) and (max-width: 1100px) {
+          .eagle-index-wrap { padding: 24px 24px 56px; }
+          .eagle-grid { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
+          .eagle-hero { padding: 32px 36px; }
+          .eagle-section { padding: 28px 36px; }
+          .eagle-copy { font-size: 18px; }
+          .eagle-stages { gap: 12px; }
+          .eagle-stage { padding: 18px 20px; }
+          .eagle-card { padding: 20px; }
+          .eagle-card-title { font-size: 24px; }
+        }
+
         @media (max-width: 720px) {
           .eagle-index-wrap { padding: 18px 14px 52px; }
           .eagle-hero, .eagle-section { padding: 20px; }
