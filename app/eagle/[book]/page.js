@@ -730,6 +730,16 @@ export default async function EagleBookPage({ params }) {
         .eagle-nav a:hover {
           background: ${C.goldSoft};
         }
+        /* iPad — comfortable reading experience */
+        @media (min-width: 768px) and (max-width: 1100px) {
+          .eagle-wrap { padding: 24px 24px 56px; max-width: 900px; }
+          .eagle-hero, .eagle-section { padding: 32px 36px; }
+          .eagle-book-intro { font-size: 17px; line-height: 1.8; }
+          .eagle-summary-text { font-size: 16px; line-height: 1.75; }
+          .eagle-steps { margin-bottom: 24px; }
+          .eagle-step { padding: 14px 10px; font-size: 15px; }
+        }
+
         @media (max-width: 720px) {
           .eagle-wrap {
             padding: 18px 14px 52px;
