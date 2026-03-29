@@ -1,11 +1,12 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 
 import { BOOKS, READING_PLAN } from "../lib/bible";
 import { getChapterSummaries } from "../lib/book-data";
 
 const STORAGE_KEY = "bt:eagle";
+const MILESTONE_KEY = "bt:eagleMilestones";
 
 const C = {
   sand: "#f6f1e5",
@@ -16,6 +17,8 @@ const C = {
   teal: "#1b3a4b",
   tealLight: "#2A5568",
   gold: "#f3bf21",
+  goldBg: "rgba(243,191,33,0.12)",
+  goldBorder: "rgba(243,191,33,0.35)",
   green: "#1B6B3A",
   greenBg: "rgba(27,107,58,0.08)",
   greenBorder: "rgba(27,107,58,0.2)",
@@ -30,23 +33,154 @@ const STAGES = [
 
 const ALL_BOOKS_FLAT = Object.values(READING_PLAN).flat();
 
+const OT_TOTAL = READING_PLAN["Old Testament"].length;
+const NT_TOTAL = READING_PLAN["New Testament"].length;
+
+const MILESTONES = [
+  {
+    id: "fledgling",
+    name: "Fledgling",
+    desc: "Studied your first book of the Bible",
+    check: (c) => c.studiedCount >= 1,
+  },
+  {
+    id: "taking-flight",
+    name: "Taking Flight",
+    desc: "Studied a quarter of all 66 books",
+    check: (c) => c.studiedCount >= 16,
+  },
+  {
+    id: "ancient-skies",
+    name: "Ancient Skies",
+    desc: "Completed the entire Old Testament",
+    check: (c) => c.otDone >= OT_TOTAL,
+  },
+  {
+    id: "new-horizons",
+    name: "New Horizons",
+    desc: "Completed the entire New Testament",
+    check: (c) => c.ntDone >= NT_TOTAL,
+  },
+  {
+    id: "eagle-master",
+    name: "Eagle Master",
+    desc: "Studied all 66 books of the Bible",
+    check: (c) => c.studiedCount >= BOOKS.length,
+  },
+];
+
+function MilestoneIcon({ id, earned, size = 26 }) {
+  const color = earned ? C.gold : C.muted;
+  switch (id) {
+    case "fledgling":
+      return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <ellipse cx="12" cy="13.5" rx="6.5" ry="8" stroke={color} strokeWidth="1.8"/>
+          <path d="M11 7.5 L12.5 9.5 L11.5 11.5" stroke={color} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      );
+    case "taking-flight":
+      return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 13 C9.5 11 6 10 2 11.5" stroke={color} strokeWidth="1.8" strokeLinecap="round"/>
+          <path d="M12 13 C14.5 11 18 10 22 11.5" stroke={color} strokeWidth="1.8" strokeLinecap="round"/>
+          <path d="M12 13 C9.5 15 7 15.5 4 15" stroke={color} strokeWidth="1.4" strokeLinecap="round"/>
+          <path d="M12 13 C14.5 15 17 15.5 20 15" stroke={color} strokeWidth="1.4" strokeLinecap="round"/>
+          <ellipse cx="12" cy="12" rx="2" ry="2.5" fill={color}/>
+        </svg>
+      );
+    case "ancient-skies":
+      return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="5" y="4" width="14" height="16" rx="2" stroke={color} strokeWidth="1.8"/>
+          <path d="M8 9 H16" stroke={color} strokeWidth="1.5" strokeLinecap="round"/>
+          <path d="M8 12 H16" stroke={color} strokeWidth="1.5" strokeLinecap="round"/>
+          <path d="M8 15 H12" stroke={color} strokeWidth="1.5" strokeLinecap="round"/>
+        </svg>
+      );
+    case "new-horizons":
+      return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M3 16 H21" stroke={color} strokeWidth="1.8" strokeLinecap="round"/>
+          <path d="M8 16 A6 6 0 0 1 16 16" stroke={color} strokeWidth="1.8" strokeLinecap="round"/>
+          <path d="M12 4 V6.5" stroke={color} strokeWidth="1.8" strokeLinecap="round"/>
+          <path d="M5.5 6.5 L7.2 8.2" stroke={color} strokeWidth="1.8" strokeLinecap="round"/>
+          <path d="M18.5 6.5 L16.8 8.2" stroke={color} strokeWidth="1.8" strokeLinecap="round"/>
+          <path d="M3.5 11 L5.5 11.5" stroke={color} strokeWidth="1.5" strokeLinecap="round"/>
+          <path d="M20.5 11 L18.5 11.5" stroke={color} strokeWidth="1.5" strokeLinecap="round"/>
+        </svg>
+      );
+    case "eagle-master":
+      return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 18 L4 10 L8.5 14.5 L12 5 L15.5 14.5 L20 10 L20 18 Z" stroke={color} strokeWidth="1.8" strokeLinejoin="round"/>
+          <path d="M4 18 H20" stroke={color} strokeWidth="1.8" strokeLinecap="round"/>
+          <circle cx="12" cy="5" r="1.5" fill={color}/>
+          <circle cx="4" cy="10" r="1.5" fill={color}/>
+          <circle cx="20" cy="10" r="1.5" fill={color}/>
+        </svg>
+      );
+    default:
+      return null;
+  }
+}
+
 export default function EagleIndexPage() {
   const [section, setSection] = useState("all");
   const [studied, setStudied] = useState({});
   const [mounted, setMounted] = useState(false);
+  const [earnedIds, setEarnedIds] = useState([]);
+  const [toast, setToast] = useState(null);
+  const earnedIdsRef = useRef([]);
+
+  function getCtx(s) {
+    return {
+      studiedCount: Object.values(s).filter(Boolean).length,
+      otDone: READING_PLAN["Old Testament"].filter(r => s[r.book]).length,
+      ntDone: READING_PLAN["New Testament"].filter(r => s[r.book]).length,
+    };
+  }
+
+  function checkMilestones(studiedState, silent) {
+    const ctx = getCtx(studiedState);
+    const newlyEarned = MILESTONES.filter(
+      m => !earnedIdsRef.current.includes(m.id) && m.check(ctx)
+    );
+    if (newlyEarned.length === 0) return;
+    const nextIds = [...earnedIdsRef.current, ...newlyEarned.map(m => m.id)];
+    earnedIdsRef.current = nextIds;
+    setEarnedIds([...nextIds]);
+    try { localStorage.setItem(MILESTONE_KEY, JSON.stringify(nextIds)); } catch {}
+    if (!silent) setToast(newlyEarned[newlyEarned.length - 1]);
+  }
 
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setStudied(JSON.parse(raw));
+      const studiedData = raw ? JSON.parse(raw) : {};
+      if (raw) setStudied(studiedData);
+
+      const rawEarned = localStorage.getItem(MILESTONE_KEY);
+      const initialEarned = rawEarned ? JSON.parse(rawEarned) : [];
+      earnedIdsRef.current = initialEarned;
+      setEarnedIds(initialEarned);
+
+      checkMilestones(studiedData, true);
     } catch {}
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 5000);
+    return () => clearTimeout(t);
+  }, [toast]);
 
   function markStudied(book) {
     setStudied(prev => {
       const next = { ...prev, [book]: !prev[book] };
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch {}
+      checkMilestones(next, false);
       return next;
     });
   }
@@ -57,8 +191,6 @@ export default function EagleIndexPage() {
   }
 
   const studiedCount = Object.values(studied).filter(Boolean).length;
-  const otTotal = READING_PLAN["Old Testament"].length;
-  const ntTotal = READING_PLAN["New Testament"].length;
   const otDone = READING_PLAN["Old Testament"].filter(r => studied[r.book]).length;
   const ntDone = READING_PLAN["New Testament"].filter(r => studied[r.book]).length;
 
@@ -181,6 +313,42 @@ export default function EagleIndexPage() {
         }
         .eagle-progress-counts { font-size: 13px; color: ${C.muted}; margin-top: 4px; }
 
+        /* Milestones */
+        .eagle-milestones {
+          background: rgba(255,255,255,0.8); border: 1px solid ${C.line};
+          border-radius: 20px; padding: 16px 20px; box-shadow: ${C.shadow};
+          margin-bottom: 16px;
+        }
+        .eagle-milestones-label {
+          font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+          text-transform: uppercase; color: ${C.muted}; margin-bottom: 12px;
+        }
+        .eagle-milestones-row {
+          display: flex; gap: 8px; flex-wrap: wrap;
+        }
+        .eagle-milestone {
+          display: flex; align-items: center; gap: 8px;
+          padding: 8px 14px 8px 10px;
+          border-radius: 999px; border: 1.5px solid ${C.line};
+          background: rgba(255,255,255,0.5);
+          opacity: 0.4;
+          transition: opacity .2s, border-color .2s, background .2s;
+        }
+        .eagle-milestone-earned {
+          opacity: 1;
+          border-color: ${C.goldBorder};
+          background: ${C.goldBg};
+        }
+        .eagle-milestone-name {
+          font-size: 13px; font-weight: 700;
+          color: ${C.muted};
+          font-family: "Oswald", "Arial Narrow", sans-serif;
+          text-transform: uppercase; letter-spacing: 0.05em;
+        }
+        .eagle-milestone-earned .eagle-milestone-name {
+          color: ${C.ink};
+        }
+
         /* Filters */
         .eagle-filters {
           display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; align-items: center;
@@ -268,10 +436,48 @@ export default function EagleIndexPage() {
         }
         .eagle-card-check:hover { border-color: rgba(27,58,75,0.5); background: rgba(27,58,75,0.06); }
 
+        /* Toast */
+        @keyframes eagle-toast-in {
+          from { transform: translateY(16px); opacity: 0; }
+          to   { transform: translateY(0);    opacity: 1; }
+        }
+        .eagle-toast {
+          position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+          width: 300px;
+          background: ${C.paper}; border: 1px solid ${C.line};
+          border-left: 4px solid ${C.gold};
+          border-radius: 16px; padding: 16px 18px;
+          box-shadow: 0 20px 50px rgba(22,38,54,0.18);
+          animation: eagle-toast-in .3s ease forwards;
+        }
+        .eagle-toast-header {
+          display: flex; align-items: center; justify-content: space-between;
+          margin-bottom: 6px;
+        }
+        .eagle-toast-kicker {
+          font-size: 10px; font-weight: 700; letter-spacing: 0.14em;
+          text-transform: uppercase; color: ${C.gold};
+        }
+        .eagle-toast-close {
+          background: none; border: none; cursor: pointer;
+          color: ${C.muted}; font-size: 18px; line-height: 1;
+          padding: 0 0 0 8px;
+        }
+        .eagle-toast-close:hover { color: ${C.ink}; }
+        .eagle-toast-name {
+          font-family: "Oswald", "Arial Narrow", sans-serif;
+          font-size: 22px; text-transform: uppercase; letter-spacing: 0.02em;
+          color: ${C.ink}; margin-bottom: 2px;
+        }
+        .eagle-toast-desc {
+          font-size: 13px; color: ${C.muted}; line-height: 1.4;
+        }
+
         @media (max-width: 720px) {
           .eagle-index-wrap { padding: 18px 14px 52px; }
           .eagle-hero, .eagle-section { padding: 20px; }
           .eagle-stages { flex-direction: column; }
+          .eagle-toast { right: 12px; left: 12px; width: auto; bottom: 16px; }
         }
       `}</style>
 
@@ -359,13 +565,35 @@ export default function EagleIndexPage() {
                 />
               </div>
               <div className="eagle-progress-counts">
-                OT: {otDone}/{otTotal} &nbsp;·&nbsp; NT: {ntDone}/{ntTotal}
+                OT: {otDone}/{OT_TOTAL} &nbsp;·&nbsp; NT: {ntDone}/{NT_TOTAL}
               </div>
             </div>
             <span style={{ fontFamily: "'Oswald', sans-serif", fontSize: 22, fontWeight: 700, color: C.ink }}>
               {studiedCount}<span style={{ fontSize: 14, color: C.muted, fontFamily: "'DM Sans', sans-serif", fontWeight: 400 }}>/{BOOKS.length}</span>
             </span>
             <span style={{ fontSize: 13, color: C.muted }}>studied</span>
+          </div>
+        )}
+
+        {/* Milestone badges */}
+        {mounted && (
+          <div className="eagle-milestones">
+            <div className="eagle-milestones-label">Awards</div>
+            <div className="eagle-milestones-row">
+              {MILESTONES.map(m => {
+                const earned = earnedIds.includes(m.id);
+                return (
+                  <div
+                    key={m.id}
+                    className={`eagle-milestone${earned ? " eagle-milestone-earned" : ""}`}
+                    title={m.desc}
+                  >
+                    <MilestoneIcon id={m.id} earned={earned} size={22} />
+                    <span className="eagle-milestone-name">{m.name}</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 
@@ -441,6 +669,18 @@ export default function EagleIndexPage() {
           );
         })}
       </div>
+
+      {/* Milestone toast */}
+      {toast && (
+        <div className="eagle-toast" role="status">
+          <div className="eagle-toast-header">
+            <span className="eagle-toast-kicker">Award Unlocked</span>
+            <button className="eagle-toast-close" onClick={() => setToast(null)} aria-label="Dismiss">×</button>
+          </div>
+          <div className="eagle-toast-name">{toast.name}</div>
+          <div className="eagle-toast-desc">{toast.desc}</div>
+        </div>
+      )}
     </main>
   );
 }
