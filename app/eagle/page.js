@@ -50,6 +50,12 @@ const MILESTONES = [
     check: (c) => c.studiedCount >= 16,
   },
   {
+    id: "gospels-and-acts",
+    name: "Spreading Wings",
+    desc: "Studied the four Gospels and Acts",
+    check: (c) => ["Matthew", "Mark", "Luke", "John", "Acts"].every(b => c.studied[b]),
+  },
+  {
     id: "ancient-skies",
     name: "Ancient Skies",
     desc: "Completed the entire Old Testament",
@@ -87,6 +93,13 @@ function MilestoneIcon({ id, earned, size = 26 }) {
           <path d="M12 13 C9.5 15 7 15.5 4 15" stroke={color} strokeWidth="1.4" strokeLinecap="round"/>
           <path d="M12 13 C14.5 15 17 15.5 20 15" stroke={color} strokeWidth="1.4" strokeLinecap="round"/>
           <ellipse cx="12" cy="12" rx="2" ry="2.5" fill={color}/>
+        </svg>
+      );
+    case "gospels-and-acts":
+      return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 3 L13.8 8.5 H19.5 L14.9 11.8 L16.7 17.3 L12 14 L7.3 17.3 L9.1 11.8 L4.5 8.5 H10.2 Z" stroke={color} strokeWidth="1.6" strokeLinejoin="round"/>
+          <circle cx="12" cy="11" r="2.5" fill={color} opacity="0.25"/>
         </svg>
       );
     case "ancient-skies":
@@ -138,6 +151,7 @@ export default function EagleIndexPage() {
       studiedCount: Object.values(s).filter(Boolean).length,
       otDone: READING_PLAN["Old Testament"].filter(r => s[r.book]).length,
       ntDone: READING_PLAN["New Testament"].filter(r => s[r.book]).length,
+      studied: s,
     };
   }
 
