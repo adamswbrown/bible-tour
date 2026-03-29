@@ -730,14 +730,71 @@ export default async function EagleBookPage({ params }) {
         .eagle-nav a:hover {
           background: ${C.goldSoft};
         }
-        /* iPad — comfortable reading experience */
+        /* ── iPad: River-Flight Mode ──────────────────────────────────── */
+        @keyframes stageIn {
+          from { opacity: 0; transform: translateX(20px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
         @media (min-width: 768px) and (max-width: 1100px) {
-          .eagle-wrap { padding: 24px 24px 56px; max-width: 900px; }
-          .eagle-hero, .eagle-section { padding: 32px 36px; }
+          /* Lock shell to viewport */
+          .eagle-shell { height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
+          .eagle-wrap { padding: 0; max-width: 100%; display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+
+          /* Compact fixed header zone */
+          .eagle-topbar { padding: 14px 24px 6px; margin-bottom: 0; flex-shrink: 0; }
+          .eagle-hero { margin: 0 24px 10px; padding: 16px 20px; border-radius: 20px; flex-shrink: 0; }
+          .eagle-hero .eagle-subtitle { display: none; }
+          .eagle-title { font-size: clamp(28px, 5vw, 44px); line-height: 1; }
+          .eagle-chip-row { margin-top: 10px; }
+          .eagle-chip { padding: 6px 10px; font-size: 12px; }
+
+          /* Stage nav strip */
+          .eagle-steps { margin: 0 24px 10px; flex-shrink: 0; }
+          .eagle-step { padding: 12px 10px; font-size: 14px; }
+
+          /* River scroll panel */
+          .eagle-river { flex: 1; overflow-y: auto; padding: 0 24px 24px; -webkit-overflow-scrolling: touch; }
+
+          /* Stage panels: one at a time */
+          .eagle-river .eagle-section { display: none; margin-bottom: 0; animation: stageIn 0.22s ease; }
+          .eagle-river #stage-1 { display: block; }
+          .eagle-river #stage-2:target,
+          .eagle-river #stage-3:target { display: block; }
+          body:has(#stage-2:target) .eagle-river #stage-1,
+          body:has(#stage-3:target) .eagle-river #stage-1 { display: none; }
+
+          /* Mark studied: only show at stage 3 */
+          .eagle-mark-studied { display: none; }
+          body:has(#stage-3:target) .eagle-mark-studied { display: block; padding: 16px 0 8px; }
+
+          /* Active step highlighting — Stage 1 default */
+          .eagle-step[href="#stage-1"] { background: rgba(27,58,75,0.09); color: #162636; }
+          .eagle-step[href="#stage-1"] .eagle-step-num { background: #1b3a4b; color: white; }
+
+          /* Stage 2 active */
+          body:has(#stage-2:target) .eagle-step[href="#stage-1"] { background: transparent; color: #597083; }
+          body:has(#stage-2:target) .eagle-step[href="#stage-1"] .eagle-step-num { background: rgba(22,38,54,0.08); color: #597083; }
+          body:has(#stage-2:target) .eagle-step[href="#stage-2"] { background: rgba(27,58,75,0.09); color: #162636; }
+          body:has(#stage-2:target) .eagle-step[href="#stage-2"] .eagle-step-num { background: #1b3a4b; color: white; }
+
+          /* Stage 3 active */
+          body:has(#stage-3:target) .eagle-step[href="#stage-1"],
+          body:has(#stage-3:target) .eagle-step[href="#stage-2"] { background: transparent; color: #597083; }
+          body:has(#stage-3:target) .eagle-step[href="#stage-1"] .eagle-step-num,
+          body:has(#stage-3:target) .eagle-step[href="#stage-2"] .eagle-step-num { background: rgba(22,38,54,0.08); color: #597083; }
+          body:has(#stage-3:target) .eagle-step[href="#stage-3"] { background: rgba(27,58,75,0.09); color: #162636; }
+          body:has(#stage-3:target) .eagle-step[href="#stage-3"] .eagle-step-num { background: #1b3a4b; color: white; }
+
+          /* Flip nudge arrows ↓ → → (downstream) */
+          .eagle-nudge-arrow { font-size: 0 !important; }
+          .eagle-nudge-arrow::after { content: "→"; font-size: 18px; line-height: 1; }
+
+          /* Footer */
+          .eagle-footer { flex-shrink: 0; padding: 12px 24px; margin-top: 0; border-top: 1px solid rgba(22,38,54,0.1); }
+
+          /* Reading sizes for comfort */
           .eagle-book-intro { font-size: 17px; line-height: 1.8; }
           .eagle-summary-text { font-size: 16px; line-height: 1.75; }
-          .eagle-steps { margin-bottom: 24px; }
-          .eagle-step { padding: 14px 10px; font-size: 15px; }
         }
 
         @media (max-width: 720px) {
@@ -796,6 +853,7 @@ export default async function EagleBookPage({ params }) {
           ))}
         </div>
 
+        <div className="eagle-river">
         <section className="eagle-section" id="stage-1">
           <div className="eagle-section-head">
             <div className="eagle-head-copy">
@@ -852,7 +910,7 @@ export default async function EagleBookPage({ params }) {
           <div className="eagle-next-nudge">
             <span>Next: Map the verse</span>
             <span className="eagle-next-badge">2</span>
-            <a href="#stage-2" style={{ color: C.gold, fontSize: 18, lineHeight: 1 }}>↓</a>
+            <a className="eagle-nudge-arrow" href="#stage-2" style={{ color: C.gold, lineHeight: 1 }}>↓</a>
           </div>
         </section>
 
@@ -956,7 +1014,7 @@ export default async function EagleBookPage({ params }) {
           <div className="eagle-next-nudge">
             <span>Next: Follow the current</span>
             <span className="eagle-next-badge">3</span>
-            <a href="#stage-3" style={{ color: C.gold, fontSize: 18, lineHeight: 1 }}>↓</a>
+            <a className="eagle-nudge-arrow" href="#stage-3" style={{ color: C.gold, lineHeight: 1 }}>↓</a>
           </div>
         </section>
 
@@ -1019,7 +1077,10 @@ export default async function EagleBookPage({ params }) {
           )}
         </section>
 
-        <MarkStudiedButton book={entry.book} />
+          <div className="eagle-mark-studied">
+            <MarkStudiedButton book={entry.book} />
+          </div>
+        </div>
 
         <footer className="eagle-footer">
           <div>
