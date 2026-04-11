@@ -659,23 +659,6 @@ const s = {
   loadWrap: { minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: C.yellow },
   spinner: { width: 28, height: 28, border: `3px solid rgba(27,58,75,0.15)`, borderTopColor: C.teal, borderRadius: "50%", animation: "spin .8s linear infinite" },
 
-  // Login
-  loginOuter: { minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: C.teal, padding: 20 },
-  loginCard: { background: C.yellow, borderRadius: 16, padding: "40px 32px 32px", textAlign: "center", maxWidth: 380, width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.35)", display: "flex", flexDirection: "column", alignItems: "center" },
-  loginTitle: { fontFamily: "'Oswald',sans-serif", fontSize: 30, fontWeight: 700, color: C.teal, margin: "8px 0 4px", textTransform: "uppercase", letterSpacing: "0.02em" },
-  loginSub: { fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: C.tealLight, margin: 0, textTransform: "uppercase", letterSpacing: "0.12em", fontWeight: 600 },
-  loginDisclaimer: { fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: C.tealLight, margin: "8px 0 6px", lineHeight: 1.6, maxWidth: 300 },
-  loginCreditLink: { color: C.teal, fontWeight: 600, textDecoration: "none", borderBottom: `1px dashed rgba(27,58,75,0.3)` },
-  ytLink: { display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 600, color: C.teal, textDecoration: "none", margin: "4px 0 28px", padding: "6px 12px", borderRadius: 6, background: "rgba(27,58,75,0.08)", border: `1px solid rgba(27,58,75,0.12)` },
-  fieldGroup: { textAlign: "left", marginBottom: 16, width: "100%" },
-  label: { display: "block", fontFamily: "'DM Sans',sans-serif", fontSize: 11, fontWeight: 700, color: C.teal, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 6 },
-  input: { width: "100%", padding: "11px 14px", border: `2px solid rgba(27,58,75,0.2)`, borderRadius: 8, fontFamily: "'DM Sans',sans-serif", fontSize: 15, color: C.teal, background: C.white, outline: "none", boxSizing: "border-box", fontWeight: 500 },
-  pinRow: { display: "flex", gap: 8, alignItems: "center" },
-  eyeBtn: { background: "none", border: `1.5px solid rgba(27,58,75,0.2)`, borderRadius: 8, fontSize: 12, cursor: "pointer", padding: "10px 12px", lineHeight: 1, fontFamily: "'DM Sans',sans-serif", fontWeight: 600, color: C.teal },
-  errorMsg: { fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: "#c0392b", margin: "0 0 12px", animation: "shake 0.4s ease", fontWeight: 600 },
-  goBtn: { width: "100%", padding: "13px 24px", border: "none", borderRadius: 8, background: C.teal, color: C.yellow, fontFamily: "'DM Sans',sans-serif", fontSize: 15, fontWeight: 700, cursor: "pointer", transition: "opacity .2s", marginBottom: 16, textTransform: "uppercase", letterSpacing: "0.05em" },
-  hint: { fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: C.tealLight, lineHeight: 1.5, margin: 0, opacity: 0.7 },
-
   // Checklist
   outer: { minHeight: "100vh", background: C.yellow, fontFamily: "'DM Sans',sans-serif", color: C.teal },
   header: { background: C.teal, padding: "16px 20px 12px" },

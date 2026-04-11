@@ -11,8 +11,7 @@ Live at [bible-tour.vercel.app](https://bible-tour.vercel.app)
 - Reading checklist covering all 66 books with curated verse references
 - Inline verse reader — tap any reference to read the passage without leaving the app
 - Multiple translations: NIV, NIrV, NIVUK (via YouVersion API), KJV, WEB, ASV (via bible-api.com)
-- Progress saved per user in localStorage (no backend, no accounts)
-- Simple PIN-based login so multiple people can track progress on the same device
+- Progress saved in localStorage (no backend, no accounts, no tracking)
 
 ## Tech stack
 
