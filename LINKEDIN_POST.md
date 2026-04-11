@@ -20,8 +20,8 @@ fun to build.
   API, plus KJV / WEB / ASV via bible-api.com
 • An "Eagle Method" study flow broken into three stages — Survey, Map,
   and Current — that surfaces book context, chapter maps, and summaries
-• No accounts, no database: progress lives in localStorage, with a simple
-  PIN system so more than one person can share a device
+• No accounts, no database, no tracking — progress lives entirely in
+  localStorage
 
 **The stack**
 • Next.js 16 (App Router) on Vercel
