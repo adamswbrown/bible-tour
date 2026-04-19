@@ -60,13 +60,24 @@ function normalizeEntry(raw) {
   const strongsDef = (raw.strongs_def || "").trim();
   const kjvDef = (raw.kjv_def || "").trim();
 
-  // Gloss: first sense from kjv_def, stripped of leading/trailing punctuation.
-  const glossRaw = kjvDef
-    .replace(/\.$/, "")
-    .split(/,\s*/)
-    .slice(0, 4)
-    .join(", ")
-    .trim();
+  // Gloss: first 3–4 senses from kjv_def, honoring parens. We split on commas
+  // only when paren-depth is zero, then take the first few pieces.
+  const kjvTrimmed = kjvDef.replace(/\.$/, "");
+  const senses = [];
+  let depth = 0;
+  let buf = "";
+  for (const ch of kjvTrimmed) {
+    if (ch === "(" || ch === "[") depth++;
+    else if (ch === ")" || ch === "]") depth = Math.max(0, depth - 1);
+    if (ch === "," && depth === 0) {
+      if (buf.trim()) senses.push(buf.trim());
+      buf = "";
+    } else {
+      buf += ch;
+    }
+  }
+  if (buf.trim()) senses.push(buf.trim());
+  const glossRaw = senses.slice(0, 4).join(", ");
 
   // Entry: human-readable multi-paragraph definition.
   const entryParts = [];
