@@ -1,4 +1,5 @@
 import { Analytics } from '@vercel/analytics/next';
+import FeedbackButton from './components/FeedbackButton';
 
 export const metadata = {
   title: "Tour of the Bible",
@@ -20,6 +21,7 @@ export default function RootLayout({ children }) {
       </head>
       <body style={{ margin: 0, padding: 0 }}>
         {children}
+        <FeedbackButton />
         <Analytics />
       </body>
     </html>
