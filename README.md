@@ -79,7 +79,7 @@ Tap any word in a KJV verse to see its Hebrew/Greek lemma, Strong's number, and 
 
 Complementary to Eagle mode: Eagle works at the book level ("where am I in this book?"), Originals at the word level ("what does this word mean in the original?").
 
-- Opt-in per verse via a toggle in the verse panel. KJV-only — other translations show a hint to switch.
+- Opt-in per verse via a toggle in the verse panel. Works with any translation — on non-KJV, the tagged KJV renders as an "Original (KJV)" section beneath the user's reading.
 - Data is bundled at build time from [kaiserlik/kjv](https://github.com/kaiserlik/kjv) (KJV+Strong's, public domain) and [Open Scriptures](https://github.com/openscriptures/strongs) (Strong's dictionary, CC BY-SA 3.0). No network calls, works offline.
 - Tour verses only — 234 tagged references across all 66 books. Full-Bible coverage planned for v2.
 

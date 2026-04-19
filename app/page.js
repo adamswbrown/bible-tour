@@ -220,10 +220,6 @@ function VersePanel({ book, verseRef, onClose, mode = "overlay" }) {
     });
   };
 
-  const switchToKjv = () => {
-    changeTranslation("kjv");
-  };
-
   const handleWordClick = useCallback((token, anchorRect) => {
     if (!token || !token.s) return;
     setStudyPopover({ strongsId: token.s, anchor: anchorRect });
@@ -254,8 +250,7 @@ function VersePanel({ book, verseRef, onClose, mode = "overlay" }) {
   const studyVerseId = toVerseId(book, verseRef);
   const studyAvailable = !!studyVerseId && hasStudy(studyVerseId);
   const isKjv = translationId === "kjv";
-  const studyTokens = studyMode && isKjv && studyAvailable ? getTokens(studyVerseId) : null;
-  const showStudyHint = studyMode && !isKjv;
+  const studyTokens = studyMode && studyAvailable ? getTokens(studyVerseId) : null;
   const popoverEntry = studyPopover
     ? (() => {
         const e = getEntry(studyPopover.strongsId);
@@ -300,7 +295,7 @@ function VersePanel({ book, verseRef, onClose, mode = "overlay" }) {
             onClick={toggleStudyMode}
             aria-pressed={studyMode}
             style={{ ...ps.studyToggle, ...(studyMode ? ps.studyToggleOn : {}) }}
-            title={studyMode ? "Turn Originals off" : "Turn Originals on (KJV only)"}
+            title={studyMode ? "Turn Originals off" : "Turn Originals on"}
           >
             {studyMode ? "Originals ✓" : "Originals ▸"}
           </button>
@@ -340,27 +335,17 @@ function VersePanel({ book, verseRef, onClose, mode = "overlay" }) {
             </div>
           )}
 
-          {showStudyHint && !loading && (
-            <div style={ps.studyHint}>
-              <p style={ps.studyHintText}>
-                Switch to KJV to see the originals.
-              </p>
-              <button type="button" onClick={switchToKjv} style={ps.studyHintBtn}>
-                Switch to KJV
-              </button>
-            </div>
-          )}
-
           {text && (
             <div style={isSidebar ? ps.verseContentSidebar : ps.verseContent}>
               {text.map((v, i) => {
-                // Only the first verse of a multi-verse range can be rendered as
-                // tokens — tagged data is single-verse. Remaining verses render plain.
-                const useStudy = i === 0 && studyTokens && studyTokens.length > 0;
+                // On KJV we tokenize the first verse in-place. On other
+                // translations the tagged KJV renders as a separate
+                // Originals section below (see next block).
+                const useStudyInline = isKjv && i === 0 && studyTokens && studyTokens.length > 0;
                 return (
                   <p key={i} style={isSidebar ? ps.verseLineSidebar : ps.verseLine}>
                     {v.verse && <sup style={ps.verseNum}>{v.verse}</sup>}
-                    {useStudy ? (
+                    {useStudyInline ? (
                       <StudyVerse
                         verseId={studyVerseId}
                         tokens={studyTokens}
@@ -376,6 +361,21 @@ function VersePanel({ book, verseRef, onClose, mode = "overlay" }) {
               {copyright && (
                 <p style={ps.copyrightAttrib}>{copyright}</p>
               )}
+            </div>
+          )}
+
+          {/* Originals (KJV) section — shown beneath a non-KJV translation */}
+          {studyMode && studyTokens && !isKjv && !loading && (
+            <div style={ps.originalsSection}>
+              <div style={ps.originalsLabel}>Original (KJV)</div>
+              <p style={isSidebar ? ps.verseLineSidebar : ps.verseLine}>
+                <StudyVerse
+                  verseId={studyVerseId}
+                  tokens={studyTokens}
+                  onWordClick={handleWordClick}
+                  activeStrong={studyPopover?.strongsId || studyDrawer?.strongsId || null}
+                />
+              </p>
             </div>
           )}
         </div>
@@ -1052,30 +1052,19 @@ const ps = {
     color: C.yellow,
     borderColor: C.teal,
   },
-  studyHint: {
-    margin: "0 0 16px",
-    padding: "14px 16px",
-    borderRadius: 10,
-    background: "rgba(255,203,33,0.12)",
-    border: `1px solid rgba(255,203,33,0.35)`,
-    display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 10,
+  originalsSection: {
+    margin: "24px 0 0",
+    paddingTop: 18,
+    borderTop: `1px dashed rgba(27,58,75,0.18)`,
   },
-  studyHintText: {
-    margin: 0,
-    fontSize: 13,
+  originalsLabel: {
+    fontSize: 11,
+    fontWeight: 700,
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
     color: C.teal,
-    lineHeight: 1.5,
-    fontWeight: 500,
-  },
-  studyHintBtn: {
-    padding: "7px 14px",
-    border: "none",
-    borderRadius: 8,
-    background: C.teal,
-    color: C.yellow,
+    opacity: 0.55,
+    marginBottom: 10,
     fontFamily: "'DM Sans',sans-serif",
-    fontSize: 12, fontWeight: 700,
-    cursor: "pointer",
-    letterSpacing: "0.02em",
   },
 };
