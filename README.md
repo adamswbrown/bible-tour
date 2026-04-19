@@ -28,6 +28,12 @@ npm install
 npm run dev
 ```
 
+### Build data
+
+```
+npm run build:data   # regenerates app/data/lexicon.json and tagged-verses.json
+```
+
 ### Environment variables
 
 | Variable | Description |
@@ -49,6 +55,13 @@ app/
   api/
     verse/
       route.js     # Server-side proxy to YouVersion API (keeps key secret)
+  components/
+    StudyVerse.js
+    WordPopover.js
+    LexiconDrawer.js
+  data/
+    tagged-verses.json
+    lexicon.json
 ```
 
 ## How the verse API works
@@ -59,6 +72,16 @@ app/
 2. **Vercel Edge CDN** — responses cached at edge for 7 days with stale-while-revalidate
 
 Bible verses don't change, so after the first request for any verse+translation combo, subsequent requests are served from cache without hitting YouVersion or even the serverless function.
+
+## Study Mode
+
+Tap any word in a KJV verse to see its Hebrew/Greek lemma, Strong's number, part of speech, and a short gloss. Tap "Full entry" for the abridged BDB/Thayer's entry. An "Open on Blue Letter Bible" link jumps out to the full BLB study apparatus.
+
+- Opt-in per verse via a toggle in the verse panel. KJV-only — other translations show a hint to switch.
+- Data is bundled at build time from [STEPBible](https://github.com/STEPBible/STEPBible-Data) (CC BY 4.0) + [OpenScriptures](https://github.com/openscriptures/) (public domain). No network calls, works offline.
+- Tour verses only (~500 references). Full-Bible coverage planned for v2.
+
+See [DATA-SOURCES.md](./DATA-SOURCES.md) for licensing details and the build pipeline.
 
 ## Licensed translations
 
@@ -74,4 +97,6 @@ Unlicensed copyrighted translations (NKJV, NLT, CSB, MSG) link out to YouVersion
 
 - Reading plan from Matt Whitman's [Lightning-Fast Field Guide to the Bible](https://www.thetmbh.com/tourofthebible)
 - [Watch Matt explain the tour](https://youtu.be/XdMuZCTChJE?si=DRfBFUnDc2mt3Yq2)
+- STEPBible Tyndale House (lexicon data, CC BY 4.0)
+- OpenScriptures (KJV+Strong's text, public domain)
 - Built by [Adam Brown](https://askadam.cloud/) & Claude
