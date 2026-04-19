@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "build:data": "node scripts/build-lexicon.mjs && node scripts/build-tagged-verses.mjs"
   },
   "keywords": [],
   "author": "",

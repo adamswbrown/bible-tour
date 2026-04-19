@@ -28,6 +28,12 @@ npm install
 npm run dev
 ```
 
+### Build data
+
+```
+npm run build:data   # regenerates app/data/lexicon.json and tagged-verses.json
+```
+
 ### Environment variables
 
 | Variable | Description |
@@ -49,6 +55,13 @@ app/
   api/
     verse/
       route.js     # Server-side proxy to YouVersion API (keeps key secret)
+  components/
+    StudyVerse.js
+    WordPopover.js
+    LexiconDrawer.js
+  data/
+    tagged-verses.json
+    lexicon.json
 ```
 
 ## How the verse API works
@@ -59,6 +72,18 @@ app/
 2. **Vercel Edge CDN** — responses cached at edge for 7 days with stale-while-revalidate
 
 Bible verses don't change, so after the first request for any verse+translation combo, subsequent requests are served from cache without hitting YouVersion or even the serverless function.
+
+## Originals
+
+Tap any word in a KJV verse to see its Hebrew/Greek lemma, Strong's number, and a short gloss. Tap "Full entry" for the extended Strong's dictionary entry. An "Open on Blue Letter Bible" link jumps out to the full BLB study apparatus.
+
+Complementary to Eagle mode: Eagle works at the book level ("where am I in this book?"), Originals at the word level ("what does this word mean in the original?").
+
+- Opt-in per verse via a toggle in the verse panel. Works with any translation — on non-KJV, the tagged KJV renders as an "Original (KJV)" section beneath the user's reading.
+- Data is bundled at build time from [kaiserlik/kjv](https://github.com/kaiserlik/kjv) (KJV+Strong's, public domain) and [Open Scriptures](https://github.com/openscriptures/strongs) (Strong's dictionary, CC BY-SA 3.0). No network calls, works offline.
+- Tour verses only — 234 tagged references across all 66 books. Full-Bible coverage planned for v2.
+
+See [DATA-SOURCES.md](./DATA-SOURCES.md) for licensing details and the build pipeline.
 
 ## Licensed translations
 
@@ -74,4 +99,6 @@ Unlicensed copyrighted translations (NKJV, NLT, CSB, MSG) link out to YouVersion
 
 - Reading plan from Matt Whitman's [Lightning-Fast Field Guide to the Bible](https://www.thetmbh.com/tourofthebible)
 - [Watch Matt explain the tour](https://youtu.be/XdMuZCTChJE?si=DRfBFUnDc2mt3Yq2)
+- [kaiserlik/kjv](https://github.com/kaiserlik/kjv) — KJV text with Strong's tags (public domain)
+- [Open Scriptures](https://github.com/openscriptures/strongs) — Strong's Hebrew & Greek dictionaries (CC BY-SA 3.0)
 - Built by [Adam Brown](https://askadam.cloud/) & Claude

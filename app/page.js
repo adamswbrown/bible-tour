@@ -9,6 +9,12 @@ import {
   buildUsfmParts,
   buildYouVersionUrl,
 } from "./lib/translations";
+import { hasStudy, getTokens, getEntry, toVerseId } from "./lib/study";
+import StudyVerse from "./components/StudyVerse";
+import WordPopover from "./components/WordPopover";
+import LexiconDrawer from "./components/LexiconDrawer";
+
+const STUDY_MODE_STORAGE_KEY = "bt:originalsMode";
 
 // Detects iPad-sized screens (768px+) — enables persistent split-pane layout
 function useIsIpad() {
@@ -115,6 +121,11 @@ function VersePanel({ book, verseRef, onClose, mode = "overlay" }) {
   const [translationId, setTranslationId] = useState(() => {
     try { return localStorage.getItem(MAIN_TRANSLATION_STORAGE_KEY) || MAIN_DEFAULT_TRANSLATION; } catch { return MAIN_DEFAULT_TRANSLATION; }
   });
+  const [studyMode, setStudyMode] = useState(() => {
+    try { return localStorage.getItem(STUDY_MODE_STORAGE_KEY) === "1"; } catch { return false; }
+  });
+  const [studyPopover, setStudyPopover] = useState(null); // { strongsId, anchor } | null
+  const [studyDrawer, setStudyDrawer] = useState(null);   // { strongsId } | null
   const panelRef = useRef(null);
 
   const tx = TRANSLATIONS.find(t => t.id === translationId) || TRANSLATIONS[0];
@@ -197,14 +208,56 @@ function VersePanel({ book, verseRef, onClose, mode = "overlay" }) {
     try { localStorage.setItem(MAIN_TRANSLATION_STORAGE_KEY, newId); } catch {}
   };
 
-  // Close on Escape
+  const toggleStudyMode = () => {
+    setStudyMode(prev => {
+      const next = !prev;
+      try { localStorage.setItem(STUDY_MODE_STORAGE_KEY, next ? "1" : "0"); } catch {}
+      if (!next) {
+        setStudyPopover(null);
+        setStudyDrawer(null);
+      }
+      return next;
+    });
+  };
+
+  const handleWordClick = useCallback((token, anchorRect) => {
+    if (!token || !token.s) return;
+    setStudyPopover({ strongsId: token.s, anchor: anchorRect });
+  }, []);
+
+  const closePopover = useCallback(() => setStudyPopover(null), []);
+  const closeDrawer = useCallback(() => setStudyDrawer(null), []);
+
+  const openFullEntry = useCallback(() => {
+    if (!studyPopover) return;
+    setStudyDrawer({ strongsId: studyPopover.strongsId });
+    setStudyPopover(null);
+  }, [studyPopover]);
+
+  // Close on Escape — drawer first, then popover, then the panel itself
   useEffect(() => {
-    const handler = (e) => { if (e.key === "Escape") onClose(); };
+    const handler = (e) => {
+      if (e.key !== "Escape") return;
+      if (studyDrawer) { setStudyDrawer(null); return; }
+      if (studyPopover) { setStudyPopover(null); return; }
+      onClose();
+    };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [onClose]);
+  }, [onClose, studyPopover, studyDrawer]);
 
   const displayRef = `${book} ${verseRef}`;
+  const studyVerseId = toVerseId(book, verseRef);
+  const studyAvailable = !!studyVerseId && hasStudy(studyVerseId);
+  const isKjv = translationId === "kjv";
+  const studyTokens = studyMode && studyAvailable ? getTokens(studyVerseId) : null;
+  const popoverEntry = studyPopover
+    ? (() => {
+        const e = getEntry(studyPopover.strongsId);
+        return e ? { ...e, strongsId: studyPopover.strongsId } : null;
+      })()
+    : null;
+  const drawerEntry = studyDrawer ? getEntry(studyDrawer.strongsId) : null;
 
   return (
     <>
@@ -223,7 +276,7 @@ function VersePanel({ book, verseRef, onClose, mode = "overlay" }) {
           </button>
         </div>
 
-        {/* Translation picker */}
+        {/* Translation picker + Originals toggle */}
         <div style={ps.translationBar}>
           <select
             value={translationId}
@@ -237,6 +290,15 @@ function VersePanel({ book, verseRef, onClose, mode = "overlay" }) {
               </option>
             ))}
           </select>
+          <button
+            type="button"
+            onClick={toggleStudyMode}
+            aria-pressed={studyMode}
+            style={{ ...ps.studyToggle, ...(studyMode ? ps.studyToggleOn : {}) }}
+            title={studyMode ? "Turn Originals off" : "Turn Originals on"}
+          >
+            {studyMode ? "Originals ✓" : "Originals ▸"}
+          </button>
         </div>
 
         <div style={ps.panelBody}>
@@ -275,18 +337,63 @@ function VersePanel({ book, verseRef, onClose, mode = "overlay" }) {
 
           {text && (
             <div style={isSidebar ? ps.verseContentSidebar : ps.verseContent}>
-              {text.map((v, i) => (
-                <p key={i} style={isSidebar ? ps.verseLineSidebar : ps.verseLine}>
-                  {v.verse && <sup style={ps.verseNum}>{v.verse}</sup>}
-                  {v.text}
-                </p>
-              ))}
+              {text.map((v, i) => {
+                // On KJV we tokenize the first verse in-place. On other
+                // translations the tagged KJV renders as a separate
+                // Originals section below (see next block).
+                const useStudyInline = isKjv && i === 0 && studyTokens && studyTokens.length > 0;
+                return (
+                  <p key={i} style={isSidebar ? ps.verseLineSidebar : ps.verseLine}>
+                    {v.verse && <sup style={ps.verseNum}>{v.verse}</sup>}
+                    {useStudyInline ? (
+                      <StudyVerse
+                        verseId={studyVerseId}
+                        tokens={studyTokens}
+                        onWordClick={handleWordClick}
+                        activeStrong={studyPopover?.strongsId || studyDrawer?.strongsId || null}
+                      />
+                    ) : (
+                      v.text
+                    )}
+                  </p>
+                );
+              })}
               {copyright && (
                 <p style={ps.copyrightAttrib}>{copyright}</p>
               )}
             </div>
           )}
+
+          {/* Originals (KJV) section — shown beneath a non-KJV translation */}
+          {studyMode && studyTokens && !isKjv && !loading && (
+            <div style={ps.originalsSection}>
+              <div style={ps.originalsLabel}>Original (KJV)</div>
+              <p style={isSidebar ? ps.verseLineSidebar : ps.verseLine}>
+                <StudyVerse
+                  verseId={studyVerseId}
+                  tokens={studyTokens}
+                  onWordClick={handleWordClick}
+                  activeStrong={studyPopover?.strongsId || studyDrawer?.strongsId || null}
+                />
+              </p>
+            </div>
+          )}
         </div>
+
+        <WordPopover
+          open={!!studyPopover && !!popoverEntry}
+          anchor={studyPopover?.anchor || null}
+          entry={popoverEntry}
+          onClose={closePopover}
+          onOpenFull={openFullEntry}
+        />
+
+        <LexiconDrawer
+          open={!!studyDrawer && !!drawerEntry}
+          entry={drawerEntry}
+          strongsId={studyDrawer?.strongsId || null}
+          onClose={closeDrawer}
+        />
 
         <div style={ps.panelFooter}>
           <a href={youVersionUrl} target="_blank" rel="noopener noreferrer" style={ps.youVersionLink}>
@@ -923,5 +1030,41 @@ const ps = {
   verseLineSidebar: {
     fontSize: 19, margin: "0 0 18px", lineHeight: 1.9,
     fontWeight: 400, letterSpacing: "0.01em",
+  },
+
+  // ── Originals toggle ─────────────────────────────────────────────────────
+  studyToggle: {
+    flexShrink: 0,
+    padding: "7px 12px",
+    border: `1.5px solid rgba(27,58,75,0.18)`,
+    borderRadius: 8,
+    background: C.white,
+    fontFamily: "'DM Sans',sans-serif",
+    fontSize: 12, fontWeight: 700,
+    color: C.teal,
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+    letterSpacing: "0.02em",
+    transition: "all .15s",
+  },
+  studyToggleOn: {
+    background: C.teal,
+    color: C.yellow,
+    borderColor: C.teal,
+  },
+  originalsSection: {
+    margin: "24px 0 0",
+    paddingTop: 18,
+    borderTop: `1px dashed rgba(27,58,75,0.18)`,
+  },
+  originalsLabel: {
+    fontSize: 11,
+    fontWeight: 700,
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
+    color: C.teal,
+    opacity: 0.55,
+    marginBottom: 10,
+    fontFamily: "'DM Sans',sans-serif",
   },
 };
