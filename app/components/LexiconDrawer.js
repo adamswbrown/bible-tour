@@ -118,6 +118,19 @@ export default function LexiconDrawer({ open, entry, strongsId, onClose }) {
               </div>
             </>
           )}
+
+          <p style={styles.attribution}>
+            Strong&rsquo;s dictionary from{" "}
+            <a
+              href="https://github.com/openscriptures/strongs"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={styles.attributionLink}
+            >
+              Open Scriptures
+            </a>{" "}
+            (CC BY-SA 3.0)
+          </p>
         </div>
 
         <style>{`
@@ -229,5 +242,17 @@ const styles = {
     padding: "10px 18px", background: TEAL,
     color: YELLOW, borderRadius: 8, textDecoration: "none",
     fontWeight: 700, fontSize: 14, fontFamily: "'DM Sans',sans-serif",
+  },
+  attribution: {
+    margin: "22px 0 0",
+    fontSize: 11,
+    color: TEAL_LIGHT,
+    opacity: 0.6,
+    lineHeight: 1.5,
+    fontStyle: "italic",
+  },
+  attributionLink: {
+    color: "inherit",
+    textDecoration: "underline",
   },
 };
