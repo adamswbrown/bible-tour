@@ -75,11 +75,11 @@ Bible verses don't change, so after the first request for any verse+translation 
 
 ## Study Mode
 
-Tap any word in a KJV verse to see its Hebrew/Greek lemma, Strong's number, part of speech, and a short gloss. Tap "Full entry" for the abridged BDB/Thayer's entry. An "Open on Blue Letter Bible" link jumps out to the full BLB study apparatus.
+Tap any word in a KJV verse to see its Hebrew/Greek lemma, Strong's number, and a short gloss. Tap "Full entry" for the extended Strong's dictionary entry. An "Open on Blue Letter Bible" link jumps out to the full BLB study apparatus.
 
 - Opt-in per verse via a toggle in the verse panel. KJV-only — other translations show a hint to switch.
-- Data is bundled at build time from [STEPBible](https://github.com/STEPBible/STEPBible-Data) (CC BY 4.0) + [OpenScriptures](https://github.com/openscriptures/) (public domain). No network calls, works offline.
-- Tour verses only (~500 references). Full-Bible coverage planned for v2.
+- Data is bundled at build time from [kaiserlik/kjv](https://github.com/kaiserlik/kjv) (KJV+Strong's, public domain) and [Open Scriptures](https://github.com/openscriptures/strongs) (Strong's dictionary, CC BY-SA 3.0). No network calls, works offline.
+- Tour verses only — 234 tagged references across all 66 books. Full-Bible coverage planned for v2.
 
 See [DATA-SOURCES.md](./DATA-SOURCES.md) for licensing details and the build pipeline.
 
@@ -97,6 +97,6 @@ Unlicensed copyrighted translations (NKJV, NLT, CSB, MSG) link out to YouVersion
 
 - Reading plan from Matt Whitman's [Lightning-Fast Field Guide to the Bible](https://www.thetmbh.com/tourofthebible)
 - [Watch Matt explain the tour](https://youtu.be/XdMuZCTChJE?si=DRfBFUnDc2mt3Yq2)
-- STEPBible Tyndale House (lexicon data, CC BY 4.0)
-- OpenScriptures (KJV+Strong's text, public domain)
+- [kaiserlik/kjv](https://github.com/kaiserlik/kjv) — KJV text with Strong's tags (public domain)
+- [Open Scriptures](https://github.com/openscriptures/strongs) — Strong's Hebrew & Greek dictionaries (CC BY-SA 3.0)
 - Built by [Adam Brown](https://askadam.cloud/) & Claude
