@@ -409,6 +409,7 @@ function VersePanel({ book, verseRef, onClose, mode = "overlay" }) {
 }
 
 const EAGLE_BANNER_DISMISSED_KEY = "bt:eagleBannerDismissed";
+const ORIGINALS_BANNER_DISMISSED_KEY = "bt:originalsBannerDismissed";
 
 function store(key, value) {
   try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
@@ -434,6 +435,7 @@ function ChecklistView({ checked, onToggle, onReset }) {
   const [showCelebrate, setShowCelebrate] = useState(false);
   const [versePanel, setVersePanel] = useState(null); // { book, ref, youVersionUrl }
   const [showEagleBanner, setShowEagleBanner] = useState(false);
+  const [showOriginalsBanner, setShowOriginalsBanner] = useState(false);
   const [bannerReady, setBannerReady] = useState(false);
   const isIpad = useIsIpad();
 
@@ -461,7 +463,13 @@ function ChecklistView({ checked, onToggle, onReset }) {
 
   useEffect(() => {
     setShowEagleBanner(!load(EAGLE_BANNER_DISMISSED_KEY));
+    setShowOriginalsBanner(!load(ORIGINALS_BANNER_DISMISSED_KEY));
     setBannerReady(true);
+  }, []);
+
+  const dismissOriginalsBanner = useCallback(() => {
+    setShowOriginalsBanner(false);
+    store(ORIGINALS_BANNER_DISMISSED_KEY, true);
   }, []);
 
   const dismissEagleBanner = useCallback(() => {
@@ -559,6 +567,24 @@ function ChecklistView({ checked, onToggle, onReset }) {
             </div>
           </header>
 
+          {bannerReady && showOriginalsBanner && (
+            <div style={{ ...s.eagleBannerWrap, maxWidth: "none" }}>
+              <div style={s.eagleBannerShell}>
+                <div style={s.originalsBanner}>
+                  <span style={s.originalsBannerPill}>New</span>
+                  <span style={s.originalsBannerText}>
+                    Originals — tap any verse, toggle Originals to see the Hebrew/Greek
+                  </span>
+                </div>
+                <button type="button" onClick={dismissOriginalsBanner} aria-label="Dismiss Originals banner" style={s.originalsBannerClose}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          )}
+
           {bannerReady && showEagleBanner && (
             <div style={{ ...s.eagleBannerWrap, maxWidth: "none" }}>
               <div style={s.eagleBannerShell}>
@@ -649,6 +675,29 @@ function ChecklistView({ checked, onToggle, onReset }) {
           <h1 style={s.title}>Tour of the Bible</h1>
         </div>
       </header>
+
+      {bannerReady && showOriginalsBanner && (
+        <div style={s.eagleBannerWrap}>
+          <div style={s.eagleBannerShell}>
+            <div style={s.originalsBanner}>
+              <span style={s.originalsBannerPill}>New</span>
+              <span style={s.originalsBannerText}>
+                Originals — tap any verse, toggle Originals to see the Hebrew/Greek
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={dismissOriginalsBanner}
+              aria-label="Dismiss Originals banner"
+              style={s.originalsBannerClose}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
 
       {bannerReady && showEagleBanner && (
         <div style={s.eagleBannerWrap}>
@@ -806,6 +855,33 @@ const s = {
     border: "none",
     background: "rgba(255,255,255,0.12)",
     color: "rgba(255,255,255,0.82)",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    cursor: "pointer", padding: 0,
+  },
+  originalsBanner: {
+    display: "flex", alignItems: "center", gap: 10,
+    padding: "12px 48px 12px 16px",
+    borderRadius: 14,
+    background: C.yellow,
+    border: `1px solid rgba(0,0,0,0.08)`,
+    color: C.teal,
+    boxShadow: "0 2px 12px rgba(0,0,0,0.10)",
+  },
+  originalsBannerPill: {
+    display: "inline-flex", alignItems: "center", justifyContent: "center",
+    padding: "2px 7px", borderRadius: 999,
+    background: C.teal, color: C.yellow,
+    fontSize: 10, fontWeight: 800, letterSpacing: "0.1em",
+    textTransform: "uppercase", flexShrink: 0,
+  },
+  originalsBannerText: { flex: 1, fontSize: 14, fontWeight: 700, lineHeight: 1.4 },
+  originalsBannerClose: {
+    position: "absolute", top: 8, right: 8,
+    width: 28, height: 28,
+    borderRadius: 999,
+    border: "none",
+    background: "rgba(27,58,75,0.10)",
+    color: "rgba(27,58,75,0.75)",
     display: "flex", alignItems: "center", justifyContent: "center",
     cursor: "pointer", padding: 0,
   },
