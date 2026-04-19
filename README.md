@@ -73,9 +73,11 @@ app/
 
 Bible verses don't change, so after the first request for any verse+translation combo, subsequent requests are served from cache without hitting YouVersion or even the serverless function.
 
-## Study Mode
+## Originals
 
 Tap any word in a KJV verse to see its Hebrew/Greek lemma, Strong's number, and a short gloss. Tap "Full entry" for the extended Strong's dictionary entry. An "Open on Blue Letter Bible" link jumps out to the full BLB study apparatus.
+
+Complementary to Eagle mode: Eagle works at the book level ("where am I in this book?"), Originals at the word level ("what does this word mean in the original?").
 
 - Opt-in per verse via a toggle in the verse panel. KJV-only — other translations show a hint to switch.
 - Data is bundled at build time from [kaiserlik/kjv](https://github.com/kaiserlik/kjv) (KJV+Strong's, public domain) and [Open Scriptures](https://github.com/openscriptures/strongs) (Strong's dictionary, CC BY-SA 3.0). No network calls, works offline.

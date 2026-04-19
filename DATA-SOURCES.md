@@ -1,6 +1,6 @@
 # Data sources
 
-Study Mode bundles open biblical text and lexicon data at build time.
+Originals mode bundles open biblical text and lexicon data at build time.
 
 ## kaiserlik/kjv — KJV text with Strong's tags
 
@@ -40,4 +40,4 @@ Full-Bible coverage is planned for v2 via code-splitting the lexicon by book.
 
 - `pos` (part of speech) is empty for all entries — the Open Scriptures dictionaries omit it.
 - Multi-Strong's tags on one word (e.g. `created[H1254][H853]`) use the first (primary) tag; markers like the Hebrew accusative H853 are dropped to reduce visual noise.
-- Study Mode only renders the **first verse** of a multi-verse range (e.g. `"12:2-3"` shows tagged tokens for v.2, plain text for v.3).
+- Originals mode only renders the **first verse** of a multi-verse range (e.g. `"12:2-3"` shows tagged tokens for v.2, plain text for v.3).

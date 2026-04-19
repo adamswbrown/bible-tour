@@ -14,7 +14,7 @@ import StudyVerse from "./components/StudyVerse";
 import WordPopover from "./components/WordPopover";
 import LexiconDrawer from "./components/LexiconDrawer";
 
-const STUDY_MODE_STORAGE_KEY = "bt:studyMode";
+const STUDY_MODE_STORAGE_KEY = "bt:originalsMode";
 
 // Detects iPad-sized screens (768px+) — enables persistent split-pane layout
 function useIsIpad() {
@@ -281,7 +281,7 @@ function VersePanel({ book, verseRef, onClose, mode = "overlay" }) {
           </button>
         </div>
 
-        {/* Translation picker + Study Mode toggle */}
+        {/* Translation picker + Originals toggle */}
         <div style={ps.translationBar}>
           <select
             value={translationId}
@@ -300,9 +300,9 @@ function VersePanel({ book, verseRef, onClose, mode = "overlay" }) {
             onClick={toggleStudyMode}
             aria-pressed={studyMode}
             style={{ ...ps.studyToggle, ...(studyMode ? ps.studyToggleOn : {}) }}
-            title={studyMode ? "Turn Study Mode off" : "Turn Study Mode on (KJV only)"}
+            title={studyMode ? "Turn Originals off" : "Turn Originals on (KJV only)"}
           >
-            {studyMode ? "Study ✓" : "Study ▸"}
+            {studyMode ? "Originals ✓" : "Originals ▸"}
           </button>
         </div>
 
@@ -343,7 +343,7 @@ function VersePanel({ book, verseRef, onClose, mode = "overlay" }) {
           {showStudyHint && !loading && (
             <div style={ps.studyHint}>
               <p style={ps.studyHintText}>
-                Switch to KJV to study the original language.
+                Switch to KJV to see the originals.
               </p>
               <button type="button" onClick={switchToKjv} style={ps.studyHintBtn}>
                 Switch to KJV
@@ -1032,7 +1032,7 @@ const ps = {
     fontWeight: 400, letterSpacing: "0.01em",
   },
 
-  // ── Study Mode ───────────────────────────────────────────────────────────
+  // ── Originals toggle ─────────────────────────────────────────────────────
   studyToggle: {
     flexShrink: 0,
     padding: "7px 12px",
