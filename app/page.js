@@ -13,6 +13,7 @@ import { hasStudy, getTokens, getEntry, toVerseId } from "./lib/study";
 import StudyVerse from "./components/StudyVerse";
 import WordPopover from "./components/WordPopover";
 import LexiconDrawer from "./components/LexiconDrawer";
+import EagleLinkButton from "./components/EagleLinkButton";
 
 const STUDY_MODE_STORAGE_KEY = "bt:originalsMode";
 
@@ -655,6 +656,7 @@ function ChecklistView({ checked, onToggle, onReset }) {
             </div>
           )}
         </div>
+        <EagleLinkButton visible={bannerReady && !showEagleBanner} />
       </div>
     );
   }
@@ -764,6 +766,7 @@ function ChecklistView({ checked, onToggle, onReset }) {
           onClose={closeVerse}
         />
       )}
+      <EagleLinkButton visible={bannerReady && !showEagleBanner} />
     </div>
   );
 }
