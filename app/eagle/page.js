@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { BOOKS, READING_PLAN } from "../lib/bible";
 import { getChapterSummaries } from "../lib/book-data";
+import TourLinkButton from "../components/TourLinkButton";
 
 const STORAGE_KEY = "bt:eagle";
 const MILESTONE_KEY = "bt:eagleMilestones";
@@ -708,6 +709,7 @@ export default function EagleIndexPage() {
           <div className="eagle-toast-desc">{toast.desc}</div>
         </div>
       )}
+      <TourLinkButton />
     </main>
   );
 }

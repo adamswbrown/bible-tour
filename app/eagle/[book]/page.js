@@ -13,6 +13,7 @@ import {
 import { getIqBookInfo, getIqVerseCount } from "../../lib/iq-bible";
 import MarkStudiedButton from "./MarkStudiedButton";
 import VersePreviewPanel from "./VersePreviewPanel";
+import TourLinkButton from "../../components/TourLinkButton";
 
 const C = {
   sand: "#f6f1e5",
@@ -1104,6 +1105,7 @@ export default async function EagleBookPage({ params }) {
           </nav>
         </footer>
       </div>
+      <TourLinkButton />
     </main>
   );
 }
