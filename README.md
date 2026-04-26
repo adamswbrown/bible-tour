@@ -20,6 +20,7 @@ Live at [bible-tour.vercel.app](https://bible-tour.vercel.app)
 - Single-page app — one `page.js`, no external UI libraries
 - **YouVersion Developer API** for licensed translations (NIV family)
 - **bible-api.com** for public domain translations (KJV, WEB, ASV)
+- **Crossway ESV API** for ESV reading text and per-verse audio narration
 - All user data in `localStorage` — no database
 
 ## Setup
@@ -57,7 +58,11 @@ app/
   layout.js        # Root layout with metadata
   api/
     verse/
-      route.js     # Server-side proxy to YouVersion API (keeps key secret)
+      route.js     # Proxy to YouVersion API (NIV family text)
+    verse-esv/
+      route.js     # Proxy to Crossway ESV API (ESV reading text)
+    verse-audio/
+      route.js     # Proxy to Crossway ESV API (per-verse audio)
   components/
     StudyVerse.js
     WordPopover.js
@@ -93,7 +98,7 @@ Tap any word in a KJV verse to see its Hebrew/Greek lemma, Strong's number, and 
 
 Complementary to Eagle mode: Eagle works at the book level ("where am I in this book?"), Originals at the word level ("what does this word mean in the original?").
 
-- Opt-in per verse via a toggle in the verse panel. Works with any translation — on non-KJV, the tagged KJV renders as an "Original (KJV)" section beneath the user's reading.
+- Opt-in per verse via a toggle in the verse panel. Tagging exists only for KJV, so toggling Originals on auto-switches the translation picker to KJV; the tokens then render inline in the main verse text.
 - Data is bundled at build time from [kaiserlik/kjv](https://github.com/kaiserlik/kjv) (KJV+Strong's, public domain) and [Open Scriptures](https://github.com/openscriptures/strongs) (Strong's dictionary, CC BY-SA 3.0). No network calls, works offline.
 - Tour verses only — 234 tagged references across all 66 books. Full-Bible coverage planned for v2.
 
@@ -101,11 +106,14 @@ See [DATA-SOURCES.md](./DATA-SOURCES.md) for licensing details and the build pip
 
 ## Licensed translations
 
-The YouVersion API key is licensed for specific Bible versions. Currently licensed English translations:
+Currently licensed English translations available inline:
 
-- NIV (111) — New International Version 2011
-- NIrV (110) — New International Reader's Version 2014
-- NIVUK (113) — New International Version Anglicised 2011
+- **NIV** (YouVersion id 111) — New International Version 2011
+- **NIrV** (YouVersion id 110) — New International Reader's Version 2014
+- **NIVUK** (YouVersion id 113) — New International Version Anglicised 2011
+- **ESV** — English Standard Version, served via the Crossway API (text + per-verse audio)
+
+Public-domain translations served inline: **KJV**, **WEB**, **ASV** (via bible-api.com).
 
 Unlicensed copyrighted translations (NKJV, NLT, CSB, MSG) link out to YouVersion instead of displaying inline.
 
