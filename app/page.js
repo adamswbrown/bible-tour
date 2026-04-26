@@ -232,7 +232,11 @@ function VersePanel({ book, verseRef, onClose, mode = "overlay" }) {
     setStudyMode(prev => {
       const next = !prev;
       try { localStorage.setItem(STUDY_MODE_STORAGE_KEY, next ? "1" : "0"); } catch {}
-      if (!next) {
+      if (next) {
+        // Originals tagging only exists for KJV — auto-switch so the user
+        // sees the tagged tokens inline instead of below their reading text.
+        if (translationId !== "kjv") changeTranslation("kjv");
+      } else {
         setStudyPopover(null);
         setStudyDrawer(null);
       }
