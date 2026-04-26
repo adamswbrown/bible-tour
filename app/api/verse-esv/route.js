@@ -1,9 +1,9 @@
 import { API_BOOK_NAMES } from "../../lib/bible";
 
 // Proxies the ESV API passage/text endpoint.
-// Returns clean text ready for rendering — no headings, footnotes, or
-// passage-reference echoes. Verse numbers stay inline as [N] markers, so
-// readers can still tell verse boundaries inside a multi-verse range.
+// Returns clean prose ready for rendering — no verse numbers, headings,
+// footnotes, or passage-reference echoes. The verse range is already shown
+// in the panel header, so inline numbers would be redundant noise.
 //
 // Same auth + caching shape as /api/verse-audio: ESV_API_KEY in the header,
 // edge-cached for 7 days.
@@ -31,8 +31,8 @@ export async function GET(request) {
     "include-short-copyright": "false",
     "include-headings": "false",
     "include-footnotes": "false",
-    "include-verse-numbers": "true",
-    "include-first-verse-numbers": "true",
+    "include-verse-numbers": "false",
+    "include-first-verse-numbers": "false",
     "indent-paragraphs": "0",
     "indent-poetry-lines": "0",
   });
