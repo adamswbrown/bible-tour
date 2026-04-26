@@ -168,6 +168,25 @@ function VersePanel({ book, verseRef, onClose, mode = "overlay" }) {
           setError("api");
           setLoading(false);
         });
+    } else if (tx.esvLicensed) {
+      // Fetch ESV text via our server proxy to api.esv.org
+      fetch(`/api/verse-esv?book=${encodeURIComponent(book)}&ref=${encodeURIComponent(verseRef)}`)
+        .then(r => { if (!r.ok) throw new Error("not found"); return r.json(); })
+        .then(data => {
+          if (cancelled) return;
+          if (data.text) {
+            setText([{ verse: null, text: data.text }]);
+            if (tx.copyright) setCopyright(tx.copyright);
+          } else {
+            throw new Error("empty");
+          }
+          setLoading(false);
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setError("api");
+          setLoading(false);
+        });
     } else if (tx.apiCode) {
       // Fetch from bible-api.com (public domain translations)
       const query = buildApiQuery(book, verseRef);
@@ -202,7 +221,7 @@ function VersePanel({ book, verseRef, onClose, mode = "overlay" }) {
     }
 
     return () => { cancelled = true; };
-  }, [book, verseRef, tx.apiCode, tx.yvLicensed, tx.youVersionId, tx.copyright]);
+  }, [book, verseRef, tx.apiCode, tx.yvLicensed, tx.esvLicensed, tx.youVersionId, tx.copyright]);
 
   const changeTranslation = (newId) => {
     setTranslationId(newId);
@@ -287,7 +306,7 @@ function VersePanel({ book, verseRef, onClose, mode = "overlay" }) {
           >
             {TRANSLATIONS.map(t => (
               <option key={t.id} value={t.id}>
-                {t.abbr} — {t.name}{!t.apiCode && !t.yvLicensed ? " (YouVersion)" : ""}
+                {t.abbr} — {t.name}{!t.apiCode && !t.yvLicensed && !t.esvLicensed ? " (YouVersion)" : ""}
               </option>
             ))}
           </select>

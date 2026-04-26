@@ -10,7 +10,7 @@ Live at [bible-tour.vercel.app](https://bible-tour.vercel.app)
 
 - Reading checklist covering all 66 books with curated verse references
 - Inline verse reader — tap any reference to read the passage without leaving the app
-- Multiple translations: NIV, NIrV, NIVUK (via YouVersion API), KJV, WEB, ASV (via bible-api.com)
+- Multiple translations: NIV, NIrV, NIVUK (via YouVersion API), KJV, WEB, ASV (via bible-api.com), ESV (via Crossway API)
 - Per-verse audio (ESV) via the Crossway API
 - Progress saved in localStorage (no backend, no accounts, no tracking)
 
@@ -40,7 +40,7 @@ npm run build:data   # regenerates app/data/lexicon.json and tagged-verses.json
 | Variable | Description |
 |----------|-------------|
 | `YOUVERSION_API_KEY` | App key from [YouVersion Developer Platform](https://developers.youversion.com/overview) |
-| `ESV_API_KEY` | Token from [api.esv.org](https://api.esv.org/) — powers per-verse audio playback |
+| `ESV_API_KEY` | Token from [api.esv.org](https://api.esv.org/) — powers per-verse audio playback **and** ESV text |
 
 Create a `.env.local` file:
 
@@ -76,13 +76,16 @@ app/
 
 Bible verses don't change, so after the first request for any verse+translation combo, subsequent requests are served from cache without hitting YouVersion or even the serverless function.
 
-## Audio playback
+## ESV integration (text + audio)
 
-`/api/verse-audio?book=John&ref=11:35` proxies the ESV API's [passage/audio endpoint](https://api.esv.org/docs/passage-audio/). The upstream call returns a 302 with a `Location` header pointing at an MP3 on Crossway's CDN; the proxy forwards that 302 to the browser so the `<audio>` element fetches the audio bytes directly from Crossway. Edge cache pins the redirect for 7 days, which keeps the app comfortably below ESV's rate limits (5,000 queries/day, 1,000/hour, 60/minute).
+The ESV API provides both reading text and audio under a single API key.
 
-Audio is always ESV regardless of the user's selected reading translation — the goal is in-app playback for every reference, not translation parity. The required Crossway attribution renders alongside the player.
+- `/api/verse-esv?book=John&ref=11:35` → ESV text via [passage/text endpoint](https://api.esv.org/docs/passage-text/). Strips headings, footnotes, and the redundant passage-reference echo; keeps inline `[N]` verse markers for multi-verse ranges.
+- `/api/verse-audio?book=John&ref=11:35` → audio via [passage/audio endpoint](https://api.esv.org/docs/passage-audio/). Forwards Crossway's 302 to the browser so the `<audio>` element streams MP3 bytes directly from Crossway's CDN.
 
-This integration is for **non-commercial use only** per [ESV API v3 guidelines](https://api.esv.org/docs/).
+Both routes apply identical 7-day edge caching. Audio is always ESV regardless of the user's selected reading translation; the player carries an "ESV Audio" pill so the contract is unambiguous.
+
+This integration is for **non-commercial use only** per [ESV API v3 guidelines](https://api.esv.org/docs/), staying well under the 5,000 queries/day, 1,000/hour, 60/minute ceiling thanks to edge caching. The required Crossway citation renders next to the audio player and beneath ESV verse text.
 
 ## Originals
 
