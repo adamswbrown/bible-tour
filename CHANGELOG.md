@@ -21,6 +21,11 @@ to production. Format loosely follows [Keep a Changelog](https://keepachangelog.
   ([#17](https://github.com/adamswbrown/bible-tour/pull/17))
 - This `CHANGELOG.md`, seeded with the day's batch.
   ([#22](https://github.com/adamswbrown/bible-tour/pull/22))
+- ESV text and toggleable ESV audio on the Eagle Method book pages. The
+  Eagle translation picker now includes ESV; a "🎧 Audio" toggle in the
+  controls bar (default off, persisted per browser) reveals an inline ESV
+  audio player on every structured verse card and a Crossway citation
+  footer when on. ([#24](https://github.com/adamswbrown/bible-tour/pull/24))
 
 ### Changed
 - Toggling **Originals** on now auto-switches the translation picker to KJV
