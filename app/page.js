@@ -304,15 +304,18 @@ function VersePanel({ book, verseRef, onClose, mode = "overlay" }) {
 
         {parsePlanRef(verseRef).isStructured && (
           <div style={ps.audioBar}>
-            <audio
-              key={`${book}-${verseRef}`}
-              controls
-              preload="none"
-              style={ps.audioPlayer}
-              src={`/api/verse-audio?book=${encodeURIComponent(book)}&ref=${encodeURIComponent(verseRef)}`}
-            >
-              Your browser doesn’t support audio playback.
-            </audio>
+            <div style={ps.audioPlayerRow}>
+              <span style={ps.audioBadge}>ESV Audio</span>
+              <audio
+                key={`${book}-${verseRef}`}
+                controls
+                preload="none"
+                style={ps.audioPlayer}
+                src={`/api/verse-audio?book=${encodeURIComponent(book)}&ref=${encodeURIComponent(verseRef)}`}
+              >
+                Your browser doesn’t support audio playback.
+              </audio>
+            </div>
             <span style={ps.audioAttrib}>
               Scripture audio from the ESV® Bible (The Holy Bible, English Standard Version®) © 2001 by{" "}
               <a
@@ -1044,13 +1047,29 @@ const ps = {
     cursor: "pointer", appearance: "auto",
   },
   audioBar: {
-    display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap",
+    display: "flex", flexDirection: "column", gap: 8,
     padding: "10px 20px",
     background: "rgba(27,58,75,0.02)",
     borderBottom: `1px solid rgba(27,58,75,0.08)`,
   },
+  audioPlayerRow: {
+    display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap",
+  },
+  audioBadge: {
+    display: "inline-block",
+    padding: "3px 8px",
+    borderRadius: 4,
+    background: C.teal,
+    color: C.yellow,
+    fontFamily: "'DM Sans',sans-serif",
+    fontSize: 10,
+    fontWeight: 700,
+    letterSpacing: "0.06em",
+    textTransform: "uppercase",
+    flexShrink: 0,
+  },
   audioPlayer: {
-    flex: "1 1 220px", minWidth: 0, height: 36,
+    flex: "1 1 200px", minWidth: 0, height: 36,
   },
   audioAttrib: {
     fontSize: 11, color: C.tealLight, opacity: 0.75,
