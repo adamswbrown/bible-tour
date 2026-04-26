@@ -11,6 +11,7 @@ Live at [bible-tour.vercel.app](https://bible-tour.vercel.app)
 - Reading checklist covering all 66 books with curated verse references
 - Inline verse reader — tap any reference to read the passage without leaving the app
 - Multiple translations: NIV, NIrV, NIVUK (via YouVersion API), KJV, WEB, ASV (via bible-api.com)
+- Per-verse audio (ESV) via the Crossway API
 - Progress saved in localStorage (no backend, no accounts, no tracking)
 
 ## Tech stack
@@ -39,11 +40,13 @@ npm run build:data   # regenerates app/data/lexicon.json and tagged-verses.json
 | Variable | Description |
 |----------|-------------|
 | `YOUVERSION_API_KEY` | App key from [YouVersion Developer Platform](https://developers.youversion.com/overview) |
+| `ESV_API_KEY` | Token from [api.esv.org](https://api.esv.org/) — powers per-verse audio playback |
 
 Create a `.env.local` file:
 
 ```
 YOUVERSION_API_KEY=your_key_here
+ESV_API_KEY=your_esv_token_here
 ```
 
 ## Project structure
@@ -72,6 +75,14 @@ app/
 2. **Vercel Edge CDN** — responses cached at edge for 7 days with stale-while-revalidate
 
 Bible verses don't change, so after the first request for any verse+translation combo, subsequent requests are served from cache without hitting YouVersion or even the serverless function.
+
+## Audio playback
+
+`/api/verse-audio?book=John&ref=11:35` proxies the ESV API's [passage/audio endpoint](https://api.esv.org/docs/passage-audio/). The upstream call returns a 302 with a `Location` header pointing at an MP3 on Crossway's CDN; the proxy forwards that 302 to the browser so the `<audio>` element fetches the audio bytes directly from Crossway. Edge cache pins the redirect for 7 days, which keeps the app comfortably below ESV's rate limits (5,000 queries/day, 1,000/hour, 60/minute).
+
+Audio is always ESV regardless of the user's selected reading translation — the goal is in-app playback for every reference, not translation parity. The required Crossway attribution renders alongside the player.
+
+This integration is for **non-commercial use only** per [ESV API v3 guidelines](https://api.esv.org/docs/).
 
 ## Originals
 

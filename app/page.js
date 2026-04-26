@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
-import { READING_PLAN, TOTAL } from "./lib/bible";
+import { READING_PLAN, TOTAL, parsePlanRef } from "./lib/bible";
 import {
   TRANSLATIONS,
   MAIN_DEFAULT_TRANSLATION,
@@ -301,6 +301,32 @@ function VersePanel({ book, verseRef, onClose, mode = "overlay" }) {
             {studyMode ? "Originals ✓" : "Originals ▸"}
           </button>
         </div>
+
+        {parsePlanRef(verseRef).isStructured && (
+          <div style={ps.audioBar}>
+            <audio
+              key={`${book}-${verseRef}`}
+              controls
+              preload="none"
+              style={ps.audioPlayer}
+              src={`/api/verse-audio?book=${encodeURIComponent(book)}&ref=${encodeURIComponent(verseRef)}`}
+            >
+              Your browser doesn’t support audio playback.
+            </audio>
+            <span style={ps.audioAttrib}>
+              Scripture audio from the ESV® Bible (The Holy Bible, English Standard Version®) © 2001 by{" "}
+              <a
+                href="https://www.crossway.org/"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={ps.audioAttribLink}
+              >
+                Crossway
+              </a>
+              , a publishing ministry of Good News Publishers. Used by permission. All rights reserved.
+            </span>
+          </div>
+        )}
 
         <div style={ps.panelBody}>
           {loading && (
@@ -1016,6 +1042,21 @@ const ps = {
     fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 600,
     color: C.teal, background: C.white, outline: "none",
     cursor: "pointer", appearance: "auto",
+  },
+  audioBar: {
+    display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap",
+    padding: "10px 20px",
+    background: "rgba(27,58,75,0.02)",
+    borderBottom: `1px solid rgba(27,58,75,0.08)`,
+  },
+  audioPlayer: {
+    flex: "1 1 220px", minWidth: 0, height: 36,
+  },
+  audioAttrib: {
+    fontSize: 11, color: C.tealLight, opacity: 0.75,
+  },
+  audioAttribLink: {
+    color: C.tealLight, textDecoration: "underline",
   },
   copyrightNote: {
     fontSize: 15, color: C.teal, margin: "0 0 20px", lineHeight: 1.6,
