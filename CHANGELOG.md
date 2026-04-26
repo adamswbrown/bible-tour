@@ -6,7 +6,7 @@ This project ships continuously to [bible-tour.vercel.app](https://bible-tour.ve
 and doesn't follow semver — entries are grouped under the date they shipped
 to production. Format loosely follows [Keep a Changelog](https://keepachangelog.com).
 
-## 2026-04-26
+## 2026-04-26 — ESV text & audio
 
 ### Added
 - ESV reading translation via the Crossway API. Slots into the translation
@@ -19,6 +19,8 @@ to production. Format loosely follows [Keep a Changelog](https://keepachangelog.
 - "ESV Audio" pill on the audio player so the audio-translation contract
   stays clear when the user picks a different reading translation.
   ([#17](https://github.com/adamswbrown/bible-tour/pull/17))
+- This `CHANGELOG.md`, seeded with the day's batch.
+  ([#22](https://github.com/adamswbrown/bible-tour/pull/22))
 
 ### Changed
 - Toggling **Originals** on now auto-switches the translation picker to KJV
@@ -37,3 +39,120 @@ to production. Format loosely follows [Keep a Changelog](https://keepachangelog.
 - New environment variable `ESV_API_KEY` powers both `/api/verse-esv`
   (text) and `/api/verse-audio` (audio). Set it in `.env.local` for local
   dev and in Vercel project settings (Production scope) for the live site.
+
+## 2026-04-22 — Cross-navigation between Tour and Eagle
+
+### Added
+- Floating Eagle Method button on the Tour page once the announcement
+  banner is dismissed, so the entry point doesn't disappear.
+  ([#13](https://github.com/adamswbrown/bible-tour/pull/13))
+- Floating Tour button on Eagle Method pages for symmetric navigation
+  back. ([#14](https://github.com/adamswbrown/bible-tour/pull/14))
+
+## 2026-04-19 — Originals released
+
+### Added
+- **Originals** mode (originally shipped as "Study Mode"). Tap any KJV
+  verse with the toggle on to see Hebrew/Greek lemmas, Strong's numbers,
+  and short glosses inline. Tap a word for the popover entry, or "Full
+  entry" for the extended lexicon entry in a side drawer. Each lexicon
+  entry includes an "Open on Blue Letter Bible" deep-link.
+- Tagged Strong's data bundled at build time via two new scripts
+  (`build-lexicon.mjs`, `build-tagged-verses.mjs`). Sources: kaiserlik/kjv
+  (KJV+Strong's, public domain) and Open Scriptures (Strong's Hebrew/Greek
+  dictionaries, CC BY-SA 3.0).
+- StudyVerse, WordPopover, and LexiconDrawer components.
+- Originals also rendered as a separate "Original (KJV)" section beneath
+  the user's chosen translation when not on KJV (later changed in #19).
+- Banner announcing Originals on first visit, dismissable independently
+  from the Eagle banner.
+  ([#10](https://github.com/adamswbrown/bible-tour/pull/10),
+  [#11](https://github.com/adamswbrown/bible-tour/pull/11))
+- Floating **Feedback** button that opens a pre-filled email so users can
+  report issues without leaving the app.
+  ([#12](https://github.com/adamswbrown/bible-tour/pull/12))
+- `DATA-SOURCES.md` documenting the Originals build pipeline, licensing,
+  and known limitations.
+
+### Changed
+- "Study Mode" renamed to **Originals** to avoid colliding with the Eagle
+  Method's study terminology.
+
+## 2026-04-11
+
+### Removed
+- Stale PIN/login claims from the README and dead login styles from
+  `app/page.js` — the app has never required authentication.
+  ([#8](https://github.com/adamswbrown/bible-tour/pull/8),
+  [#9](https://github.com/adamswbrown/bible-tour/pull/9))
+
+## 2026-03-30
+
+### Added
+- Vercel Web Analytics for traffic insight without third-party trackers.
+  ([#7](https://github.com/adamswbrown/bible-tour/pull/7))
+
+## 2026-03-29 — Eagle Method polish
+
+### Added
+- Milestone awards on the Eagle Method index for completing reading
+  groupings. ([#3](https://github.com/adamswbrown/bible-tour/pull/3))
+- "Spreading Wings" milestone for finishing the Gospels and Acts.
+  ([#4](https://github.com/adamswbrown/bible-tour/pull/4))
+- iPad-optimised split-pane layout for the verse reader, so the checklist
+  and verse panel sit side-by-side at 768px and up.
+  ([#5](https://github.com/adamswbrown/bible-tour/pull/5))
+
+### Changed
+- Eagle Method UX on iPad reworked into river-flight stage panels for a
+  smoother reading flow at large screens.
+  ([#6](https://github.com/adamswbrown/bible-tour/pull/6))
+
+## 2026-03-28
+
+### Fixed
+- Verse concatenation bug when fetching multi-part references from
+  YouVersion. ([#1](https://github.com/adamswbrown/bible-tour/pull/1))
+- Isaiah references rendering as 2 cards instead of 3.
+  ([#2](https://github.com/adamswbrown/bible-tour/pull/2))
+
+## 2026-03-27 — Eagle Method introduced
+
+### Added
+- **Eagle Method**: per-book pages with verse previews, translation
+  picker, and "Mark as Studied" tracking. Complementary to the main tour:
+  Eagle works at the book level ("where am I in this book?") while the
+  tour works at the reference level.
+- Build scripts that fetch chapter summaries and book data for the
+  Eagle pages.
+
+### Removed
+- Unused user authentication and avatar components — the app has always
+  been local-only.
+
+## 2026-03-16 — Initial release
+
+### Added
+- Reading checklist covering all 66 books with curated verse references
+  from Matt Whitman's *Lightning-Fast Field Guide to the Bible*.
+- Per-book progress tracking saved entirely in `localStorage` — no
+  backend, no accounts, no tracking.
+- Inline verse reader panel — tap any reference to read the passage
+  without leaving the app or opening a new tab.
+- Translation picker with KJV, NIV, NIrV, NIVUK, NKJV, NLT, CSB, MSG,
+  WEB, and ASV.
+- **YouVersion Developer API** integration for licensed translations
+  (NIV, NIrV, NIVUK) via a server-side proxy that keeps the API key
+  secret.
+- **bible-api.com** integration for public-domain translations (KJV,
+  WEB, ASV).
+- Two-layer caching for the verse proxy: Next.js Data Cache for 7 days
+  across serverless invocations, plus Vercel Edge CDN for 7 days with
+  stale-while-revalidate.
+- TMBH-styled brand: brand-yellow `#FFCB21`, matching typography.
+- Affiliation disclaimer (not affiliated with The Ten Minute Bible Hour)
+  and YouTube link to Matt Whitman's tour explainer.
+- README documenting setup, architecture, and caching strategy.
+
+### Configuration
+- Environment variable `YOUVERSION_API_KEY` for the YouVersion proxy.
