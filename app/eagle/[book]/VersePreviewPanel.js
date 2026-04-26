@@ -23,6 +23,8 @@ const C = {
   soft: "rgba(27, 58, 75, 0.05)",
 };
 
+const EAGLE_AUDIO_STORAGE_KEY = "bt:eagleAudioEnabled";
+
 function loadTranslation() {
   try {
     return localStorage.getItem(EAGLE_TRANSLATION_STORAGE_KEY) || EAGLE_DEFAULT_TRANSLATION;
@@ -34,6 +36,20 @@ function loadTranslation() {
 function storeTranslation(value) {
   try {
     localStorage.setItem(EAGLE_TRANSLATION_STORAGE_KEY, value);
+  } catch {}
+}
+
+function loadAudioEnabled() {
+  try {
+    return localStorage.getItem(EAGLE_AUDIO_STORAGE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function storeAudioEnabled(value) {
+  try {
+    localStorage.setItem(EAGLE_AUDIO_STORAGE_KEY, value ? "1" : "0");
   } catch {}
 }
 
@@ -76,6 +92,28 @@ async function fetchRefText(book, refText, translation) {
     }
   }
 
+  if (translation.esvLicensed) {
+    try {
+      const response = await fetch(
+        `/api/verse-esv?book=${encodeURIComponent(book)}&ref=${encodeURIComponent(refText)}`
+      );
+      if (!response.ok) throw new Error("not-found");
+      const data = await response.json();
+      const text = (data.text || "").trim();
+      if (!text) {
+        return { state: "error", youVersionUrl };
+      }
+      return {
+        state: "ready",
+        text,
+        copyright: translation.copyright || null,
+        youVersionUrl,
+      };
+    } catch {
+      return { state: "error", youVersionUrl };
+    }
+  }
+
   if (translation.apiCode) {
     try {
       const query = buildApiQuery(book, refText);
@@ -107,6 +145,7 @@ async function fetchRefText(book, refText, translation) {
 
 export default function VersePreviewPanel({ book, refs }) {
   const [translationId, setTranslationId] = useState(EAGLE_DEFAULT_TRANSLATION);
+  const [audioEnabled, setAudioEnabled] = useState(false);
   const [results, setResults] = useState({});
 
   const previewRefs = useMemo(
@@ -127,7 +166,16 @@ export default function VersePreviewPanel({ book, refs }) {
 
   useEffect(() => {
     setTranslationId(loadTranslation());
+    setAudioEnabled(loadAudioEnabled());
   }, []);
+
+  const toggleAudio = () => {
+    setAudioEnabled((prev) => {
+      const next = !prev;
+      storeAudioEnabled(next);
+      return next;
+    });
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -189,10 +237,19 @@ export default function VersePreviewPanel({ book, refs }) {
             {TRANSLATIONS.map((option) => (
               <option key={option.id} value={option.id}>
                 {option.abbr} — {option.name}
-                {!option.apiCode && !option.yvLicensed ? " (YouVersion)" : ""}
+                {!option.apiCode && !option.yvLicensed && !option.esvLicensed ? " (YouVersion)" : ""}
               </option>
             ))}
           </select>
+          <button
+            type="button"
+            onClick={toggleAudio}
+            aria-pressed={audioEnabled}
+            style={{ ...styles.audioToggle, ...(audioEnabled ? styles.audioToggleOn : {}) }}
+            title={audioEnabled ? "Hide ESV audio players" : "Show ESV audio players on every verse"}
+          >
+            {audioEnabled ? "🎧 Audio On" : "🎧 Audio"}
+          </button>
         </div>
       </div>
 
@@ -214,6 +271,20 @@ export default function VersePreviewPanel({ book, refs }) {
                   <p style={styles.text}>{result.text}</p>
                   {result.copyright ? <p style={styles.copyright}>{result.copyright}</p> : null}
                 </>
+              )}
+
+              {audioEnabled && (
+                <div style={styles.audioRow}>
+                  <span style={styles.audioPill}>ESV Audio</span>
+                  <audio
+                    controls
+                    preload="none"
+                    style={styles.audioPlayer}
+                    src={`/api/verse-audio?book=${encodeURIComponent(book)}&ref=${encodeURIComponent(ref.text)}`}
+                  >
+                    Your browser doesn’t support audio playback.
+                  </audio>
+                </div>
               )}
 
               {result?.state === "copyrighted" && (
@@ -258,6 +329,14 @@ export default function VersePreviewPanel({ book, refs }) {
       {hasCopyright ? (
         <p style={styles.footerNote}>
           Licensed translation text is shown with attribution when available. Some copyrighted versions open on YouVersion instead.
+        </p>
+      ) : null}
+
+      {audioEnabled ? (
+        <p style={styles.footerNote}>
+          Scripture audio from the ESV® Bible (The Holy Bible, English Standard Version®) © 2001 by{" "}
+          <a href="https://www.crossway.org/" target="_blank" rel="noreferrer" style={styles.audioFootLink}>Crossway</a>
+          , a publishing ministry of Good News Publishers. Used by permission. All rights reserved.
         </p>
       ) : null}
     </div>
@@ -333,6 +412,54 @@ const styles = {
     fontWeight: 600,
     outline: "none",
     cursor: "pointer",
+  },
+  audioToggle: {
+    padding: "10px 14px",
+    borderRadius: 10,
+    border: `1.5px solid ${C.line}`,
+    background: "white",
+    color: C.teal,
+    fontSize: 13,
+    fontWeight: 700,
+    letterSpacing: "0.04em",
+    cursor: "pointer",
+    outline: "none",
+    transition: "all .15s",
+  },
+  audioToggleOn: {
+    background: C.teal,
+    color: C.gold,
+    borderColor: C.teal,
+  },
+  audioRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    flexWrap: "wrap",
+    marginTop: 12,
+    paddingTop: 12,
+    borderTop: `1px solid ${C.line}`,
+  },
+  audioPill: {
+    display: "inline-block",
+    padding: "3px 8px",
+    borderRadius: 4,
+    background: C.teal,
+    color: C.gold,
+    fontSize: 10,
+    fontWeight: 700,
+    letterSpacing: "0.06em",
+    textTransform: "uppercase",
+    flexShrink: 0,
+  },
+  audioPlayer: {
+    flex: "1 1 200px",
+    minWidth: 0,
+    height: 36,
+  },
+  audioFootLink: {
+    color: C.muted,
+    textDecoration: "underline",
   },
   grid: {
     display: "grid",
