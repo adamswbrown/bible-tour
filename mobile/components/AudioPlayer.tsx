@@ -36,18 +36,6 @@ function ActiveAudioPlayer({ audioUrl }: Props) {
   const player = useAudioPlayer(audioUrl ? { uri: audioUrl } : null);
   const status = useAudioPlayerStatus(player);
   const [pendingPlay, setPendingPlay] = useState(false);
-  const [errored, setErrored] = useState(false);
-
-  useEffect(() => {
-    setErrored(false);
-  }, [audioUrl]);
-
-  useEffect(() => {
-    if (status?.error || status?.didJustFinish === false && status?.isLoaded === false && pendingPlay) {
-      // expo-audio sets isLoaded=false + error fields when streaming fails
-      if (status?.error) setErrored(true);
-    }
-  }, [status, pendingPlay]);
 
   useEffect(() => {
     if (pendingPlay && status?.isLoaded) {
@@ -56,12 +44,21 @@ function ActiveAudioPlayer({ audioUrl }: Props) {
     }
   }, [pendingPlay, status?.isLoaded, player]);
 
+  // Surface any underlying playback errors to the dev console so we can
+  // see them in the Metro logs without disabling the button — the
+  // previous heuristic mistook normal not-yet-loaded states for errors.
+  useEffect(() => {
+    if (status && (status as any).error) {
+      console.warn('[AudioPlayer] playback error:', (status as any).error);
+    }
+  }, [status]);
+
   const playing = !!status?.playing;
   const ready = !!status?.isLoaded;
-  const buffering = !!audioUrl && !ready && !playing && pendingPlay && !errored;
+  const buffering = !!audioUrl && !ready && !playing && pendingPlay;
 
   function toggle() {
-    if (!audioUrl || errored) return;
+    if (!audioUrl) return;
     if (playing) {
       player.pause();
     } else if (ready) {
@@ -79,14 +76,12 @@ function ActiveAudioPlayer({ audioUrl }: Props) {
         </View>
 
         <TouchableOpacity
-          style={[styles.playBtn, errored && styles.playBtnDisabled]}
+          style={styles.playBtn}
           onPress={toggle}
-          disabled={!audioUrl || errored}
+          disabled={!audioUrl}
         >
           {buffering ? (
             <ActivityIndicator color={C.tealDark} />
-          ) : errored ? (
-            <Text style={styles.playBtnText}>Audio unavailable</Text>
           ) : (
             <Text style={styles.playBtnText}>{playing ? '⏸  Pause' : '▶  Play verse'}</Text>
           )}
@@ -112,7 +107,6 @@ const styles = StyleSheet.create({
   badge:     { backgroundColor: C.yellow, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 4 },
   badgeText: { fontSize: 11, fontWeight: '700', color: C.tealDark, letterSpacing: 1 },
   playBtn:   { flex: 1, backgroundColor: C.yellow, paddingVertical: 10, borderRadius: 6, alignItems: 'center' },
-  playBtnDisabled: { backgroundColor: C.border, opacity: 0.6 },
   playBtnText: { color: C.tealDark, fontWeight: '700', fontSize: 14 },
   disabled:  { fontSize: 12, color: C.textSecondary, textAlign: 'center' },
   attrib:    { fontSize: 10, color: C.textSecondary, marginTop: 8, lineHeight: 14 },
