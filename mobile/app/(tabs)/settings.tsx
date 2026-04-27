@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Linking, Platform, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { C } from '../../constants/colors';
 import { TRANSLATIONS } from '../../lib/translations';
@@ -39,6 +39,16 @@ export default function SettingsScreen() {
     } else {
       await cancelReminder();
     }
+  }
+
+  function sendFeedback() {
+    const subject = encodeURIComponent('[Bible Tour] Feedback');
+    const body = encodeURIComponent(
+      `\n\n\n— — — — — — — — — — — —\n` +
+        `Please describe the bug or feature above this line.\n\n` +
+        `App: Tour of the Bible (${Platform.OS})\n`,
+    );
+    Linking.openURL(`mailto:bibletour@askadam.cloud?subject=${subject}&body=${body}`);
   }
 
   function confirmReset() {
@@ -115,6 +125,13 @@ export default function SettingsScreen() {
       <Text style={styles.section}>About</Text>
       <TouchableOpacity style={styles.row} onPress={() => router.push('/about')}>
         <Text style={styles.rowTitle}>Credits & Licences</Text>
+        <Text style={styles.chevron}>›</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.row} onPress={sendFeedback}>
+        <View style={styles.rowText}>
+          <Text style={styles.rowTitle}>Send feedback</Text>
+          <Text style={styles.rowSub}>Email bibletour@askadam.cloud</Text>
+        </View>
         <Text style={styles.chevron}>›</Text>
       </TouchableOpacity>
 

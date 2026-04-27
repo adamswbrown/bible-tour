@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Linking,
   ScrollView,
   StyleSheet,
   Text,
@@ -10,7 +11,7 @@ import {
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { C } from '../constants/colors';
 import { fetchVerse, type VerseResult } from '../lib/api';
-import { TRANSLATIONS, getTranslation } from '../lib/translations';
+import { TRANSLATIONS, getTranslation, buildYouVersionUrl } from '../lib/translations';
 import { toVerseId, hasStudy, getTokens, getEntry } from '../lib/study';
 import StrongsVerse from '../components/StrongsVerse';
 import LexiconDrawer from '../components/LexiconDrawer';
@@ -122,12 +123,12 @@ export default function VerseScreen() {
 
         {loading && <ActivityIndicator color={C.yellow} size="large" style={styles.loader} />}
 
-        {error && (
-          <>
+        {error && !loading && (
+          <View style={styles.body}>
             <Text style={styles.errorTitle}>Could not load passage.</Text>
             <Text style={styles.errorDetail}>{error}</Text>
-            <Text style={styles.errorDetail}>Translation: {t.abbr}</Text>
-          </>
+            <YouVersionButton book={book} refStr={refParam} translation={t} />
+          </View>
         )}
 
         {result && (
@@ -143,11 +144,19 @@ export default function VerseScreen() {
                 activeStrong={activeStrong}
                 onWordPress={setActiveStrong}
               />
+            ) : t.copyrighted || !result.text ? (
+              <CopyrightedNotice
+                book={book}
+                refStr={refParam}
+                translation={t}
+              />
             ) : (
-              <Text style={styles.verse}>{result.text || '(empty passage)'}</Text>
+              <Text style={styles.verse}>{result.text}</Text>
             )}
 
-            {result.copyright && <Text style={styles.copyright}>{result.copyright}</Text>}
+            {result.copyright && result.text && (
+              <Text style={styles.copyright}>{result.copyright}</Text>
+            )}
           </View>
         )}
       </ScrollView>
@@ -158,6 +167,54 @@ export default function VerseScreen() {
         entry={entry}
         onClose={() => setActiveStrong(null)}
       />
+    </>
+  );
+}
+
+function CopyrightedNotice({
+  book,
+  refStr,
+  translation,
+}: {
+  book: string;
+  refStr: string;
+  translation: ReturnType<typeof getTranslation>;
+}) {
+  return (
+    <View>
+      <Text style={styles.notice}>
+        {translation.copyrighted
+          ? `${translation.name} is a copyrighted translation and can't be displayed inline.`
+          : 'Could not load this passage.'}
+      </Text>
+      <YouVersionButton book={book} refStr={refStr} translation={translation} />
+      {translation.copyrighted && (
+        <Text style={styles.noticeHint}>
+          Or pick a public-domain translation (KJV, WEB, ASV) to read inline.
+        </Text>
+      )}
+    </View>
+  );
+}
+
+function YouVersionButton({
+  book,
+  refStr,
+  translation,
+}: {
+  book: string;
+  refStr: string;
+  translation: ReturnType<typeof getTranslation>;
+}) {
+  const url = buildYouVersionUrl(book, refStr, translation.youVersionId);
+  if (!url) return null;
+  return (
+    <TouchableOpacity style={styles.yvBtn} onPress={() => Linking.openURL(url)}>
+      <Text style={styles.yvBtnText}>Read in {translation.abbr} on YouVersion ↗</Text>
+    </TouchableOpacity>
+  );
+}
+
     </>
   );
 }
@@ -193,4 +250,8 @@ const styles = StyleSheet.create({
   reference:        { fontSize: 12, fontWeight: '700', color: C.yellow, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.8 },
   verse:            { fontSize: 18, lineHeight: 32, color: C.offWhite, fontWeight: '300' },
   copyright:        { fontSize: 11, color: C.textSecondary, marginTop: 24, lineHeight: 18 },
+  notice:           { fontSize: 15, color: C.offWhite, lineHeight: 22, marginBottom: 16 },
+  noticeHint:       { fontSize: 12, color: C.textSecondary, marginTop: 12, lineHeight: 18, fontStyle: 'italic' },
+  yvBtn:            { backgroundColor: C.yellow, paddingVertical: 14, borderRadius: 8, alignItems: 'center' },
+  yvBtnText:        { color: C.tealDark, fontWeight: '700', fontSize: 14 },
 });

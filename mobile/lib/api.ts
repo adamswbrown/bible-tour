@@ -97,6 +97,12 @@ export async function fetchVerse(
   const t = getTranslation(translationId);
   const reference = `${book} ${ref}`;
 
+  // Copyrighted translations have no inline render path — verse.tsx
+  // shows a YouVersion deep-link button instead.
+  if (t.copyrighted) {
+    return { text: '', reference, copyright: t.copyright };
+  }
+
   let text = '';
   if (t.esvLicensed) {
     text = await fetchEsv(book, ref);

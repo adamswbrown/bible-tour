@@ -1,3 +1,5 @@
+import { BOOKS, type Book } from './readingPlan';
+
 export type Translation = {
   id: string;
   name: string;
@@ -5,6 +7,7 @@ export type Translation = {
   youVersionId: number;
   yvLicensed: boolean;
   esvLicensed?: boolean;
+  copyrighted?: boolean; // true → no inline render, deep-link to YouVersion only
   copyright?: string;
 };
 
@@ -34,6 +37,22 @@ export const TRANSLATIONS: Translation[] = [
     copyright: 'Scripture quotations are from the ESV® Bible (The Holy Bible, English Standard Version®), copyright © 2001 by Crossway, a publishing ministry of Good News Publishers. Used by permission. All rights reserved.',
   },
   {
+    id: 'nkjv', name: 'New King James Version', abbr: 'NKJV',
+    youVersionId: 114, yvLicensed: false, copyrighted: true,
+  },
+  {
+    id: 'nlt', name: 'New Living Translation', abbr: 'NLT',
+    youVersionId: 116, yvLicensed: false, copyrighted: true,
+  },
+  {
+    id: 'csb', name: 'Christian Standard Bible', abbr: 'CSB',
+    youVersionId: 1713, yvLicensed: false, copyrighted: true,
+  },
+  {
+    id: 'msg', name: 'The Message', abbr: 'MSG',
+    youVersionId: 97, yvLicensed: false, copyrighted: true,
+  },
+  {
     id: 'web', name: 'World English Bible', abbr: 'WEB',
     youVersionId: 206, yvLicensed: false,
   },
@@ -47,4 +66,24 @@ export const DEFAULT_TRANSLATION = 'kjv';
 
 export function getTranslation(id: string): Translation {
   return TRANSLATIONS.find(t => t.id === id) ?? TRANSLATIONS[0];
+}
+
+const ABBREV_BY_NAME = Object.fromEntries(
+  BOOKS.map((b: Book) => [b.book, b.abbrev]),
+) as Record<string, string>;
+
+// Builds a bible.com deep link for a passage. iOS users with the
+// YouVersion app installed open it natively; others get the website.
+export function buildYouVersionUrl(
+  book: string,
+  ref: string,
+  translationId: number,
+): string | null {
+  const abbrev = ABBREV_BY_NAME[book];
+  if (!abbrev) return null;
+  const m = ref.match(/^(\d+):(.+)$/);
+  if (!m) return null;
+  const chapter = m[1];
+  const verses = m[2];
+  return `https://www.bible.com/bible/${translationId || 111}/${abbrev}.${chapter}.${verses}`;
 }
