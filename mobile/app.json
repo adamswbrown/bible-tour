@@ -17,7 +17,6 @@
       "bundleIdentifier": "cloud.askadam.bibletour",
       "supportsTablet": true,
       "infoPlist": {
-<<<<<<< Updated upstream
         "UIBackgroundModes": ["audio"],
         "ITSAppUsesNonExemptEncryption": false
       },
@@ -31,13 +30,6 @@
         "NSPrivacyTracking": false,
         "NSPrivacyTrackingDomains": [],
         "NSPrivacyCollectedDataTypes": []
-=======
-        "UIBackgroundModes": [
-          "audio",
-          "audio"
-        ],
-        "ITSAppUsesNonExemptEncryption": false
->>>>>>> Stashed changes
       }
     },
     "android": {
