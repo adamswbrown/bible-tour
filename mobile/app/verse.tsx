@@ -215,10 +215,6 @@ function YouVersionButton({
   );
 }
 
-    </>
-  );
-}
-
 const styles = StyleSheet.create({
   container:        { flex: 1, backgroundColor: C.teal },
   content:          { padding: 16, paddingBottom: 48 },
