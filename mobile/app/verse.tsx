@@ -9,12 +9,14 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { C } from '../constants/colors';
-import { fetchVerse, fetchAudioUrl, type VerseResult } from '../lib/api';
+import { fetchVerse, type VerseResult } from '../lib/api';
 import { TRANSLATIONS, getTranslation } from '../lib/translations';
 import { toVerseId, hasStudy, getTokens, getEntry } from '../lib/study';
 import StrongsVerse from '../components/StrongsVerse';
 import LexiconDrawer from '../components/LexiconDrawer';
 import AudioPlayer from '../components/AudioPlayer';
+
+const VERCEL_BASE = 'https://bible-tour.vercel.app';
 
 export default function VerseScreen() {
   const params = useLocalSearchParams<{
@@ -27,6 +29,7 @@ export default function VerseScreen() {
   const initialTranslation = params.translation ?? 'kjv';
 
   const [translation, setTranslation] = useState(initialTranslation);
+  const [previousTranslation, setPreviousTranslation] = useState<string | null>(null);
   const [result, setResult] = useState<VerseResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,15 +37,19 @@ export default function VerseScreen() {
   const [studyMode, setStudyMode] = useState(false);
   const [activeStrong, setActiveStrong] = useState<string | null>(null);
 
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  const [audioLoading, setAudioLoading] = useState(false);
-
   const verseId = useMemo(() => toVerseId(book, refParam), [book, refParam]);
   const studyAvailable = hasStudy(verseId);
   const tokens = studyAvailable ? getTokens(verseId) : null;
 
   const t = getTranslation(translation);
   const isKjv = t.id === 'kjv';
+
+  // The audio proxy returns a 302 redirect to Crossway's MP3 — pass the
+  // proxy URL straight to expo-audio. No pre-fetch needed.
+  const audioUrl =
+    book && refParam
+      ? `${VERCEL_BASE}/api/verse-audio?book=${encodeURIComponent(book)}&ref=${encodeURIComponent(refParam)}`
+      : null;
 
   useEffect(() => {
     if (!book || !refParam) return;
@@ -56,15 +63,29 @@ export default function VerseScreen() {
       .finally(() => setLoading(false));
   }, [book, refParam, translation]);
 
-  useEffect(() => {
-    if (!book || !refParam) return;
-    setAudioUrl(null);
-    setAudioLoading(true);
-    fetchAudioUrl(book, refParam)
-      .then(setAudioUrl)
-      .catch(() => setAudioUrl(null))
-      .finally(() => setAudioLoading(false));
-  }, [book, refParam]);
+  function pickTranslation(id: string) {
+    setTranslation(id);
+    if (id !== 'kjv') {
+      setStudyMode(false);
+      setPreviousTranslation(null);
+    }
+  }
+
+  function toggleOriginals() {
+    if (isKjv && studyMode) {
+      // Turning Originals off — restore whatever they were on before
+      setStudyMode(false);
+      if (previousTranslation && previousTranslation !== 'kjv') {
+        setTranslation(previousTranslation);
+      }
+      setPreviousTranslation(null);
+    } else {
+      // Turning Originals on — remember the current translation, switch to KJV
+      if (!isKjv) setPreviousTranslation(translation);
+      setTranslation('kjv');
+      setStudyMode(true);
+    }
+  }
 
   const entry = activeStrong ? getEntry(activeStrong) : null;
 
@@ -77,10 +98,7 @@ export default function VerseScreen() {
             <TouchableOpacity
               key={tr.id}
               style={[styles.pill, tr.id === translation && styles.pillActive]}
-              onPress={() => {
-                setTranslation(tr.id);
-                if (tr.id !== 'kjv') setStudyMode(false);
-              }}
+              onPress={() => pickTranslation(tr.id)}
             >
               <Text style={[styles.pillText, tr.id === translation && styles.pillTextActive]}>
                 {tr.abbr}
@@ -89,19 +107,12 @@ export default function VerseScreen() {
           ))}
         </View>
 
-        <AudioPlayer audioUrl={audioUrl} loading={audioLoading} />
+        <AudioPlayer audioUrl={audioUrl} />
 
         {studyAvailable && (
           <TouchableOpacity
             style={[styles.originalsBtn, studyMode && styles.originalsBtnOn]}
-            onPress={() => {
-              if (isKjv && studyMode) {
-                setStudyMode(false);
-              } else {
-                setTranslation('kjv');
-                setStudyMode(true);
-              }
-            }}
+            onPress={toggleOriginals}
           >
             <Text style={[styles.originalsText, studyMode && styles.originalsTextOn]}>
               {studyMode ? 'Originals ✓' : 'Originals ▸'}
@@ -181,7 +192,5 @@ const styles = StyleSheet.create({
   body:             { paddingTop: 8 },
   reference:        { fontSize: 12, fontWeight: '700', color: C.yellow, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.8 },
   verse:            { fontSize: 18, lineHeight: 32, color: C.offWhite, fontWeight: '300' },
-  originalsSection: { marginTop: 24, paddingTop: 16, borderTopWidth: 1, borderTopColor: C.border },
-  originalsLabel:   { fontSize: 11, fontWeight: '700', color: C.textSecondary, letterSpacing: 1.2, marginBottom: 8 },
   copyright:        { fontSize: 11, color: C.textSecondary, marginTop: 24, lineHeight: 18 },
 });

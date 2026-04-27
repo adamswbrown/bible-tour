@@ -114,11 +114,3 @@ export async function fetchVerse(
 
   return { text, reference, copyright: t.copyright };
 }
-
-export async function fetchAudioUrl(book: string, ref: string): Promise<string> {
-  const params = new URLSearchParams({ book, ref });
-  const res = await fetch(`${BASE}/api/verse-audio?${params}`);
-  if (!res.ok) throw new Error(`audio fetch failed: ${res.status}`);
-  const data = await res.json();
-  return data.url as string;
-}

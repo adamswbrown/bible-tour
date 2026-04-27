@@ -17,10 +17,9 @@ try {
 
 type Props = {
   audioUrl: string | null;
-  loading?: boolean;
 };
 
-export default function AudioPlayer({ audioUrl, loading }: Props) {
+export default function AudioPlayer({ audioUrl }: Props) {
   if (!useAudioPlayer) {
     return (
       <View style={styles.bar}>
@@ -30,10 +29,10 @@ export default function AudioPlayer({ audioUrl, loading }: Props) {
       </View>
     );
   }
-  return <ActiveAudioPlayer audioUrl={audioUrl} loading={loading} />;
+  return <ActiveAudioPlayer audioUrl={audioUrl} />;
 }
 
-function ActiveAudioPlayer({ audioUrl, loading }: Props) {
+function ActiveAudioPlayer({ audioUrl }: Props) {
   const player = useAudioPlayer(audioUrl ? { uri: audioUrl } : null);
   const status = useAudioPlayerStatus(player);
   const [pendingPlay, setPendingPlay] = useState(false);
@@ -47,6 +46,7 @@ function ActiveAudioPlayer({ audioUrl, loading }: Props) {
 
   const playing = !!status?.playing;
   const ready = !!status?.isLoaded;
+  const buffering = !!audioUrl && !ready && !playing;
 
   function toggle() {
     if (!audioUrl) return;
@@ -69,9 +69,9 @@ function ActiveAudioPlayer({ audioUrl, loading }: Props) {
         <TouchableOpacity
           style={styles.playBtn}
           onPress={toggle}
-          disabled={!audioUrl || !!loading}
+          disabled={!audioUrl}
         >
-          {loading ? (
+          {buffering && pendingPlay ? (
             <ActivityIndicator color={C.tealDark} />
           ) : (
             <Text style={styles.playBtnText}>{playing ? '⏸  Pause' : '▶  Play verse'}</Text>
