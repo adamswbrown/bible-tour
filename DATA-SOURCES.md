@@ -2,14 +2,19 @@
 
 Originals mode bundles open biblical text and lexicon data at build time.
 
-## kaiserlik/kjv — KJV text with Strong's tags
+## seven1m/open-bibles — KJV text with Strong's tags
 
-- **URL**: https://github.com/kaiserlik/kjv
-- **File format**: per-book JSON with inline `word[H####]` / `word[G####]` tags
-- **License**: public domain
-  - King James Version text is public domain worldwide (Crown copyright honored in the UK; PD elsewhere)
-  - Strong's numbers themselves are public domain (1890 concordance)
+- **URL**: https://github.com/seven1m/open-bibles
+- **File**: `eng-kjv.osis.xml` (KJV in OSIS XML, with Strong's lemma tags inherited from CrossWire's SWORD KJV module)
+- **Curation licence**: MIT (Tim Morgan's repository)
+- **Underlying content licence**: public domain
+  - King James Version text is public domain worldwide (Crown copyright honoured in the UK; PD elsewhere)
+  - Strong's numbers are public domain (1890 concordance)
 - **Attribution**: not legally required; given as courtesy in Credits
+
+### Migration note
+
+This was previously sourced from `kaiserlik/kjv`, which has no `LICENSE` file in the repository. The actual content (KJV + Strong's numbers) was always unambiguously public domain — the change is provenance hygiene, not a content-licence change.
 
 ## Open Scriptures — Strong's Hebrew & Greek dictionaries
 
@@ -33,7 +38,7 @@ Full-Bible coverage is planned for v2 via code-splitting the lexicon by book.
 ## Build pipeline
 
 - `scripts/build-lexicon.mjs` fetches the Open Scriptures Hebrew and Greek dictionaries, parses them, and emits the full `app/data/lexicon.json`.
-- `scripts/build-tagged-verses.mjs` fetches per-book JSONs from kaiserlik/kjv, extracts verse tokens for every reference in `app/lib/bible.js → READING_PLAN`, emits `app/data/tagged-verses.json`, and prunes `lexicon.json` down to only the Strong's numbers actually referenced.
+- `scripts/build-tagged-verses.mjs` fetches the OSIS KJV from seven1m/open-bibles, extracts verse tokens for every reference in `app/lib/bible.js → READING_PLAN`, emits `app/data/tagged-verses.json`, and prunes `lexicon.json` down to only the Strong's numbers actually referenced. After regeneration, copy `app/data/tagged-verses.json` and `app/data/lexicon.json` into `mobile/data/` so the mobile app picks up the same data.
 - Run both: `npm run build:data`
 
 ## Known limitations
