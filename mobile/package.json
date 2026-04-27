@@ -10,7 +10,8 @@
     "build:dev": "eas build --platform ios --profile development",
     "build:preview": "eas build --platform ios --profile preview",
     "build:all": "eas build --platform all --profile production",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package",
+    "eas-build-post-install": "echo '[eas-build-post-install] applying patches...' && npx patch-package && echo '[eas-build-post-install] verifying expo-image patch...' && grep -q '@unchecked Sendable' node_modules/expo-image/ios/ContentPosition.swift && echo '[eas-build-post-install] OK' || (echo '[eas-build-post-install] PATCH NOT APPLIED' && exit 1)"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^3.0.2",
