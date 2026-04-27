@@ -17,6 +17,7 @@
       "bundleIdentifier": "cloud.askadam.bibletour",
       "supportsTablet": true,
       "infoPlist": {
+<<<<<<< Updated upstream
         "UIBackgroundModes": ["audio"],
         "ITSAppUsesNonExemptEncryption": false
       },
@@ -30,6 +31,13 @@
         "NSPrivacyTracking": false,
         "NSPrivacyTrackingDomains": [],
         "NSPrivacyCollectedDataTypes": []
+=======
+        "UIBackgroundModes": [
+          "audio",
+          "audio"
+        ],
+        "ITSAppUsesNonExemptEncryption": false
+>>>>>>> Stashed changes
       }
     },
     "android": {
@@ -39,7 +47,9 @@
         "backgroundColor": "#0F2530"
       },
       "edgeToEdgeEnabled": true,
-      "permissions": ["POST_NOTIFICATIONS"]
+      "permissions": [
+        "POST_NOTIFICATIONS"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -54,6 +64,12 @@
           "color": "#1B3A4B"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "ae8878e9-bb5e-4de2-80c6-5a0cfdcf9324"
+      }
+    }
   }
 }
