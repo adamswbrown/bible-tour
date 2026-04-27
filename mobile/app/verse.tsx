@@ -184,13 +184,13 @@ function CopyrightedNotice({
     <View>
       <Text style={styles.notice}>
         {translation.copyrighted
-          ? `${translation.name} is a copyrighted translation and can't be displayed inline.`
+          ? `${translation.abbr} passages open in YouVersion.`
           : 'Could not load this passage.'}
       </Text>
       <YouVersionButton book={book} refStr={refStr} translation={translation} />
       {translation.copyrighted && (
         <Text style={styles.noticeHint}>
-          Or pick a public-domain translation (KJV, WEB, ASV) to read inline.
+          Read inline in KJV, WEB, or ASV.
         </Text>
       )}
     </View>
@@ -208,9 +208,12 @@ function YouVersionButton({
 }) {
   const url = buildYouVersionUrl(book, refStr, translation.youVersionId);
   if (!url) return null;
+  const label = translation.copyrighted
+    ? 'Open in YouVersion ↗'
+    : `Read in ${translation.abbr} on YouVersion ↗`;
   return (
     <TouchableOpacity style={styles.yvBtn} onPress={() => Linking.openURL(url)}>
-      <Text style={styles.yvBtnText}>Read in {translation.abbr} on YouVersion ↗</Text>
+      <Text style={styles.yvBtnText}>{label}</Text>
     </TouchableOpacity>
   );
 }
