@@ -53,16 +53,15 @@ const styles = StyleSheet.create({
     fontWeight: '300',
   },
   tagged: {
-    color: C.offWhite,
-    textDecorationLine: 'underline',
-    textDecorationStyle: 'dotted',
-    textDecorationColor: '#8ab',
-  },
-  taggedActive: {
     color: C.yellow,
     fontWeight: '500',
     textDecorationLine: 'underline',
-    textDecorationStyle: 'solid',
     textDecorationColor: C.yellow,
+  },
+  taggedActive: {
+    color: C.yellowLight,
+    fontWeight: '700',
+    textDecorationLine: 'underline',
+    textDecorationColor: C.yellowLight,
   },
 });
