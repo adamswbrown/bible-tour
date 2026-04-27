@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import {
   SectionList,
   StyleSheet,
@@ -9,8 +9,13 @@ import {
 import { router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { C } from '../../constants/colors';
-import { SECTIONS, type Book } from '../../lib/readingPlan';
-import { getProgress, setBookDone, getSavedTranslation, type Progress } from '../../lib/progress';
+import { SECTIONS, OT_BOOKS, NT_BOOKS, type Book } from '../../lib/readingPlan';
+import {
+  getProgress,
+  setBookDone,
+  getSavedTranslation,
+  type Progress,
+} from '../../lib/progress';
 
 export default function ChecklistScreen() {
   const [progress, setProgress] = useState<Progress>({});
@@ -29,19 +34,24 @@ export default function ChecklistScreen() {
   }
 
   const done = Object.keys(progress).length;
+  const otDone = OT_BOOKS.filter((b) => progress[b.id]).length;
+  const ntDone = NT_BOOKS.filter((b) => progress[b.id]).length;
+  const pct = Math.round((done / 66) * 100);
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Tour of the Bible</Text>
-        <Text style={styles.headerSub}>
-          {done} / 66 books · {translation.toUpperCase()}
-        </Text>
-      </View>
-
       <SectionList
         sections={SECTIONS}
-        keyExtractor={item => String(item.id)}
+        keyExtractor={(item) => String(item.id)}
+        ListHeaderComponent={
+          <ProgressHeader
+            done={done}
+            otDone={otDone}
+            ntDone={ntDone}
+            pct={pct}
+            translation={translation}
+          />
+        }
         renderSectionHeader={({ section }) => (
           <Text style={styles.sectionHeader}>{section.title}</Text>
         )}
@@ -60,6 +70,59 @@ export default function ChecklistScreen() {
   );
 }
 
+function ProgressHeader({
+  done,
+  otDone,
+  ntDone,
+  pct,
+  translation,
+}: {
+  done: number;
+  otDone: number;
+  ntDone: number;
+  pct: number;
+  translation: string;
+}) {
+  return (
+    <View style={styles.header}>
+      <Text style={styles.headerTitle}>Tour of the Bible</Text>
+      <Text style={styles.headerSub}>{translation.toUpperCase()}</Text>
+
+      <View style={styles.progressCard}>
+        <View style={styles.progressTopRow}>
+          <Text style={styles.bigNumber}>{done}</Text>
+          <Text style={styles.bigLabel}>of 66 books · {pct}%</Text>
+        </View>
+
+        <View style={styles.bar}>
+          <View style={[styles.barFill, { width: `${pct}%` as any }]} />
+        </View>
+
+        <View style={styles.statRow}>
+          <Stat label="Old Testament" value={otDone} total={39} />
+          <Stat label="New Testament" value={ntDone} total={27} />
+        </View>
+
+        {done === 66 && (
+          <Text style={styles.completeText}>You've read every book. Well done. ✦</Text>
+        )}
+      </View>
+    </View>
+  );
+}
+
+function Stat({ label, value, total }: { label: string; value: number; total: number }) {
+  return (
+    <View style={styles.stat}>
+      <Text style={styles.statValue}>
+        {value}
+        <Text style={styles.statTotal}>/{total}</Text>
+      </Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </View>
+  );
+}
+
 function BookRow({
   book,
   done,
@@ -71,7 +134,9 @@ function BookRow({
   translation: string;
   onToggle: () => void;
 }) {
-  const refs = book.refs.split(/\s+and\s+|,\s*/).filter(r => /^\d+:\S+$/.test(r.trim()));
+  const refs = book.refs
+    .split(/\s+and\s+|,\s*/)
+    .filter((r) => /^\d+:\S+$/.test(r.trim()));
 
   return (
     <View style={[styles.row, done && styles.rowDone]}>
@@ -107,15 +172,35 @@ function BookRow({
 }
 
 const styles = StyleSheet.create({
-  container:   { flex: 1, backgroundColor: C.tealDark },
-  header:      { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 },
-  headerTitle: { fontSize: 22, fontWeight: '800', color: C.yellow },
-  headerSub:   { fontSize: 13, color: C.textSecondary, marginTop: 2 },
-  list:        { paddingBottom: 40 },
+  container:    { flex: 1, backgroundColor: C.tealDark },
+  list:         { paddingBottom: 40 },
+  header:       { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 },
+  headerTitle:  { fontSize: 24, fontWeight: '800', color: C.yellow },
+  headerSub:    { fontSize: 12, color: C.textSecondary, marginTop: 2, letterSpacing: 1 },
+
+  progressCard: {
+    backgroundColor: C.surface,
+    borderRadius: 14,
+    padding: 16,
+    marginTop: 14,
+    borderWidth: 1, borderColor: C.border,
+  },
+  progressTopRow: { flexDirection: 'row', alignItems: 'baseline', marginBottom: 10 },
+  bigNumber:    { fontSize: 36, fontWeight: '800', color: C.offWhite, lineHeight: 38 },
+  bigLabel:     { fontSize: 14, color: C.textSecondary, marginLeft: 10 },
+  bar:          { height: 6, backgroundColor: C.tealDark, borderRadius: 3, overflow: 'hidden', marginBottom: 14 },
+  barFill:      { height: '100%', backgroundColor: C.yellow, borderRadius: 3 },
+  statRow:      { flexDirection: 'row', gap: 14 },
+  stat:         { flex: 1 },
+  statValue:    { fontSize: 18, fontWeight: '700', color: C.offWhite },
+  statTotal:    { fontSize: 13, color: C.textSecondary, fontWeight: '500' },
+  statLabel:    { fontSize: 11, color: C.textSecondary, marginTop: 2, letterSpacing: 0.6 },
+  completeText: { color: C.done, fontWeight: '600', textAlign: 'center', marginTop: 12, fontSize: 13 },
+
   sectionHeader: {
     fontSize: 11, fontWeight: '700', color: C.textSecondary,
     letterSpacing: 1.2, textTransform: 'uppercase',
-    paddingHorizontal: 16, paddingTop: 20, paddingBottom: 6,
+    paddingHorizontal: 16, paddingTop: 24, paddingBottom: 6,
   },
   row: {
     flexDirection: 'row', alignItems: 'flex-start',

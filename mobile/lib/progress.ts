@@ -49,3 +49,7 @@ export async function getNotificationsEnabled(): Promise<boolean> {
 export async function setNotificationsEnabled(enabled: boolean): Promise<void> {
   await AsyncStorage.setItem(NOTIFS_KEY, enabled ? 'true' : 'false');
 }
+
+export async function clearProgress(): Promise<void> {
+  await AsyncStorage.removeItem(PROGRESS_KEY);
+}

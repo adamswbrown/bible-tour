@@ -1,19 +1,28 @@
 import { useCallback, useState } from 'react';
-import { ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { C } from '../../constants/colors';
 import { TRANSLATIONS } from '../../lib/translations';
-import { getSavedTranslation, saveTranslation, getNotificationsEnabled, setNotificationsEnabled } from '../../lib/progress';
+import {
+  clearProgress,
+  getSavedTranslation,
+  saveTranslation,
+  getNotificationsEnabled,
+  setNotificationsEnabled,
+  getProgress,
+} from '../../lib/progress';
 import { scheduleDailyReminder, cancelReminder } from '../../lib/notifications';
 
 export default function SettingsScreen() {
   const [translation, setTranslationState] = useState('kjv');
   const [notifsEnabled, setNotifsState] = useState(false);
+  const [doneCount, setDoneCount] = useState(0);
 
   useFocusEffect(
     useCallback(() => {
       getSavedTranslation().then(setTranslationState);
       getNotificationsEnabled().then(setNotifsState);
+      getProgress().then((p) => setDoneCount(Object.keys(p).length));
     }, []),
   );
 
@@ -30,6 +39,24 @@ export default function SettingsScreen() {
     } else {
       await cancelReminder();
     }
+  }
+
+  function confirmReset() {
+    Alert.alert(
+      'Reset progress?',
+      `This will uncheck all ${doneCount} ${doneCount === 1 ? 'book' : 'books'} you've marked as read. This can't be undone.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Reset',
+          style: 'destructive',
+          onPress: async () => {
+            await clearProgress();
+            setDoneCount(0);
+          },
+        },
+      ],
+    );
   }
 
   return (
@@ -65,6 +92,25 @@ export default function SettingsScreen() {
           thumbColor={C.white}
         />
       </View>
+
+      <Text style={styles.section}>Progress</Text>
+      <TouchableOpacity
+        style={styles.row}
+        onPress={confirmReset}
+        disabled={doneCount === 0}
+      >
+        <View style={styles.rowText}>
+          <Text style={[styles.rowTitle, doneCount === 0 && styles.disabled]}>
+            Reset progress
+          </Text>
+          <Text style={styles.rowSub}>
+            {doneCount === 0
+              ? 'Nothing to reset yet.'
+              : `Currently ${doneCount} of 66 books marked as read.`}
+          </Text>
+        </View>
+        {doneCount > 0 && <Text style={styles.destructive}>Reset</Text>}
+      </TouchableOpacity>
 
       <Text style={styles.section}>About</Text>
       <TouchableOpacity style={styles.row} onPress={() => router.push('/about')}>
@@ -103,5 +149,7 @@ const styles = StyleSheet.create({
   rowSub:       { fontSize: 12, color: C.textSecondary, marginTop: 2 },
   check:        { fontSize: 18, color: C.done, fontWeight: '700' },
   chevron:      { fontSize: 20, color: C.textSecondary },
+  destructive:  { fontSize: 13, color: '#f87171', fontWeight: '600' },
+  disabled:     { color: C.textSecondary },
   disclaimer:   { fontSize: 12, color: C.textSecondary, textAlign: 'center', padding: 24 },
 });

@@ -24,10 +24,7 @@ export default function TabLayout() {
       />
       <Tabs.Screen
         name="progress"
-        options={{
-          title: 'Progress',
-          tabBarIcon: ({ color }) => <TabIcon label="✦" color={color} />,
-        }}
+        options={{ href: null }}
       />
       <Tabs.Screen
         name="settings"
