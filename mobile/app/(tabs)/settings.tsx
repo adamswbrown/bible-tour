@@ -11,7 +11,7 @@ import {
   setNotificationsEnabled,
   getProgress,
 } from '../../lib/progress';
-import { scheduleDailyReminder, cancelReminder } from '../../lib/notifications';
+import { scheduleDailyReminder, cancelReminder, sendTestNotification } from '../../lib/notifications';
 
 export default function SettingsScreen() {
   const [translation, setTranslationState] = useState('kjv');
@@ -102,6 +102,29 @@ export default function SettingsScreen() {
           thumbColor={C.white}
         />
       </View>
+      <TouchableOpacity
+        style={styles.row}
+        onPress={async () => {
+          const ok = await sendTestNotification();
+          if (!ok) {
+            Alert.alert(
+              'Notifications off',
+              'iOS Settings → Tour of the Bible → Notifications to allow them.',
+            );
+            return;
+          }
+          Alert.alert(
+            'Test sent',
+            'A test notification will arrive in about 5 seconds. Lock your phone or switch apps to see it on the lock screen.',
+          );
+        }}
+      >
+        <View style={styles.rowText}>
+          <Text style={styles.rowTitle}>Send test notification</Text>
+          <Text style={styles.rowSub}>Fires in ~5 seconds</Text>
+        </View>
+        <Text style={styles.chevron}>›</Text>
+      </TouchableOpacity>
 
       <Text style={styles.section}>Progress</Text>
       <TouchableOpacity

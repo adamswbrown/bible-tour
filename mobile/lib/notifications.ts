@@ -43,3 +43,23 @@ export async function scheduleDailyReminder(hour = 9, minute = 0): Promise<void>
 export async function cancelReminder(): Promise<void> {
   await Notifications.cancelAllScheduledNotificationsAsync();
 }
+
+// Schedules a one-shot notification ~5 s out so the user can verify
+// permissions, banner copy, lock-screen behaviour, etc. without
+// waiting for the 9 am daily reminder.
+export async function sendTestNotification(): Promise<boolean> {
+  const granted = await requestPermission();
+  if (!granted) return false;
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: 'Tour of the Bible',
+      body: "Test reminder — looking good. You're all set.",
+    },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+      seconds: 5,
+      repeats: false,
+    },
+  });
+  return true;
+}
