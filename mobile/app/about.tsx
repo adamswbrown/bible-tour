@@ -31,8 +31,13 @@ export default function AboutScreen() {
       <Section title="Lexicon Data">
         <Credit
           name="Strong's Dictionaries — Open Scriptures"
-          detail="Hebrew and Greek lexicon data © 2009–2010 Open Scriptures. Licensed under Creative Commons Attribution-ShareAlike 3.0 (CC BY-SA 3.0). Derivative dataset used in this app is released under the same licence."
+          detail="Hebrew and Greek lexicon data © 2009–2010 Open Scriptures. Licensed under Creative Commons Attribution-ShareAlike 3.0 (CC BY-SA 3.0)."
           url="https://github.com/openscriptures/strongs"
+        />
+        <Credit
+          name="Pruned subset bundled in this app"
+          detail="The lexicon entries shipped in Tour of the Bible are a filtered subset of the upstream dictionary, redistributed under the same CC BY-SA 3.0 terms. Source files, licence, and attribution are public:"
+          url="https://github.com/adamswbrown/bible-tour/tree/main/bible-tour-data"
         />
       </Section>
 

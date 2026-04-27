@@ -129,7 +129,16 @@ export default function LexiconDrawer({ open, entry, strongsId, onClose }) {
             >
               Open Scriptures
             </a>{" "}
-            (CC BY-SA 3.0)
+            (CC BY-SA 3.0). Pruned subset{" "}
+            <a
+              href="https://github.com/adamswbrown/bible-tour/tree/main/bible-tour-data"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={styles.attributionLink}
+            >
+              available here
+            </a>
+            .
           </p>
         </div>
 
