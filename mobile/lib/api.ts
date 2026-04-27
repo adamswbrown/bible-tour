@@ -58,7 +58,7 @@ async function fetchYouVersion(
       );
       if (!res.ok) throw new Error(`YouVersion fetch failed: ${res.status}`);
       const data = await res.json();
-      return data.passage?.text || data.text || '';
+      return ((data.content || data.text) ?? '').trim();
     }),
   );
 
@@ -83,6 +83,9 @@ async function fetchBibleApi(
   const res = await fetch(`https://bible-api.com/${query}?translation=${apiCode}`);
   if (!res.ok) throw new Error(`bible-api fetch failed: ${res.status}`);
   const data = await res.json();
+  if (Array.isArray(data.verses) && data.verses.length > 0) {
+    return data.verses.map((v: { text: string }) => v.text.trim()).join('\n\n');
+  }
   return (data.text || '').trim();
 }
 
