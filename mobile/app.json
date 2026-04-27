@@ -16,6 +16,7 @@
     "ios": {
       "bundleIdentifier": "cloud.askadam.bibletour",
       "supportsTablet": true,
+      "associatedDomains": ["applinks:bible-tour.vercel.app"],
       "infoPlist": {
         "UIBackgroundModes": ["audio"],
         "ITSAppUsesNonExemptEncryption": false

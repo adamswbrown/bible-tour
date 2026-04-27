@@ -1,0 +1,37 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["NZ87XY99SR.cloud.askadam.bibletour"],
+        "components": [
+          {
+            "/": "/privacy*",
+            "exclude": true,
+            "comment": "Privacy policy stays on the web — App Store and email links should open in the browser."
+          },
+          {
+            "/": "/support*",
+            "exclude": true,
+            "comment": "Support page stays on the web for the same reason."
+          },
+          {
+            "/": "/eagle*",
+            "exclude": true,
+            "comment": "Eagle method pages have no mobile equivalent yet; keep them on the web."
+          },
+          {
+            "/": "/api/*",
+            "exclude": true,
+            "comment": "API proxies must never be intercepted as Universal Links."
+          },
+          {
+            "/": "/*",
+            "comment": "Everything else: open in the app if installed, else stay on the web."
+          }
+        ]
+      }
+    ]
+  },
+  "appclips": {},
+  "webcredentials": {}
+}
