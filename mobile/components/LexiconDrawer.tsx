@@ -1,4 +1,27 @@
-import { Linking, Modal, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect } from 'react';
+import {
+  Dimensions,
+  Linking,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import {
+  Gesture,
+  GestureDetector,
+  GestureHandlerRootView,
+} from 'react-native-gesture-handler';
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
 import { C } from '../constants/colors';
 import type { LexiconEntry } from '../lib/study';
 
@@ -9,7 +32,47 @@ type Props = {
   onClose: () => void;
 };
 
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const DISMISS_THRESHOLD_PX = 120;
+const DISMISS_VELOCITY = 800;
+
 export default function LexiconDrawer({ visible, strongsId, entry, onClose }: Props) {
+  const translateY = useSharedValue(0);
+
+  useEffect(() => {
+    if (visible) {
+      translateY.value = withSpring(0, { damping: 20, stiffness: 180 });
+    }
+  }, [visible, translateY]);
+
+  const pan = Gesture.Pan()
+    .onUpdate((e) => {
+      if (e.translationY > 0) {
+        translateY.value = e.translationY;
+      } else {
+        translateY.value = e.translationY * 0.2;
+      }
+    })
+    .onEnd((e) => {
+      const shouldDismiss =
+        e.translationY > DISMISS_THRESHOLD_PX || e.velocityY > DISMISS_VELOCITY;
+      if (shouldDismiss) {
+        translateY.value = withTiming(
+          SCREEN_HEIGHT,
+          { duration: 220 },
+          (finished) => {
+            if (finished) runOnJS(onClose)();
+          },
+        );
+      } else {
+        translateY.value = withSpring(0, { damping: 20, stiffness: 180 });
+      }
+    });
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
+
   const blbUrl = strongsId
     ? `https://www.blueletterbible.org/lexicon/${strongsId}/kjv/wlc/0-1/`
     : null;
@@ -21,88 +84,101 @@ export default function LexiconDrawer({ visible, strongsId, entry, onClose }: Pr
   return (
     <Modal
       visible={visible}
-      animationType="slide"
       transparent
+      animationType="fade"
       onRequestClose={onClose}
     >
-      <Pressable style={styles.backdrop} onPress={onClose} />
-      <View style={styles.sheet}>
-        <View style={styles.handle} />
+      <GestureHandlerRootView style={styles.root}>
+        <Pressable style={styles.backdrop} onPress={onClose} />
 
-        <View style={styles.header}>
-          {strongsId && <Text style={styles.strongsId}>{strongsId}</Text>}
-          {entry?.lemma && <Text style={styles.lemma}>{entry.lemma}</Text>}
-          {entry?.translit && <Text style={styles.translit}>{entry.translit}</Text>}
-        </View>
-
-        <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent}>
-          {entry?.pos && (
-            <View style={styles.fieldRow}>
-              <Text style={styles.fieldLabel}>Part of speech</Text>
-              <Text style={styles.fieldValue}>{entry.pos}</Text>
+        <GestureDetector gesture={pan}>
+          <Animated.View style={[styles.sheet, animatedStyle]}>
+            {/* Drag handle area — large hit slop so the gesture is easy to grab */}
+            <View style={styles.handleArea}>
+              <View style={styles.handle} />
             </View>
-          )}
 
-          {entry?.gloss && (
-            <View style={styles.fieldRow}>
-              <Text style={styles.fieldLabel}>Gloss</Text>
-              <Text style={[styles.fieldValue, styles.italic]}>“{entry.gloss}”</Text>
+            <View style={styles.header}>
+              {strongsId && <Text style={styles.strongsId}>{strongsId}</Text>}
+              {entry?.lemma && <Text style={styles.lemma}>{entry.lemma}</Text>}
+              {entry?.translit && <Text style={styles.translit}>{entry.translit}</Text>}
             </View>
-          )}
 
-          {paragraphs.length > 0 && (
-            <>
-              <View style={styles.divider} />
-              {paragraphs.map((p, i) => (
-                <Text key={i} style={styles.entryPara}>
-                  {p}
-                </Text>
-              ))}
-            </>
-          )}
+            <ScrollView
+              style={styles.body}
+              contentContainerStyle={styles.bodyContent}
+              showsVerticalScrollIndicator={false}
+            >
+              {entry?.pos && (
+                <View style={styles.fieldRow}>
+                  <Text style={styles.fieldLabel}>Part of speech</Text>
+                  <Text style={styles.fieldValue}>{entry.pos}</Text>
+                </View>
+              )}
 
-          {blbUrl && (
-            <>
-              <View style={styles.divider} />
-              <Text style={styles.studyFurther}>Study further</Text>
-              <TouchableOpacity
-                style={styles.blbBtn}
-                onPress={() => Linking.openURL(blbUrl)}
-              >
-                <Text style={styles.blbBtnText}>Open on Blue Letter Bible ↗</Text>
-              </TouchableOpacity>
-            </>
-          )}
+              {entry?.gloss && (
+                <View style={styles.fieldRow}>
+                  <Text style={styles.fieldLabel}>Gloss</Text>
+                  <Text style={[styles.fieldValue, styles.italic]}>“{entry.gloss}”</Text>
+                </View>
+              )}
 
-          <Text style={styles.attribution}>
-            Strong&apos;s dictionary © 2009–2010 Open Scriptures. CC BY-SA 3.0.
-          </Text>
-        </ScrollView>
+              {paragraphs.length > 0 && (
+                <>
+                  <View style={styles.divider} />
+                  {paragraphs.map((p, i) => (
+                    <Text key={i} style={styles.entryPara}>
+                      {p}
+                    </Text>
+                  ))}
+                </>
+              )}
 
-        <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
-          <Text style={styles.closeBtnText}>Close</Text>
-        </TouchableOpacity>
-      </View>
+              {blbUrl && (
+                <>
+                  <View style={styles.divider} />
+                  <Text style={styles.studyFurther}>Study further</Text>
+                  <TouchableOpacity
+                    style={styles.blbBtn}
+                    onPress={() => Linking.openURL(blbUrl)}
+                  >
+                    <Text style={styles.blbBtnText}>Open on Blue Letter Bible ↗</Text>
+                  </TouchableOpacity>
+                </>
+              )}
+
+              <Text style={styles.attribution}>
+                Strong&apos;s dictionary © 2009–2010 Open Scriptures. CC BY-SA 3.0.
+              </Text>
+            </ScrollView>
+          </Animated.View>
+        </GestureDetector>
+      </GestureHandlerRootView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop:    { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' },
+  root:        { flex: 1 },
+  backdrop:    { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.6)' },
   sheet: {
     position: 'absolute',
     bottom: 0, left: 0, right: 0,
     maxHeight: '85%',
     backgroundColor: C.tealDark,
-    borderTopLeftRadius: 16, borderTopRightRadius: 16,
-    paddingTop: 8, paddingBottom: 32,
+    borderTopLeftRadius: 20, borderTopRightRadius: 20,
+    paddingBottom: 32,
     borderTopWidth: 1, borderColor: C.border,
   },
+  handleArea: {
+    alignItems: 'center',
+    paddingTop: 10,
+    paddingBottom: 8,
+  },
   handle: {
-    alignSelf: 'center',
-    width: 40, height: 4,
-    backgroundColor: C.border, borderRadius: 2,
-    marginBottom: 12,
+    width: 48, height: 5,
+    backgroundColor: C.textSecondary, borderRadius: 3,
+    opacity: 0.7,
   },
   header:      { paddingHorizontal: 24, paddingBottom: 12 },
   strongsId:   { fontSize: 11, fontWeight: '700', color: C.yellow, letterSpacing: 1.2 },
@@ -120,6 +196,4 @@ const styles = StyleSheet.create({
   blbBtn:      { backgroundColor: C.surface, padding: 14, borderRadius: 10, borderWidth: 1, borderColor: C.border },
   blbBtnText:  { color: C.yellow, fontSize: 14, fontWeight: '600', textAlign: 'center' },
   attribution: { fontSize: 11, color: C.textSecondary, marginTop: 24, lineHeight: 18 },
-  closeBtn:    { marginHorizontal: 24, marginTop: 8, paddingVertical: 12, backgroundColor: C.surface, borderRadius: 10 },
-  closeBtnText:{ color: C.offWhite, textAlign: 'center', fontWeight: '600', fontSize: 14 },
 });
