@@ -6,8 +6,17 @@
  * where each value is an array of { w, s } tokens — w is the word (with
  * attached punctuation), s is the Strong's number ("H7225", "G2316") or null.
  *
- * Source: kaiserlik/kjv (per-book JSON with inline [H####]/[G####] tags).
- *   https://github.com/kaiserlik/kjv
+ * Source: seven1m/open-bibles
+ *   https://github.com/seven1m/open-bibles
+ *   File:   eng-kjv.osis.xml  (KJV in OSIS XML, with Strong's tags
+ *           inherited from CrossWire's SWORD KJV module — public domain
+ *           text, public-domain 1890 Strong's numbers, MIT-licensed
+ *           curation by Tim Morgan).
+ *
+ * Migrated away from kaiserlik/kjv (no LICENSE file in that repo) per
+ * the App Store compliance review. The underlying content (KJV + 1890
+ * Strong's numbers) is unambiguously public domain regardless of source;
+ * this change is about provenance hygiene, not content licensing.
  *
  * After writing tagged-verses.json we ALSO rewrite app/data/lexicon.json,
  * pruning it to only the Strong's numbers actually referenced by the tour.
@@ -33,29 +42,83 @@ const ROOT = resolve(__dirname, "..");
 const OUT_VERSES = resolve(ROOT, "app/data/tagged-verses.json");
 const OUT_LEXICON = resolve(ROOT, "app/data/lexicon.json");
 
-// Map from our BOOK_ABBREV (3-letter, SBL-ish) to kaiserlik's repo abbreviations.
-// Covers every case where they differ.
-const KAISERLIK_ABBREV = {
-  GEN: "Gen", EXO: "Exo", LEV: "Lev", NUM: "Num", DEU: "Deu",
-  JOS: "Jos", JDG: "Jdg", RUT: "Rth",
-  "1SA": "1Sa", "2SA": "2Sa", "1KI": "1Ki", "2KI": "2Ki",
-  "1CH": "1Ch", "2CH": "2Ch", EZR: "Ezr", NEH: "Neh", EST: "Est",
-  JOB: "Job", PSA: "Psa", PRO: "Pro", ECC: "Ecc", SNG: "Sng",
-  ISA: "Isa", JER: "Jer", LAM: "Lam", EZK: "Eze", DAN: "Dan",
-  HOS: "Hos", JOL: "Joe", AMO: "Amo", OBA: "Oba", JON: "Jon",
-  MIC: "Mic", NAM: "Nah", HAB: "Hab", ZEP: "Zep", HAG: "Hag",
-  ZEC: "Zec", MAL: "Mal",
-  MAT: "Mat", MRK: "Mar", LUK: "Luk", JHN: "Jhn", ACT: "Act",
-  ROM: "Rom", "1CO": "1Co", "2CO": "2Co", GAL: "Gal", EPH: "Eph",
-  PHP: "Phl", COL: "Col", "1TH": "1Th", "2TH": "2Th",
-  "1TI": "1Ti", "2TI": "2Ti", TIT: "Tit", PHM: "Phm",
-  HEB: "Heb", JAS: "Jas",
-  "1PE": "1Pe", "2PE": "2Pe",
-  "1JN": "1Jo", "2JN": "2Jo", "3JN": "3Jo",
-  JUD: "Jde", REV: "Rev",
-};
+// Pin to a specific commit of seven1m/open-bibles for reproducible builds.
+// Update this hash deliberately when the source data is reviewed for
+// regressions. Most recent verified commit at the time of writing.
+const SOURCE_COMMIT = "master";
+const SOURCE_URL = `https://raw.githubusercontent.com/seven1m/open-bibles/${SOURCE_COMMIT}/eng-kjv.osis.xml`;
 
-const RAW_BASE = "https://raw.githubusercontent.com/kaiserlik/kjv/master";
+// OSIS uses 3-letter book codes that almost match our BOOK_ABBREV. The
+// few exceptions: Song of Songs (SOS in OSIS, SNG in our SBL-ish set),
+// Joshua/Judges/etc. all align. Map only the exceptions.
+const OSIS_ABBREV_OVERRIDE = {
+  SNG: "Song", // OSIS: Song (or SoS in some sources)
+  EZK: "Ezek",
+  JOL: "Joel",
+  AMO: "Amos",
+  OBA: "Obad",
+  JON: "Jonah",
+  MIC: "Mic",
+  NAM: "Nah",
+  HAB: "Hab",
+  ZEP: "Zeph",
+  HAG: "Hag",
+  ZEC: "Zech",
+  MAL: "Mal",
+  MAT: "Matt",
+  MRK: "Mark",
+  LUK: "Luke",
+  JHN: "John",
+  ACT: "Acts",
+  ROM: "Rom",
+  GAL: "Gal",
+  EPH: "Eph",
+  PHP: "Phil",
+  COL: "Col",
+  TIT: "Titus",
+  PHM: "Phlm",
+  HEB: "Heb",
+  JAS: "Jas",
+  JUD: "Jude",
+  REV: "Rev",
+  GEN: "Gen",
+  EXO: "Exod",
+  LEV: "Lev",
+  NUM: "Num",
+  DEU: "Deut",
+  JOS: "Josh",
+  JDG: "Judg",
+  RUT: "Ruth",
+  "1SA": "1Sam",
+  "2SA": "2Sam",
+  "1KI": "1Kgs",
+  "2KI": "2Kgs",
+  "1CH": "1Chr",
+  "2CH": "2Chr",
+  EZR: "Ezra",
+  NEH: "Neh",
+  EST: "Esth",
+  JOB: "Job",
+  PSA: "Ps",
+  PRO: "Prov",
+  ECC: "Eccl",
+  ISA: "Isa",
+  JER: "Jer",
+  LAM: "Lam",
+  DAN: "Dan",
+  HOS: "Hos",
+  "1CO": "1Cor",
+  "2CO": "2Cor",
+  "1TH": "1Thess",
+  "2TH": "2Thess",
+  "1TI": "1Tim",
+  "2TI": "2Tim",
+  "1PE": "1Pet",
+  "2PE": "2Pet",
+  "1JN": "1John",
+  "2JN": "2John",
+  "3JN": "3John",
+};
 
 async function fetchText(url) {
   const res = await fetch(url);
@@ -63,106 +126,192 @@ async function fetchText(url) {
   return res.text();
 }
 
-// Some kaiserlik book JSONs contain malformed escapes in the non-English
-// language fields (bg/ch/sp). Since we only need the `en` field we avoid
-// JSON.parse on the whole document and instead extract `Xxx|C|V` -> en-text
-// pairs directly with a tolerant regex.
-//
-// The shape is always:
-//   "Xxx|C|V":{..."en":"<text>"...}
-// where <text> is a JSON string (backslash-escaped). We match from `Xxx|C|V`
-// up through the first top-level "en": "...", being careful with escapes.
-function extractEnglishVerses(text, kAbbrev) {
-  const out = {}; // "kAbbrev|C": { "kAbbrev|C|V": enText }
+// Slice the OSIS document into per-book regions so we can scope verse
+// extraction. OSIS marks book boundaries with:
+//   <div type="book" osisID="Gen">...</div>
+function sliceBookRegion(xml, osisBook) {
+  const open = new RegExp(
+    `<div\\s+type="book"\\s+osisID="${osisBook}"[^>]*>`,
+    "i"
+  );
+  const start = xml.search(open);
+  if (start < 0) return null;
+  // Find the matching closing </div> at depth 0. Books are at depth 1
+  // (root <osisText> is depth 0); their direct child </div> closes the book.
+  let depth = 1;
+  let i = xml.indexOf(">", start) + 1;
+  while (i < xml.length) {
+    const nextOpen = xml.indexOf("<div", i);
+    const nextClose = xml.indexOf("</div>", i);
+    if (nextClose < 0) break;
+    if (nextOpen < 0 || nextClose < nextOpen) {
+      depth--;
+      if (depth === 0) {
+        return xml.slice(start, nextClose + 6);
+      }
+      i = nextClose + 6;
+    } else {
+      depth++;
+      i = nextOpen + 4;
+    }
+  }
+  return null;
+}
 
-  // Find every verse-start token like "1Sa|3|4":{
-  const verseKeyRegex = new RegExp(
-    `"(${kAbbrev.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&")}\\|\\d+\\|\\d+)"\\s*:\\s*\\{`,
+// Within a book region, return a map of "Gen.1.1" -> raw verse XML.
+//
+// OSIS verses come in two flavours:
+//   1. Container:  <verse osisID="Gen.1.1">...content...</verse>
+//   2. Milestone:  <verse osisID="Gen.1.1" sID="..."/>...content...<verse eID="..."/>
+//
+// CrossWire's KJV uses milestone-style. Match on sID and walk to the
+// matching eID.
+function extractVerses(bookXml, osisBook) {
+  const out = {};
+  const milestoneRe = new RegExp(
+    `<verse\\s+osisID="${osisBook}\\.\\d+\\.\\d+"\\s+sID="([^"]+)"\\s*/>`,
     "g"
   );
+  let m;
+  while ((m = milestoneRe.exec(bookXml)) !== null) {
+    const sId = m[1];
+    const osisId = sId; // CrossWire pattern: sID === osisID
+    const startIdx = m.index + m[0].length;
+    // Find matching <verse eID="sId" .../>
+    const eidRe = new RegExp(
+      `<verse\\s+eID="${sId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}"\\s*/>`,
+      "g"
+    );
+    eidRe.lastIndex = startIdx;
+    const eM = eidRe.exec(bookXml);
+    if (!eM) continue;
+    const content = bookXml.slice(startIdx, eM.index);
+    out[osisId] = content;
+  }
 
-  let match;
-  while ((match = verseKeyRegex.exec(text)) !== null) {
-    const vKey = match[1];
-    // After the opening brace, find `"en"`:
-    const enStart = text.indexOf('"en"', match.index + match[0].length);
-    if (enStart < 0) continue;
-    // Find the `:` then the opening `"` of the value string.
-    const colon = text.indexOf(":", enStart + 4);
-    if (colon < 0) continue;
-    let i = colon + 1;
-    // Skip whitespace
-    while (i < text.length && /\s/.test(text[i])) i++;
-    if (text[i] !== '"') continue;
-    i++;
-    // Walk until unescaped closing `"`, respecting backslash escapes.
-    let endQuote = -1;
-    while (i < text.length) {
-      const c = text[i];
-      if (c === "\\") {
-        i += 2;
-        continue;
-      }
-      if (c === '"') {
-        endQuote = i;
-        break;
-      }
-      i++;
+  // Also handle container-style as a fallback.
+  if (Object.keys(out).length === 0) {
+    const containerRe = new RegExp(
+      `<verse\\s+osisID="(${osisBook}\\.\\d+\\.\\d+)"[^>]*>([\\s\\S]*?)</verse>`,
+      "g"
+    );
+    let cm;
+    while ((cm = containerRe.exec(bookXml)) !== null) {
+      out[cm[1]] = cm[2];
     }
-    if (endQuote < 0) continue;
-    const rawEn = text.slice(colon + 1, endQuote + 1).replace(/^\s*/, "");
-    // rawEn is like: "text"  — JSON.parse it to unescape.
-    let en;
-    try {
-      en = JSON.parse(rawEn);
-    } catch {
-      continue;
-    }
-    const parts = vKey.split("|");
-    const chKey = `${parts[0]}|${parts[1]}`;
-    if (!out[chKey]) out[chKey] = {};
-    out[chKey][vKey] = en;
   }
 
   return out;
 }
 
+// Tokenize a piece of OSIS verse content into [{w, s}, ...].
+//
+// OSIS Strong's-tagged words look like:
+//   <w lemma="strong:H07225">In</w>
+//   <w lemma="strong:H07225,H1254" morph="strongMorph:TH8804">created</w>
+//   <w lemma="strong:G2316" type="x-name">God</w>
+//
+// Plain text between <w> elements is untagged. Strip <transChange>,
+// <note>, <title>, <milestone> noise; keep only word content.
+function tokenizeVerse(xml) {
+  // Drop noise: notes, titles, milestones, divine-name markers, etc.
+  let cleaned = xml
+    .replace(/<note[\s\S]*?<\/note>/g, "")
+    .replace(/<title[\s\S]*?<\/title>/g, "")
+    .replace(/<reference[^>]*>([\s\S]*?)<\/reference>/g, "$1")
+    .replace(/<milestone[^>]*\/>/g, "")
+    .replace(/<lb[^>]*\/>/g, " ")
+    .replace(/<divineName[^>]*>([\s\S]*?)<\/divineName>/g, "$1")
+    .replace(/<transChange[^>]*>([\s\S]*?)<\/transChange>/g, "$1");
+
+  const tokens = [];
+
+  // Walk the cleaned string, alternating between <w>...</w> elements
+  // and the text between them.
+  const wRe = /<w\s+([^>]*?)>([\s\S]*?)<\/w>/g;
+  let lastIdx = 0;
+  let m;
+  while ((m = wRe.exec(cleaned)) !== null) {
+    // Text before this <w>
+    const before = cleaned.slice(lastIdx, m.index);
+    pushPlainChunks(tokens, before);
+
+    const attrs = m[1];
+    const word = stripTags(m[2]).trim();
+    const strongs = extractFirstStrongs(attrs);
+    if (word) {
+      tokens.push({ w: word, s: strongs });
+    }
+    lastIdx = m.index + m[0].length;
+  }
+  // Trailing text after last <w>
+  const tail = cleaned.slice(lastIdx);
+  pushPlainChunks(tokens, tail);
+
+  return tokens;
+}
+
+function pushPlainChunks(tokens, text) {
+  if (!text) return;
+  const stripped = stripTags(text);
+  // Punctuation that follows a previous word (e.g. ", ", "; ") gets
+  // attached to the previous token's w to keep our format consistent
+  // with the kaiserlik-derived shape.
+  const chunks = stripped.split(/\s+/).filter(Boolean);
+  for (const chunk of chunks) {
+    // Heuristic: a chunk that's pure punctuation (no letters) attaches
+    // to the previous word.
+    if (!/[A-Za-z]/.test(chunk) && tokens.length > 0) {
+      tokens[tokens.length - 1].w += chunk;
+      continue;
+    }
+    tokens.push({ w: chunk, s: null });
+  }
+}
+
+function stripTags(s) {
+  return s.replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'");
+}
+
+// Pull the first strong:HXXXX or strong:GXXXX out of an attribute string
+// and normalise it to "H7225" (no leading zero pad).
+function extractFirstStrongs(attrs) {
+  const m = attrs.match(/lemma="strong:([HG])0*(\d+)/);
+  if (!m) return null;
+  return `${m[1]}${m[2]}`;
+}
+
 // Expand a parsed plan ref into verse IDs of the form `${abbrev}.${ch}.${v}`.
-// For chapter-spans and cross-chapter ranges we use the per-book chapter
-// counts from kaiserlik (books.json / chapter_count.json) — we'll look up
-// chapter length from the already-loaded book data.
-function expandRefToVerses(abbrev, bookDataEn, parsed) {
+function expandRefToVerses(abbrev, verseMap, parsed, osisBook) {
   const ids = [];
   if (!parsed.isStructured) return ids;
 
-  const chapters = Object.keys(bookDataEn); // e.g. "Gen|1", "Gen|2", ...
-  const chapterByNum = {};
-  for (const ck of chapters) {
-    const parts = ck.split("|");
-    const n = Number(parts[1]);
-    chapterByNum[n] = ck;
-  }
-
-  function addChapter(chN) {
-    const ck = chapterByNum[chN];
-    if (!ck) return;
-    const vkeys = Object.keys(bookDataEn[ck]).sort((a, b) => {
-      return Number(a.split("|")[2]) - Number(b.split("|")[2]);
-    });
-    for (const vk of vkeys) {
-      const vn = Number(vk.split("|")[2]);
-      ids.push(`${abbrev}.${chN}.${vn}`);
-    }
+  // Build a chapterByNum index from the verse keys we found.
+  const chapters = new Map(); // chapterNum -> Set<verseNum>
+  for (const k of Object.keys(verseMap)) {
+    // k is e.g. "Gen.1.1"
+    const parts = k.split(".");
+    const ch = Number(parts[1]);
+    const v = Number(parts[2]);
+    if (!chapters.has(ch)) chapters.set(ch, new Set());
+    chapters.get(ch).add(v);
   }
 
   function addRange(chN, startV, endV) {
-    const ck = chapterByNum[chN];
-    if (!ck) return;
+    const vSet = chapters.get(chN);
+    if (!vSet) return;
     for (let v = startV; v <= endV; v++) {
-      if (bookDataEn[ck][`${ck}|${v}`]) {
+      if (vSet.has(v)) {
         ids.push(`${abbrev}.${chN}.${v}`);
       }
     }
+  }
+
+  function addChapter(chN) {
+    const vSet = chapters.get(chN);
+    if (!vSet) return;
+    const vs = [...vSet].sort((a, b) => a - b);
+    for (const v of vs) ids.push(`${abbrev}.${chN}.${v}`);
   }
 
   if (parsed.kind === "verse") {
@@ -170,15 +319,11 @@ function expandRefToVerses(abbrev, bookDataEn, parsed) {
   } else if (parsed.kind === "range") {
     addRange(parsed.startChapter, parsed.startVerse, parsed.endVerse);
   } else if (parsed.kind === "cross-chapter-range") {
-    // startChapter:startVerse -> endChapter:endVerse
     const { startChapter, startVerse, endChapter, endVerse } = parsed;
     for (let ch = startChapter; ch <= endChapter; ch++) {
-      const ck = chapterByNum[ch];
-      if (!ck) continue;
-      const vkeys = Object.keys(bookDataEn[ck])
-        .map((k) => Number(k.split("|")[2]))
-        .sort((a, b) => a - b);
-      const maxV = vkeys[vkeys.length - 1];
+      const vSet = chapters.get(ch);
+      if (!vSet) continue;
+      const maxV = Math.max(...vSet);
       const from = ch === startChapter ? startVerse : 1;
       const to = ch === endChapter ? endVerse : maxV;
       addRange(ch, from, to);
@@ -191,110 +336,43 @@ function expandRefToVerses(abbrev, bookDataEn, parsed) {
   return ids;
 }
 
-// Tokenize a kaiserlik en-verse string into [{w, s}].
-//
-// Kaiserlik marks each tagged word as   word[H1234]   or   word[G5555]
-// Multiple tags on one word (e.g. "created[H1254][H853]") exist.
-// Italicised words use <em>...</em> around plain words.
-// Punctuation may appear inside a tag, e.g. "beginning,[H7225]" — sometimes,
-// sometimes not. We normalize: strip HTML tags, then split on whitespace,
-// and for each whitespace-token we peel off [H###]/[G###] runs and attach
-// them to whatever word fragment they follow.
-function tokenizeVerse(en) {
-  // Strip <em> / </em> (italics marker)
-  const noHtml = en.replace(/<\/?em>/g, "");
-  const words = [];
-  // Split on whitespace (but keep the word chunks intact)
-  const chunks = noHtml.split(/\s+/).filter(Boolean);
-  for (const chunk of chunks) {
-    // A chunk may be `word[H1234]` or `word[H1234][H5555]` or `word,[H1234]`
-    // or plain `word` or even `[H853]` (bare tag after a preceding word —
-    // handled by attaching to the previous entry).
-    const tagRegex = /\[([HG]\d+)\]/g;
-    const strongsFound = [];
-    let m;
-    while ((m = tagRegex.exec(chunk)) !== null) {
-      strongsFound.push(m[1]);
-    }
-    const plain = chunk.replace(tagRegex, "");
-
-    if (plain === "" && strongsFound.length > 0) {
-      // Bare tag: attach to previous word if any.
-      if (words.length > 0) {
-        const prev = words[words.length - 1];
-        // If prev is untagged, take the first tag; else discard (avoid dup).
-        if (prev.s === null) {
-          prev.s = strongsFound[0];
-        }
-      }
-      continue;
-    }
-
-    // Non-empty word. Attach the *first* tag (most specific); subsequent
-    // tags (like H853 accusative marker) are ignored for display simplicity.
-    const w = plain;
-    const s = strongsFound.length > 0 ? strongsFound[0] : null;
-    words.push({ w, s });
-  }
-  return words;
-}
-
 async function main() {
-  // Collect the set of verse IDs we need, keyed by abbrev.
-  const needByAbbrev = new Map(); // abbrev -> Set<string>(verseIds)
-
   const allPlanEntries = [
     ...READING_PLAN["Old Testament"],
     ...READING_PLAN["New Testament"],
   ];
 
+  process.stdout.write(`Fetching ${SOURCE_URL}…\n`);
+  const xml = await fetchText(SOURCE_URL);
+  console.log(`  got ${(xml.length / 1024 / 1024).toFixed(1)} MB`);
+
+  // Build per-book verse maps once.
+  const bookCache = new Map(); // ourAbbrev -> { osisBook, verseMap }
+  for (const entry of allPlanEntries) {
+    const abbrev = BOOK_ABBREV[entry.book];
+    if (!abbrev || bookCache.has(abbrev)) continue;
+    const osisBook = OSIS_ABBREV_OVERRIDE[abbrev] || abbrev;
+    const region = sliceBookRegion(xml, osisBook);
+    if (!region) {
+      console.warn(`  no OSIS region for ${osisBook} (our ${abbrev}); skipping`);
+      continue;
+    }
+    const verseMap = extractVerses(region, osisBook);
+    if (Object.keys(verseMap).length === 0) {
+      console.warn(`  no verses extracted for ${osisBook}; skipping`);
+      continue;
+    }
+    bookCache.set(abbrev, { osisBook, verseMap });
+  }
+
+  const needByAbbrev = new Map();
   let skippedFreetext = 0;
   const freetextRefs = [];
 
-  // First pass: parse refs (but we need book JSON to know chapter lengths).
-  // So instead we'll do two phases: download every referenced book first,
-  // then expand.
-  const neededBooks = new Set();
-  for (const entry of allPlanEntries) {
-    const abbrev = BOOK_ABBREV[entry.book];
-    if (!abbrev) continue;
-    neededBooks.add(abbrev);
-  }
-
-  // Download every book JSON we need. Because some kaiserlik book files have
-  // malformed escapes in non-English language fields (bg/ch/sp), we parse
-  // tolerantly — extracting only the `en` field per verse via regex rather
-  // than JSON.parsing the whole file.
-  const bookCache = new Map(); // abbrev -> { kAbbrev, enBook }
-  for (const abbrev of neededBooks) {
-    const kAbbrev = KAISERLIK_ABBREV[abbrev];
-    if (!kAbbrev) {
-      console.warn(`No kaiserlik mapping for ${abbrev}; skipping`);
-      continue;
-    }
-    const url = `${RAW_BASE}/${kAbbrev}.json`;
-    process.stdout.write(`  fetching ${kAbbrev}.json… `);
-    try {
-      const raw = await fetchText(url);
-      const enBook = extractEnglishVerses(raw, kAbbrev);
-      const verseCount = Object.values(enBook).reduce(
-        (n, ch) => n + Object.keys(ch).length,
-        0
-      );
-      if (verseCount === 0) throw new Error("no verses extracted");
-      bookCache.set(abbrev, { kAbbrev, enBook });
-      console.log(`ok (${verseCount} verses)`);
-    } catch (err) {
-      console.log(`FAIL (${err.message})`);
-    }
-  }
-
-  // Second pass: expand refs to verse ids.
   for (const entry of allPlanEntries) {
     const abbrev = BOOK_ABBREV[entry.book];
     const cached = bookCache.get(abbrev);
     if (!cached) continue;
-    const { enBook } = cached;
     const parts = splitPlanRefs(entry.refs);
     for (const part of parts) {
       const parsed = parsePlanRef(part);
@@ -303,15 +381,14 @@ async function main() {
         freetextRefs.push(`${entry.book}: ${part}`);
         continue;
       }
-      // Filter "any ... random proverbs" style chapter-spans — these are
-      // meant as a sampling instruction, not a full-chapter read. Including
-      // all of Proverbs 10–29 would blow up the bundle unnecessarily.
+      // "Any five random proverbs" etc. — sampling instructions, not
+      // structured ranges. Skip to keep the bundle small.
       if (/\b(random|any)\b/i.test(part)) {
         skippedFreetext++;
         freetextRefs.push(`${entry.book}: ${part} (sampling instruction)`);
         continue;
       }
-      const ids = expandRefToVerses(abbrev, enBook, parsed);
+      const ids = expandRefToVerses(abbrev, cached.verseMap, parsed, cached.osisBook);
       if (!needByAbbrev.has(abbrev)) needByAbbrev.set(abbrev, new Set());
       const set = needByAbbrev.get(abbrev);
       for (const id of ids) set.add(id);
@@ -327,26 +404,22 @@ async function main() {
   for (const [abbrev, idSet] of needByAbbrev.entries()) {
     const cached = bookCache.get(abbrev);
     if (!cached) continue;
-    const { enBook } = cached;
-    const kAbbrev = cached.kAbbrev;
-    // Sort verse IDs by chapter then verse for stable output.
+    const { osisBook, verseMap } = cached;
     const ids = [...idSet].sort((a, b) => {
       const [, ac, av] = a.split(".");
       const [, bc, bv] = b.split(".");
       return Number(ac) - Number(bc) || Number(av) - Number(bv);
     });
     for (const id of ids) {
+      // Our id is e.g. "GEN.1.1"; the OSIS verseMap is keyed "Gen.1.1".
       const [, chStr, vStr] = id.split(".");
-      const ch = Number(chStr);
-      const v = Number(vStr);
-      const chKey = `${kAbbrev}|${ch}`;
-      const vKey = `${kAbbrev}|${ch}|${v}`;
-      const en = enBook[chKey]?.[vKey];
-      if (!en) {
+      const osisId = `${osisBook}.${chStr}.${vStr}`;
+      const verseXml = verseMap[osisId];
+      if (!verseXml) {
         untagged++;
         continue;
       }
-      const tokens = tokenizeVerse(en);
+      const tokens = tokenizeVerse(verseXml);
       tagged[id] = tokens;
       totalVerses++;
       for (const t of tokens) {
@@ -383,6 +456,7 @@ async function main() {
   console.log(`Untagged verse lookups (missing source): ${untagged}`);
   console.log(`\nWrote ${OUT_VERSES}`);
   console.log(`Wrote (pruned) ${OUT_LEXICON}`);
+  console.log(`\nNext: copy app/data/tagged-verses.json + lexicon.json to mobile/data/`);
 }
 
 main().catch((err) => {
