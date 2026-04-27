@@ -77,7 +77,10 @@ export default function VerseScreen() {
             <TouchableOpacity
               key={tr.id}
               style={[styles.pill, tr.id === translation && styles.pillActive]}
-              onPress={() => setTranslation(tr.id)}
+              onPress={() => {
+                setTranslation(tr.id);
+                if (tr.id !== 'kjv') setStudyMode(false);
+              }}
             >
               <Text style={[styles.pillText, tr.id === translation && styles.pillTextActive]}>
                 {tr.abbr}
@@ -91,7 +94,14 @@ export default function VerseScreen() {
         {studyAvailable && (
           <TouchableOpacity
             style={[styles.originalsBtn, studyMode && styles.originalsBtnOn]}
-            onPress={() => setStudyMode((s) => !s)}
+            onPress={() => {
+              if (isKjv && studyMode) {
+                setStudyMode(false);
+              } else {
+                setTranslation('kjv');
+                setStudyMode(true);
+              }
+            }}
           >
             <Text style={[styles.originalsText, studyMode && styles.originalsTextOn]}>
               {studyMode ? 'Originals ✓' : 'Originals ▸'}
@@ -113,6 +123,7 @@ export default function VerseScreen() {
           <View style={styles.body}>
             <Text style={styles.reference}>
               {result.reference} · {t.abbr}
+              {studyMode && isKjv && tokens && '  ·  Tap underlined words for lexicon'}
             </Text>
 
             {isKjv && studyMode && tokens ? (
@@ -123,17 +134,6 @@ export default function VerseScreen() {
               />
             ) : (
               <Text style={styles.verse}>{result.text || '(empty passage)'}</Text>
-            )}
-
-            {studyMode && tokens && !isKjv && (
-              <View style={styles.originalsSection}>
-                <Text style={styles.originalsLabel}>Original (KJV)</Text>
-                <StrongsVerse
-                  tokens={tokens}
-                  activeStrong={activeStrong}
-                  onWordPress={setActiveStrong}
-                />
-              </View>
             )}
 
             {result.copyright && <Text style={styles.copyright}>{result.copyright}</Text>}
