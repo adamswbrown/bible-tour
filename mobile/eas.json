@@ -9,19 +9,39 @@
       "distribution": "internal",
       "ios": {
         "simulator": false
+      },
+      "env": {
+        "APP_VARIANT": "development"
       }
     },
     "preview": {
       "distribution": "internal",
       "ios": {
         "simulator": false
+      },
+      "env": {
+        "APP_VARIANT": "preview"
       }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": "buildNumber",
+      "distribution": "store",
+      "ios": {
+        "buildConfiguration": "Release",
+        "image": "latest"
+      },
+      "env": {
+        "APP_VARIANT": "production"
+      }
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "appleId": "adamswbrown@gmail.com",
+        "ascAppId": "TBD-fill-from-app-store-connect",
+        "appleTeamId": "NZ87XY99SR"
+      }
+    }
   }
 }
