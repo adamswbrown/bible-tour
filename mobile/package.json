@@ -16,6 +16,7 @@
   "dependencies": {
     "@react-native-async-storage/async-storage": "^3.0.2",
     "expo": "~54.0.33",
+    "expo-audio": "^1.0.0",
     "expo-constants": "^55.0.15",
     "expo-device": "^55.0.15",
     "expo-font": "^55.0.6",

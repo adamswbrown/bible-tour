@@ -34,7 +34,10 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.section}>Translation</Text>
+      <Text style={styles.section}>Default translation</Text>
+      <Text style={styles.sectionHint}>
+        The translation each verse opens in. You can switch translations inside any passage.
+      </Text>
       {TRANSLATIONS.map(t => (
         <TouchableOpacity
           key={t.id}
@@ -83,6 +86,10 @@ const styles = StyleSheet.create({
     fontSize: 11, fontWeight: '700', color: C.textSecondary,
     letterSpacing: 1.2, textTransform: 'uppercase',
     paddingHorizontal: 16, paddingTop: 28, paddingBottom: 8,
+  },
+  sectionHint: {
+    fontSize: 12, color: C.textSecondary, lineHeight: 18,
+    paddingHorizontal: 16, paddingBottom: 12,
   },
   row: {
     flexDirection: 'row', alignItems: 'center',
