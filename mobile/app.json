@@ -34,7 +34,6 @@
     },
     "plugins": [
       "expo-router",
-      "./plugins/with-swift-concurrency-fix",
       [
         "expo-notifications",
         {
