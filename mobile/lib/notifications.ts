@@ -9,11 +9,19 @@ Notifications.setNotificationHandler({
   }),
 });
 
-const ENCOURAGEMENTS = [
+// Indexed 0..6 → iOS weekday 1..7 (Sunday..Saturday). The body of each
+// reminder is fixed per weekday so users see a different message on
+// different days without us relying on referencing the day by name —
+// "Monday — keep going" would feel forced; rotating through generic
+// encouragements feels more natural.
+const WEEKLY_MESSAGES = [
   'Keep going — 66 books, one story.',
   "You're making progress through the whole Bible.",
   'Every book you read opens the story a little wider.',
   "One book at a time — you've got this.",
+  'Five minutes today. Open the next book.',
+  "Small steps — that's how the whole Bible gets read.",
+  "Pick up where you left off. The story's waiting.",
 ];
 
 export async function requestPermission(): Promise<boolean> {
@@ -27,17 +35,30 @@ export async function requestPermission(): Promise<boolean> {
 export async function scheduleDailyReminder(hour = 9, minute = 0): Promise<void> {
   const granted = await requestPermission();
   if (!granted) return;
+
+  // Wipe anything we'd previously scheduled — covers the toggle-off /
+  // toggle-on flow, time changes, and old single-DAILY reminders from
+  // earlier app versions.
   await Notifications.cancelAllScheduledNotificationsAsync();
-  const body = ENCOURAGEMENTS[Math.floor(Math.random() * ENCOURAGEMENTS.length)];
-  await Notifications.scheduleNotificationAsync({
-    content: { title: 'Tour of the Bible', body },
-    trigger: {
-      hour,
-      minute,
-      repeats: true,
-      type: Notifications.SchedulableTriggerInputTypes.DAILY,
-    },
-  });
+
+  // Schedule one WEEKLY notification per weekday. iOS allows ~64
+  // scheduled notifications per app; we're using 7. Each fires every
+  // week at hour:minute on its weekday, so the user sees a different
+  // body each day, cycling.
+  for (let i = 0; i < 7; i++) {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: 'Tour of the Bible',
+        body: WEEKLY_MESSAGES[i],
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
+        weekday: i + 1, // iOS: 1 = Sunday, 7 = Saturday
+        hour,
+        minute,
+      },
+    });
+  }
 }
 
 export async function cancelReminder(): Promise<void> {
