@@ -35,15 +35,31 @@ type Props = {
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const DISMISS_THRESHOLD_PX = 120;
 const DISMISS_VELOCITY = 800;
+const OPEN_DURATION = 280;
+const CLOSE_DURATION = 220;
 
 export default function LexiconDrawer({ visible, strongsId, entry, onClose }: Props) {
-  const translateY = useSharedValue(0);
+  // Start off-screen below — reanimated owns the entire entrance/exit
+  // animation so the Modal's own animationType doesn't compete.
+  const translateY = useSharedValue(SCREEN_HEIGHT);
 
   useEffect(() => {
     if (visible) {
-      translateY.value = withSpring(0, { damping: 20, stiffness: 180 });
+      translateY.value = withTiming(0, { duration: OPEN_DURATION });
+    } else {
+      translateY.value = SCREEN_HEIGHT;
     }
   }, [visible, translateY]);
+
+  function animatedDismiss() {
+    translateY.value = withTiming(
+      SCREEN_HEIGHT,
+      { duration: CLOSE_DURATION },
+      (finished) => {
+        if (finished) runOnJS(onClose)();
+      },
+    );
+  }
 
   const pan = Gesture.Pan()
     .onUpdate((e) => {
@@ -59,13 +75,15 @@ export default function LexiconDrawer({ visible, strongsId, entry, onClose }: Pr
       if (shouldDismiss) {
         translateY.value = withTiming(
           SCREEN_HEIGHT,
-          { duration: 220 },
+          { duration: CLOSE_DURATION },
           (finished) => {
             if (finished) runOnJS(onClose)();
           },
         );
       } else {
-        translateY.value = withSpring(0, { damping: 20, stiffness: 180 });
+        // Spring is fine for the snap-back-from-pull because the user
+        // initiated movement — they expect a little bounce there.
+        translateY.value = withSpring(0, { damping: 22, stiffness: 200 });
       }
     });
 
@@ -85,11 +103,11 @@ export default function LexiconDrawer({ visible, strongsId, entry, onClose }: Pr
     <Modal
       visible={visible}
       transparent
-      animationType="fade"
-      onRequestClose={onClose}
+      animationType="none"
+      onRequestClose={animatedDismiss}
     >
       <GestureHandlerRootView style={styles.root}>
-        <Pressable style={styles.backdrop} onPress={onClose} />
+        <Pressable style={styles.backdrop} onPress={animatedDismiss} />
 
         <GestureDetector gesture={pan}>
           <Animated.View style={[styles.sheet, animatedStyle]}>
