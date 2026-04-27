@@ -1,0 +1,46 @@
+{
+  "expo": {
+    "name": "Tour of the Bible",
+    "slug": "tour-of-the-bible",
+    "version": "1.0.0",
+    "scheme": "bibletour",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0F2530"
+    },
+    "ios": {
+      "bundleIdentifier": "cloud.askadam.bibletour",
+      "supportsTablet": true,
+      "infoPlist": {
+        "UIBackgroundModes": ["audio"]
+      }
+    },
+    "android": {
+      "package": "cloud.askadam.bibletour",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0F2530"
+      },
+      "edgeToEdgeEnabled": true,
+      "permissions": ["POST_NOTIFICATIONS"]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#1B3A4B"
+        }
+      ]
+    ]
+  }
+}

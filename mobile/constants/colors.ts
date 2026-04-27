@@ -1,0 +1,16 @@
+export const C = {
+  yellow: '#FFCB21',
+  yellowLight: '#FFE066',
+  yellowPale: '#FFF2B3',
+  teal: '#1B3A4B',
+  tealLight: '#2A5568',
+  tealDark: '#0F2530',
+  white: '#FFFFFF',
+  offWhite: '#FFFEF5',
+  done: '#1B6B3A',
+  doneBg: 'rgba(27,107,58,0.1)',
+  doneBorder: 'rgba(27,107,58,0.25)',
+  surface: '#162F3E',
+  border: '#253D4E',
+  textSecondary: '#8BAAB8',
+};
