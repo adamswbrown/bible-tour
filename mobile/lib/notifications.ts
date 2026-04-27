@@ -13,7 +13,7 @@ const ENCOURAGEMENTS = [
   'Keep going — 66 books, one story.',
   "You're making progress through the whole Bible.",
   'Every book you read opens the story a little wider.',
-  'One book at a time — you've got this.',
+  "One book at a time — you've got this.",
 ];
 
 export async function requestPermission(): Promise<boolean> {
