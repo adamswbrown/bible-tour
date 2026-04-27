@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { C } from '../constants/colors';
-import { fetchVerse, fetchVerseEsv, type VerseResult } from '../lib/api';
+import { fetchVerse, type VerseResult } from '../lib/api';
 import { getTranslation } from '../lib/translations';
 
 export default function VerseScreen() {
@@ -23,13 +23,9 @@ export default function VerseScreen() {
     setLoading(true);
     setError(null);
 
-    const load = t.esvLicensed
-      ? fetchVerseEsv(book, ref)
-      : fetchVerse(book, ref, translation);
-
-    load
+    fetchVerse(book, ref, translation)
       .then(setResult)
-      .catch(e => setError(e.message))
+      .catch((e) => setError(e.message ?? 'unknown'))
       .finally(() => setLoading(false));
   }, [book, ref, translation]);
 
@@ -39,15 +35,21 @@ export default function VerseScreen() {
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
         {loading && <ActivityIndicator color={C.yellow} size="large" style={styles.loader} />}
 
-        {error && <Text style={styles.error}>Could not load passage. Check your connection.</Text>}
+        {error && (
+          <>
+            <Text style={styles.errorTitle}>Could not load passage.</Text>
+            <Text style={styles.errorDetail}>{error}</Text>
+            <Text style={styles.errorDetail}>Translation: {t.abbr}</Text>
+          </>
+        )}
 
         {result && (
           <>
-            <Text style={styles.reference}>{result.reference}</Text>
-            <Text style={styles.verse}>{result.text}</Text>
-            {result.copyright && (
-              <Text style={styles.copyright}>{result.copyright}</Text>
-            )}
+            <Text style={styles.reference}>
+              {result.reference} · {t.abbr}
+            </Text>
+            <Text style={styles.verse}>{result.text || '(empty passage)'}</Text>
+            {result.copyright && <Text style={styles.copyright}>{result.copyright}</Text>}
           </>
         )}
       </ScrollView>
@@ -56,11 +58,12 @@ export default function VerseScreen() {
 }
 
 const styles = StyleSheet.create({
-  container:  { flex: 1, backgroundColor: C.teal },
-  content:    { padding: 24, paddingBottom: 48 },
-  loader:     { marginTop: 60 },
-  error:      { color: '#f87171', textAlign: 'center', marginTop: 40 },
-  reference:  { fontSize: 13, fontWeight: '700', color: C.yellow, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 0.8 },
-  verse:      { fontSize: 20, lineHeight: 32, color: C.offWhite, fontWeight: '300' },
-  copyright:  { fontSize: 11, color: C.textSecondary, marginTop: 32, lineHeight: 18 },
+  container:    { flex: 1, backgroundColor: C.teal },
+  content:      { padding: 24, paddingBottom: 48 },
+  loader:       { marginTop: 60 },
+  errorTitle:   { color: '#f87171', fontSize: 16, fontWeight: '600', marginTop: 40 },
+  errorDetail:  { color: C.textSecondary, fontSize: 13, marginTop: 8 },
+  reference:    { fontSize: 13, fontWeight: '700', color: C.yellow, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 0.8 },
+  verse:        { fontSize: 20, lineHeight: 32, color: C.offWhite, fontWeight: '300' },
+  copyright:    { fontSize: 11, color: C.textSecondary, marginTop: 32, lineHeight: 18 },
 });
