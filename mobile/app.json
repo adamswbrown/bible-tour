@@ -34,6 +34,7 @@
     },
     "plugins": [
       "expo-router",
+      "./plugins/with-expo-image-patch",
       [
         "expo-notifications",
         {
