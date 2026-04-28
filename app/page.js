@@ -9,7 +9,7 @@ import {
   buildUsfmParts,
   buildYouVersionUrl,
 } from "./lib/translations";
-import { hasStudy, getTokens, getEntry, toVerseId } from "./lib/study";
+import { getTokens, getEntry, toVerseIds } from "./lib/study";
 import StudyVerse from "./components/StudyVerse";
 import WordPopover from "./components/WordPopover";
 import LexiconDrawer from "./components/LexiconDrawer";
@@ -271,10 +271,24 @@ function VersePanel({ book, verseRef, onClose, mode = "overlay" }) {
   }, [onClose, studyPopover, studyDrawer]);
 
   const displayRef = `${book} ${verseRef}`;
-  const studyVerseId = toVerseId(book, verseRef);
-  const studyAvailable = !!studyVerseId && hasStudy(studyVerseId);
   const isKjv = translationId === "kjv";
-  const studyTokens = studyMode && studyAvailable ? getTokens(studyVerseId) : null;
+
+  // Map of verse-number → { verseId, tokens } for every verse in the
+  // current ref that has tagged Strong's data. Lets the renderer drop
+  // tokens into the matching verse (whose number comes from the API
+  // response) instead of guessing position.
+  const studyTokensByNum = (() => {
+    const map = {};
+    for (const id of toVerseIds(book, verseRef)) {
+      const tokens = getTokens(id);
+      if (!tokens || tokens.length === 0) continue;
+      const num = Number(id.split(".").pop());
+      if (Number.isFinite(num)) map[num] = { verseId: id, tokens };
+    }
+    return map;
+  })();
+  const studyAvailable = Object.keys(studyTokensByNum).length > 0;
+  const studyActive = studyMode && studyAvailable;
   const popoverEntry = studyPopover
     ? (() => {
         const e = getEntry(studyPopover.strongsId);
@@ -391,17 +405,21 @@ function VersePanel({ book, verseRef, onClose, mode = "overlay" }) {
           {text && (
             <div style={isSidebar ? ps.verseContentSidebar : ps.verseContent}>
               {text.map((v, i) => {
-                // On KJV we tokenize the first verse in-place. On other
-                // translations the tagged KJV renders as a separate
-                // Originals section below (see next block).
-                const useStudyInline = isKjv && i === 0 && studyTokens && studyTokens.length > 0;
+                // On KJV with Originals on, swap each verse's plain text
+                // for its tokenised form. Match by verse number from the
+                // API response so we don't tokenise the wrong verse if
+                // the upstream response order ever shifts.
+                const study =
+                  isKjv && studyActive && v.verse != null
+                    ? studyTokensByNum[Number(v.verse)]
+                    : null;
                 return (
                   <p key={i} style={isSidebar ? ps.verseLineSidebar : ps.verseLine}>
                     {v.verse && <sup style={ps.verseNum}>{v.verse}</sup>}
-                    {useStudyInline ? (
+                    {study ? (
                       <StudyVerse
-                        verseId={studyVerseId}
-                        tokens={studyTokens}
+                        verseId={study.verseId}
+                        tokens={study.tokens}
                         onWordClick={handleWordClick}
                         activeStrong={studyPopover?.strongsId || studyDrawer?.strongsId || null}
                       />
@@ -418,17 +436,29 @@ function VersePanel({ book, verseRef, onClose, mode = "overlay" }) {
           )}
 
           {/* Originals (KJV) section — shown beneath a non-KJV translation */}
-          {studyMode && studyTokens && !isKjv && !loading && (
+          {studyActive && !isKjv && !loading && (
             <div style={ps.originalsSection}>
               <div style={ps.originalsLabel}>Original (KJV)</div>
-              <p style={isSidebar ? ps.verseLineSidebar : ps.verseLine}>
-                <StudyVerse
-                  verseId={studyVerseId}
-                  tokens={studyTokens}
-                  onWordClick={handleWordClick}
-                  activeStrong={studyPopover?.strongsId || studyDrawer?.strongsId || null}
-                />
-              </p>
+              {Object.keys(studyTokensByNum)
+                .map(Number)
+                .sort((a, b) => a - b)
+                .map((num) => {
+                  const study = studyTokensByNum[num];
+                  return (
+                    <p
+                      key={study.verseId}
+                      style={isSidebar ? ps.verseLineSidebar : ps.verseLine}
+                    >
+                      <sup style={ps.verseNum}>{num}</sup>
+                      <StudyVerse
+                        verseId={study.verseId}
+                        tokens={study.tokens}
+                        onWordClick={handleWordClick}
+                        activeStrong={studyPopover?.strongsId || studyDrawer?.strongsId || null}
+                      />
+                    </p>
+                  );
+                })}
             </div>
           )}
         </div>

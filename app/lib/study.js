@@ -35,3 +35,33 @@ export function toVerseId(book, ref) {
   if (!match) return null;
   return `${abbrev}.${match[1]}.${match[2]}`;
 }
+
+// Expand a reading-plan ref into every verse ID it covers. Lets the
+// Originals view tokenize the whole passage instead of just the first
+// verse. Handles single verses ("3:16") and same-chapter ranges
+// ("20:1-17"). Cross-chapter ranges aren't used by any current
+// reading-plan ref; if encountered, we fall back to the starting
+// verse so the UI still shows something.
+export function toVerseIds(book, ref) {
+  const abbrev = BOOK_ABBREV[book];
+  if (!abbrev || !ref) return [];
+
+  const r = String(ref).trim();
+
+  const single = r.match(/^(\d+):(\d+)$/);
+  if (single) return [`${abbrev}.${single[1]}.${single[2]}`];
+
+  const sameCh = r.match(/^(\d+):(\d+)-(\d+)$/);
+  if (sameCh) {
+    const c = sameCh[1];
+    const start = Number(sameCh[2]);
+    const end = Number(sameCh[3]);
+    if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) return [];
+    const ids = [];
+    for (let v = start; v <= end; v += 1) ids.push(`${abbrev}.${c}.${v}`);
+    return ids;
+  }
+
+  const id = toVerseId(book, ref);
+  return id ? [id] : [];
+}
