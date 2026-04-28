@@ -40,7 +40,6 @@ The feature has two user-facing routes:
   - Who were the original audience?
   - What is the purpose of the book?
 - Pulls book overview data from `app/data/book-info.json`.
-- If local overview data is missing, it can fall back to IQ Bible `GetBookInfo` when `IQ_BIBLE_API_KEY` is configured.
 - Renders:
   - author
   - date
@@ -63,9 +62,9 @@ The feature has two user-facing routes:
 - Highlights target chapters in the map.
 - Shows a per-target card with:
   - book-level position
-  - verse-level position when IQ Bible verse counts are available
+  - verse-level position from canonical KJV verse counts
   - fallback chapter-only messaging when verse counts are unavailable
-- Verse counts come from IQ Bible `GetVerseCount` via `app/lib/iq-bible.js`.
+- Verse counts come from `app/data/canon.json` (built once via `scripts/build-canon.mjs`) read through `app/lib/canon.js`.
 
 #### Stage 3: Follow The Current
 
@@ -101,14 +100,14 @@ Local data access helpers for:
 
 It also normalizes book info objects and exposes chapter summary attribution.
 
-### `app/lib/iq-bible.js`
+### `app/lib/canon.js`
 
-Optional server-only IQ Bible integration with cached fetch helpers for:
+Synchronous reader for `app/data/canon.json`. Exposes:
 
-- `GetBookInfo`
-- `GetVerseCount`
+- `getVerseCount(bookAbbrev, chapter)` — returns the verse count for any KJV chapter
+- `getChapterCount(bookAbbrev)` — returns the total chapter count for a book
 
-If `IQ_BIBLE_API_KEY` is missing, the Eagle pages still render, but verse-level positioning and any missing Stage 1 overview data will gracefully degrade.
+`canon.json` is built at dev/CI time by `scripts/build-canon.mjs`, which pulls KJV from a pinned commit of `thiagobodruk/bible` (public domain).
 
 ## State
 
@@ -119,17 +118,9 @@ If `IQ_BIBLE_API_KEY` is missing, the Eagle pages still render, but verse-level 
 
 ## Environment
 
-Optional variables relevant to the Eagle feature:
-
-- `IQ_BIBLE_API_KEY`
-  RapidAPI key for IQ Bible enrichment.
-- `IQ_BIBLE_HOST`
-  Defaults to `iq-bible.p.rapidapi.com`.
-
-Without these, the feature still works off baked project data, but with reduced enrichment.
+The Eagle feature has no required environment variables. All overview, summary, and verse-count data ships in the repo under `app/data/`.
 
 ## Known Current Limitations
 
-- Stage 2 verse-level placement depends on IQ Bible verse counts being available.
 - Unstructured reading-plan items are shown as manual / qualitative targets rather than precise verse math.
 - The Eagle UI is implemented inline in route files rather than extracted into reusable components yet.

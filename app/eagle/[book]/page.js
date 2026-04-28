@@ -8,9 +8,8 @@ import {
   CHAPTER_SUMMARY_SOURCE,
   getChapterSummaries,
   getLocalBookInfo,
-  hasMeaningfulBookInfo,
 } from "../../lib/book-data";
-import { getIqBookInfo, getIqVerseCount } from "../../lib/iq-bible";
+import { getVerseCount } from "../../lib/canon";
 import MarkStudiedButton from "./MarkStudiedButton";
 import VersePreviewPanel from "./VersePreviewPanel";
 import TourLinkButton from "../../components/TourLinkButton";
@@ -205,9 +204,7 @@ export default async function EagleBookPage({ params }) {
   const parsedRefs = parsePlanRefs(entry.refs);
   const chapterSummaries = getChapterSummaries(entry.book);
   const chapterCount = chapterSummaries.length;
-  const localBookInfo = getLocalBookInfo(entry.book);
-  const remoteBookInfo = hasMeaningfulBookInfo(localBookInfo) ? null : await getIqBookInfo(entry.id);
-  const bookInfo = { ...(remoteBookInfo || {}), ...(localBookInfo || {}) };
+  const bookInfo = getLocalBookInfo(entry.book) || {};
   const infoFields = getBookInfoFields(bookInfo);
   const intro = getBookIntro(bookInfo);
   const chapterHits = buildChapterHits(parsedRefs);
@@ -219,11 +216,9 @@ export default async function EagleBookPage({ params }) {
   )];
 
   const verseCounts = Object.fromEntries(
-    (
-      await Promise.all(
-        verseCountChapters.map(async (chapter) => [chapter, await getIqVerseCount(entry.id, chapter)])
-      )
-    ).filter(([, count]) => Number.isFinite(count))
+    verseCountChapters
+      .map((chapter) => [chapter, getVerseCount(entry.abbrev, chapter)])
+      .filter(([, count]) => Number.isFinite(count))
   );
 
   const currentIndex = BOOKS.findIndex(({ book }) => book === entry.book);
@@ -904,8 +899,7 @@ export default async function EagleBookPage({ params }) {
             <p className="eagle-empty">
               No overview data is available for this book yet. Populate
               <code> app/data/book-info.json </code>
-              or configure <code>IQ_BIBLE_API_KEY</code> to fill in the author, audience, purpose,
-              and introduction.
+              to fill in the author, audience, purpose, and introduction.
             </p>
           ) : null}
           <div className="eagle-next-nudge">

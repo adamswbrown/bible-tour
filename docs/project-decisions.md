@@ -44,8 +44,8 @@ Last updated: 2026-04-27
 - **Required attributions** — per-translation copyright strings for Credits screen and per-verse display. Operational build work.
 - **Crossway 500-verse on-device cache cap** — implement LRU eviction in the verse cache on mobile.
 - **kaiserlik/kjv replacement** — rebuild `tagged-verses.json` from `seven1m/open-bibles` + `openscriptures/strongs` before mobile launch. The current source has no LICENSE file.
-- **IQ Bible (RapidAPI) removal** — replace `GetBookInfo` / `GetVerseCount` with a static `canon.json`. One afternoon of script work.
-- **Vercel Analytics** — remove from mobile clients entirely.
+- ~~**IQ Bible (RapidAPI) removal** — replace `GetBookInfo` / `GetVerseCount` with a static `canon.json`.~~ Closed 2026-04-28: `app/data/canon.json` (KJV, public domain, pinned to a commit of `thiagobodruk/bible`) replaces `GetVerseCount` via the new `app/lib/canon.js`. `GetBookInfo` was dead code (all 66 books have meaningful local info), so `app/lib/iq-bible.js` was deleted. `IQ_BIBLE_API_KEY` / `IQ_BIBLE_HOST` env vars are no longer used.
+- ~~**Vercel Analytics** — remove from mobile clients entirely.~~ Closed 2026-04-28: audited `mobile/`, no `@vercel/analytics` import or `track()` call. Mobile is a separate Expo workspace and was never wired to the web app's analytics.
 - **Bundle DM Sans + Oswald fonts** — drop `fonts.googleapis.com` runtime dependency from mobile.
 - **Privacy Manifest (PrivacyInfo.xcprivacy)** — `CA92.1` UserDefaults reason declaration. Required since May 2024.
 - **Google Play Console developer verification** — complete before 30 September 2026.

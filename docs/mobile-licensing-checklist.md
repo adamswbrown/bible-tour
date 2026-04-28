@@ -215,7 +215,7 @@ The current "no accounts, no tracking" posture is our biggest compliance asset. 
 
 ### Action items
 
-- [ ] Drop Vercel Analytics from the mobile build, OR replace with privacy-first analytics that is **off by default** with an explicit opt-in toggle in Settings.
+- [x] Drop Vercel Analytics from the mobile build, OR replace with privacy-first analytics that is **off by default** with an explicit opt-in toggle in Settings. _(Audited 2026-04-28: no `@vercel/analytics` import or `track()` call anywhere in `mobile/`. Web app retains it; mobile is a separate Expo workspace and was never wired up.)_
 - [ ] Decide on crash reporting: none, Sentry, or EAS. If used, disclose in both store privacy labels and the privacy policy.
 - [ ] Audit the Vercel proxy logs: how long are IP addresses retained? Disclose in the privacy policy.
 - [ ] Privacy policy must cover:
