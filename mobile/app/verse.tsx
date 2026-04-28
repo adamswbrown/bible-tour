@@ -12,7 +12,7 @@ import { useLocalSearchParams, Stack } from 'expo-router';
 import { C } from '../constants/colors';
 import { fetchVerse, type VerseResult } from '../lib/api';
 import { TRANSLATIONS, getTranslation, buildYouVersionUrl } from '../lib/translations';
-import { toVerseId, hasStudy, getTokens, getEntry } from '../lib/study';
+import { toVerseIds, getTokens, getEntry, type StudyToken } from '../lib/study';
 import StrongsVerse from '../components/StrongsVerse';
 import LexiconDrawer from '../components/LexiconDrawer';
 import AudioPlayer from '../components/AudioPlayer';
@@ -38,9 +38,23 @@ export default function VerseScreen() {
   const [studyMode, setStudyMode] = useState(false);
   const [activeStrong, setActiveStrong] = useState<string | null>(null);
 
-  const verseId = useMemo(() => toVerseId(book, refParam), [book, refParam]);
-  const studyAvailable = hasStudy(verseId);
-  const tokens = studyAvailable ? getTokens(verseId) : null;
+  // Expand the ref into every verse it covers, then keep only the ones
+  // that have tagged Strong's data. A passage like "Exodus 20:1-17"
+  // becomes a list of 17 verses; single refs still produce a one-item
+  // list so the rest of the UI doesn't need to special-case anything.
+  const taggedVerses = useMemo(() => {
+    const ids = toVerseIds(book, refParam);
+    const out: { verseId: string; verseNum: number; tokens: StudyToken[] }[] = [];
+    for (const verseId of ids) {
+      const tokens = getTokens(verseId);
+      if (!tokens || tokens.length === 0) continue;
+      const verseNum = Number(verseId.split('.').pop());
+      out.push({ verseId, verseNum, tokens });
+    }
+    return out;
+  }, [book, refParam]);
+
+  const studyAvailable = taggedVerses.length > 0;
 
   const t = getTranslation(translation);
   const isKjv = t.id === 'kjv';
@@ -135,15 +149,25 @@ export default function VerseScreen() {
           <View style={styles.body}>
             <Text style={styles.reference}>
               {result.reference} · {t.abbr}
-              {studyMode && isKjv && tokens && '  ·  Tap underlined words for lexicon'}
+              {studyMode && isKjv && studyAvailable && '  ·  Tap underlined words for lexicon'}
             </Text>
 
-            {isKjv && studyMode && tokens ? (
-              <StrongsVerse
-                tokens={tokens}
-                activeStrong={activeStrong}
-                onWordPress={setActiveStrong}
-              />
+            {isKjv && studyMode && studyAvailable ? (
+              <View>
+                {taggedVerses.map((tv, idx) => (
+                  <View
+                    key={tv.verseId}
+                    style={idx > 0 ? styles.verseSpacer : undefined}
+                  >
+                    <Text style={styles.verseNumber}>{tv.verseNum}</Text>
+                    <StrongsVerse
+                      tokens={tv.tokens}
+                      activeStrong={activeStrong}
+                      onWordPress={setActiveStrong}
+                    />
+                  </View>
+                ))}
+              </View>
             ) : t.copyrighted || !result.text ? (
               <CopyrightedNotice
                 book={book}
@@ -248,6 +272,8 @@ const styles = StyleSheet.create({
   body:             { paddingTop: 8 },
   reference:        { fontSize: 12, fontWeight: '700', color: C.yellow, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.8 },
   verse:            { fontSize: 18, lineHeight: 32, color: C.offWhite, fontWeight: '300' },
+  verseSpacer:      { marginTop: 16 },
+  verseNumber:      { fontSize: 11, fontWeight: '700', color: C.textSecondary, letterSpacing: 0.6, marginBottom: 4 },
   copyright:        { fontSize: 11, color: C.textSecondary, marginTop: 24, lineHeight: 18 },
   notice:           { fontSize: 15, color: C.offWhite, lineHeight: 22, marginBottom: 16 },
   noticeHint:       { fontSize: 12, color: C.textSecondary, marginTop: 12, lineHeight: 18, fontStyle: 'italic' },
