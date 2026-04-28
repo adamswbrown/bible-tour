@@ -28,11 +28,16 @@ export default function AboutScreen() {
         />
       </Section>
 
-      <Section title="Lexicon Data">
+      <Section title="Originals Mode Data">
         <Credit
           name="Strong's Dictionaries — Open Scriptures"
           detail="Hebrew and Greek lexicon data © 2009–2010 Open Scriptures. Licensed under Creative Commons Attribution-ShareAlike 3.0 (CC BY-SA 3.0). Derivative dataset used in this app is released under the same licence."
           url="https://github.com/openscriptures/strongs"
+        />
+        <Credit
+          name="Tagged KJV with Strong's numbers"
+          detail="King James Version (1769 Blayney) and Strong's Concordance (1890) are both public domain. The word-level tagged dataset that powers Originals Mode is compiled from kaiserlik/kjv."
+          url="https://github.com/kaiserlik/kjv"
         />
       </Section>
 

@@ -55,7 +55,13 @@ export default function Support() {
           <a href="https://github.com/openscriptures/strongs" style={s.link}>
             Open Scriptures
           </a>{" "}
-          and is licensed under CC BY-SA 3.0.
+          and is licensed under CC BY-SA 3.0. The word-level tagged KJV that powers the
+          Originals view is compiled from{" "}
+          <a href="https://github.com/kaiserlik/kjv" style={s.link}>
+            kaiserlik/kjv
+          </a>
+          ; the underlying KJV (1769) and Strong&rsquo;s Concordance (1890) are both
+          public domain.
         </p>
 
         <h3 style={s.h3}>Where is my reading progress stored?</h3>
