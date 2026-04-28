@@ -41,6 +41,11 @@
         "appleId": "adamswbrown@gmail.com",
         "ascAppId": "6764106620",
         "appleTeamId": "NZ87XY99SR"
+      },
+      "android": {
+        "track": "internal",
+        "releaseStatus": "draft",
+        "changesNotSentForReview": false
       }
     }
   }
