@@ -38,8 +38,14 @@ export default function AboutScreen() {
 
       <Section title="Fonts">
         <Credit
-          name="DM Sans & Oswald"
-          detail="Released under the SIL Open Font Licence 1.1."
+          name="DM Sans"
+          detail="Indian Type Foundry & Google. Bundled on-device under the SIL Open Font Licence 1.1."
+          url="https://github.com/googlefonts/dm-fonts"
+        />
+        <Credit
+          name="Oswald"
+          detail="Vernon Adams & The Oswald Project Authors. Bundled on-device under the SIL Open Font Licence 1.1."
+          url="https://github.com/googlefonts/OswaldFont"
         />
       </Section>
 

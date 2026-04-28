@@ -1,5 +1,6 @@
 import { BOOKS, type Book } from './readingPlan';
 import { getTranslation } from './translations';
+import * as verseCache from './verse-cache';
 
 const BASE = 'https://bible-tour.vercel.app';
 
@@ -66,11 +67,20 @@ async function fetchYouVersion(
 }
 
 async function fetchEsv(book: string, ref: string): Promise<string> {
+  const key = verseCache.cacheKey(book, ref);
+  const cached = verseCache.get(key);
+  if (cached) return cached;
+
   const params = new URLSearchParams({ book, ref });
   const res = await fetch(`${BASE}/api/verse-esv?${params}`);
   if (!res.ok) throw new Error(`ESV fetch failed: ${res.status}`);
   const data = await res.json();
-  return data.text || '';
+  const text = data.text || '';
+
+  if (text) {
+    verseCache.set(key, text, verseCache.countVerses(ref));
+  }
+  return text;
 }
 
 async function fetchBibleApi(

@@ -12,6 +12,7 @@ import {
   getProgress,
 } from '../../lib/progress';
 import { scheduleDailyReminder, cancelReminder, sendTestNotification } from '../../lib/notifications';
+import * as verseCache from '../../lib/verse-cache';
 
 export default function SettingsScreen() {
   const [translation, setTranslationState] = useState('kjv');
@@ -127,6 +128,33 @@ export default function SettingsScreen() {
           <Text style={styles.chevron}>›</Text>
         </TouchableOpacity>
       )}
+
+      <Text style={styles.section}>Storage</Text>
+      <TouchableOpacity
+        style={styles.row}
+        onPress={() => {
+          Alert.alert(
+            'Clear cached verses?',
+            'Removes ESV passages cached on this device for offline reads. Your reading progress is not affected.',
+            [
+              { text: 'Cancel', style: 'cancel' },
+              {
+                text: 'Clear',
+                style: 'destructive',
+                onPress: () => verseCache.clear(),
+              },
+            ],
+          );
+        }}
+      >
+        <View style={styles.rowText}>
+          <Text style={styles.rowTitle}>Clear cached verses</Text>
+          <Text style={styles.rowSub}>
+            ESV passages are cached on-device (capped at 500 verses). Your progress is unaffected.
+          </Text>
+        </View>
+        <Text style={styles.chevron}>›</Text>
+      </TouchableOpacity>
 
       <Text style={styles.section}>Progress</Text>
       <TouchableOpacity
