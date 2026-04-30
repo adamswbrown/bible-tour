@@ -51,7 +51,7 @@
         "android.permission.FOREGROUND_SERVICE",
         "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
       ],
-      "versionCode": 6
+      "versionCode": 8
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -59,6 +59,7 @@
     "plugins": [
       "expo-router",
       "./plugins/with-expo-image-patch",
+      "./plugins/with-android-strip-record-audio",
       [
         "expo-notifications",
         {

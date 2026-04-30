@@ -42,6 +42,7 @@ export default function RootLayout() {
           headerStyle: { backgroundColor: C.tealDark },
           headerTintColor: C.yellow,
           headerTitleStyle: { fontWeight: '700' },
+          headerBackButtonDisplayMode: 'minimal',
           contentStyle: { backgroundColor: C.tealDark },
         }}
       >
