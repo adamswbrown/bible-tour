@@ -12,7 +12,7 @@ import { useLocalSearchParams, Stack } from 'expo-router';
 import { C } from '../constants/colors';
 import { fetchVerse, type VerseResult } from '../lib/api';
 import { TRANSLATIONS, getTranslation, buildYouVersionUrl } from '../lib/translations';
-import { toVerseId, hasStudy, getTokens, getEntry } from '../lib/study';
+import { hasStudyForRef, getTokensForRef, getEntry } from '../lib/study';
 import StrongsVerse from '../components/StrongsVerse';
 import LexiconDrawer from '../components/LexiconDrawer';
 import AudioPlayer from '../components/AudioPlayer';
@@ -38,9 +38,11 @@ export default function VerseScreen() {
   const [studyMode, setStudyMode] = useState(false);
   const [activeStrong, setActiveStrong] = useState<string | null>(null);
 
-  const verseId = useMemo(() => toVerseId(book, refParam), [book, refParam]);
-  const studyAvailable = hasStudy(verseId);
-  const tokens = studyAvailable ? getTokens(verseId) : null;
+  const studyAvailable = useMemo(() => hasStudyForRef(book, refParam), [book, refParam]);
+  const studyVerses = useMemo(
+    () => (studyAvailable ? getTokensForRef(book, refParam) : []),
+    [studyAvailable, book, refParam],
+  );
 
   const t = getTranslation(translation);
   const isKjv = t.id === 'kjv';
@@ -135,15 +137,27 @@ export default function VerseScreen() {
           <View style={styles.body}>
             <Text style={styles.reference}>
               {result.reference} · {t.abbr}
-              {studyMode && isKjv && tokens && '  ·  Tap underlined words for lexicon'}
+              {studyMode && isKjv && studyVerses.length > 0 && '  ·  Tap underlined words for lexicon'}
             </Text>
 
-            {isKjv && studyMode && tokens ? (
-              <StrongsVerse
-                tokens={tokens}
-                activeStrong={activeStrong}
-                onWordPress={setActiveStrong}
-              />
+            {isKjv && studyMode && studyVerses.length > 0 ? (
+              <View>
+                {studyVerses.map(({ verseNum, tokens }, idx) => (
+                  <View
+                    key={verseNum}
+                    style={idx > 0 ? styles.studyVerseSpacer : undefined}
+                  >
+                    {studyVerses.length > 1 && (
+                      <Text style={styles.studyVerseNum}>{verseNum}</Text>
+                    )}
+                    <StrongsVerse
+                      tokens={tokens}
+                      activeStrong={activeStrong}
+                      onWordPress={setActiveStrong}
+                    />
+                  </View>
+                ))}
+              </View>
             ) : t.copyrighted || !result.text ? (
               <CopyrightedNotice
                 book={book}
@@ -248,6 +262,8 @@ const styles = StyleSheet.create({
   body:             { paddingTop: 8 },
   reference:        { fontSize: 12, fontWeight: '700', color: C.yellow, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.8 },
   verse:            { fontSize: 18, lineHeight: 32, color: C.offWhite, fontWeight: '300' },
+  studyVerseSpacer: { marginTop: 18 },
+  studyVerseNum:    { fontSize: 11, fontWeight: '700', color: C.yellow, marginBottom: 4, letterSpacing: 0.5 },
   copyright:        { fontSize: 11, color: C.textSecondary, marginTop: 24, lineHeight: 18 },
   notice:           { fontSize: 15, color: C.offWhite, lineHeight: 22, marginBottom: 16 },
   noticeHint:       { fontSize: 12, color: C.textSecondary, marginTop: 12, lineHeight: 18, fontStyle: 'italic' },
