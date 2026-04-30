@@ -31,7 +31,8 @@
         "image": "latest"
       },
       "env": {
-        "APP_VARIANT": "production"
+        "APP_VARIANT": "production",
+        "EXPO_NO_DOCTOR": "1"
       }
     }
   },
@@ -43,6 +44,7 @@
         "appleTeamId": "NZ87XY99SR"
       },
       "android": {
+        "serviceAccountKeyPath": "/Users/adambrown/.config/bible-tour/play-service-account.json",
         "track": "internal",
         "releaseStatus": "draft",
         "changesNotSentForReview": false

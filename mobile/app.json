@@ -7,7 +7,6 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
-    "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -16,22 +15,30 @@
     "ios": {
       "bundleIdentifier": "cloud.askadam.bibletour",
       "supportsTablet": true,
-      "associatedDomains": ["applinks:bible-tour.vercel.app"],
+      "associatedDomains": [
+        "applinks:bible-tour.vercel.app"
+      ],
       "infoPlist": {
-        "UIBackgroundModes": ["audio"],
+        "UIBackgroundModes": [
+          "audio"
+        ],
         "ITSAppUsesNonExemptEncryption": false
       },
       "privacyManifests": {
         "NSPrivacyAccessedAPITypes": [
           {
             "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
-            "NSPrivacyAccessedAPITypeReasons": ["CA92.1"]
+            "NSPrivacyAccessedAPITypeReasons": [
+              "CA92.1"
+            ]
           }
         ],
         "NSPrivacyTracking": false,
         "NSPrivacyTrackingDomains": [],
         "NSPrivacyCollectedDataTypes": []
-      }
+      },
+      "appleTeamId": "NZ87XY99SR",
+      "buildNumber": "4"
     },
     "android": {
       "package": "cloud.askadam.bibletour",
@@ -39,10 +46,12 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0F2530"
       },
-      "edgeToEdgeEnabled": true,
       "permissions": [
-        "POST_NOTIFICATIONS"
-      ]
+        "POST_NOTIFICATIONS",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+      ],
+      "versionCode": 6
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -56,7 +65,9 @@
           "icon": "./assets/icon.png",
           "color": "#1B3A4B"
         }
-      ]
+      ],
+      "expo-audio",
+      "expo-asset"
     ],
     "extra": {
       "router": {},

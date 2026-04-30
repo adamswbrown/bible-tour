@@ -12,10 +12,9 @@ Active branch is 1 commit ahead of `origin/main`. Branch [claude/sharp-driscoll-
 
 ## App Store checklist — confirmed status
 
-Done: #1 Privacy Manifest · #2 Privacy Policy URL · #3 Support URL · #5 Production EAS profile · #6 YouVersion Express Licensing · #9 Hide test button in prod · #10 Audio session config · #12 Replace kaiserlik/kjv · #13 TMBH non-objection · #14 Network-failure audit · #17 Universal Links
+Done: #1 Privacy Manifest · #2 Privacy Policy URL · #3 Support URL · #4 App icon (gold-amber lightning bolt on navy-teal — SVG sources in [mobile/assets/icon-source/](../mobile/assets/icon-source/), rendered to `icon.png` / `adaptive-icon.png` / `splash-icon.png` / `icon-playstore-512.png` / `favicon.png`) · #5 Production EAS profile · #6 YouVersion Express Licensing · #9 Hide test button in prod · #10 Audio session config · #12 Replace kaiserlik/kjv · #13 TMBH non-objection · #14 Network-failure audit · #17 Universal Links
 
 **Remaining for v1 launch:**
-- **#4 Real app icon** — needs design. Current [mobile/assets/icon.png](../mobile/assets/icon.png) and [mobile/assets/adaptive-icon.png](../mobile/assets/adaptive-icon.png) are placeholders. Need 1024×1024 PNG (no alpha) for iOS + adaptive foreground/background layers for Android + 512×512 for Play Store listing.
 - **#7 App Privacy nutrition label** — manual click-through in App Store Connect. Ask the next chat to generate the answer matrix; you click it through.
 - **#8 App Store description** — draft exists at [docs/app-store-listing.md](app-store-listing.md). Needs final polish + paste into ASC and (later) Play Console.
 - **#11 Publish lexicon subset to public repo** — decide a GitHub repo name, then publish the CC BY-SA 3.0 subset built by [scripts/build-lexicon.mjs](../scripts/build-lexicon.mjs). Currently only documented in [DATA-SOURCES.md](../DATA-SOURCES.md).
@@ -38,12 +37,11 @@ Submit profile is wired in [mobile/eas.json](../mobile/eas.json). Full step-by-s
 
 1. **#8 — Polish the App Store description** ([docs/app-store-listing.md](app-store-listing.md)). Paste into App Store Connect.
 2. **#7 — App Privacy nutrition matrix.** Ask next chat to produce the answer table; you click through ASC. Verify Vercel Analytics is excluded from mobile *before* answering.
-3. **#4 — App icon.** Design or commission 1024×1024 + adaptive foreground/background. Drop into [mobile/assets/](../mobile/assets/) and rebuild.
-4. **#11 — Publish lexicon repo.** Pick a repo name, scaffold README + LICENSE (CC BY-SA 3.0), push the subset. Update [DATA-SOURCES.md](../DATA-SOURCES.md) with the public link.
-5. **Decide on `claude/sharp-driscoll-92cd28`** — merge the KJV credit refactor or close it.
-6. **Decide on the blog post draft** — commit, relocate, or delete [docs/blog-post-bible-tour-and-eagle.md](blog-post-bible-tour-and-eagle.md).
-7. **Submit iOS to App Store Connect** once 4, 7, 8 are done.
-8. **Android** — resume [docs/android-submission-steps.md](android-submission-steps.md) when Play Console clears.
+3. **#11 — Publish lexicon repo.** Pick a repo name, scaffold README + LICENSE (CC BY-SA 3.0), push the subset. Update [DATA-SOURCES.md](../DATA-SOURCES.md) with the public link.
+4. **Decide on `claude/sharp-driscoll-92cd28`** — merge the KJV credit refactor or close it.
+5. **Decide on the blog post draft** — commit, relocate, or delete [docs/blog-post-bible-tour-and-eagle.md](blog-post-bible-tour-and-eagle.md).
+6. **Submit iOS to App Store Connect** once #7 and #8 are done.
+7. **Android** — resume [docs/android-submission-steps.md](android-submission-steps.md) when Play Console clears.
 9. **Post-launch hygiene:** API quota alerts, key rotation runbook, support-email triage cadence.
 
 ## Useful commands
