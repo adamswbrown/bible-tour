@@ -12,8 +12,8 @@ const C = {
   border: "#253D4E",
 };
 
-// Drop the real links in here when they're ready.
-const TESTFLIGHT_URL = "https://testflight.apple.com/join/REPLACEME";
+// Public App Store listing — released, no TestFlight gating needed.
+const APP_STORE_URL = "https://apps.apple.com/app/tour-of-the-bible/id6764106620";
 // Google Group for the Android closed-test tester list. Anyone can join.
 const PLAY_GROUP_JOIN_URL = "https://groups.google.com/g/bible-tour-android-testers";
 // Play Store opt-in (works after the user has joined the Google Group above).
@@ -28,23 +28,23 @@ export default function Beta() {
         <h1 style={s.h1}>Want to help test the app?</h1>
 
         <p style={s.lede}>
-          The Tour of the Bible mobile app is in beta. Android is open for
-          testers right now. iOS is currently being reviewed by Apple — once
-          it&rsquo;s approved (usually a day or two after a reply lands in
-          App Review), the TestFlight link below will go live. Check back
-          soon.
+          The Tour of the Bible mobile app is live on the iOS App Store and
+          available on Android via Google Play closed testing. Pick your
+          platform below — the iOS path is one tap, the Android path is a
+          quick two-step until Google unlocks the public store later this
+          month.
         </p>
 
         <p style={s.p}>
-          If you have five minutes and a phone, you&rsquo;d be doing me a real
-          favour. Pick the platform you&rsquo;re on:
+          If you give it a try, I&rsquo;d love your feedback — anything from
+          &ldquo;this verse looks wrong&rdquo; to &ldquo;the icon is ugly&rdquo;.
         </p>
 
         <div style={s.buttonRow}>
-          <span style={s.btnDisabled} aria-disabled="true">
-            <span style={s.btnLabel}>iOS via TestFlight</span>
-            <span style={s.btnSub}>Coming soon — in App Store review</span>
-          </span>
+          <a href={APP_STORE_URL} style={s.btnPrimary}>
+            <span style={s.btnLabel}>iOS on the App Store</span>
+            <span style={s.btnSub}>iPhone or iPad</span>
+          </a>
           <a href={PLAY_GROUP_JOIN_URL} style={s.btnPrimary}>
             <span style={s.btnLabel}>Android via Play Store</span>
             <span style={s.btnSub}>Two-step — join group, then install</span>
@@ -53,17 +53,12 @@ export default function Beta() {
 
         <h2 style={s.h2}>What happens when I tap the link?</h2>
 
-        <h3 style={s.h3}>iOS (TestFlight) — coming soon</h3>
+        <h3 style={s.h3}>iOS (App Store)</h3>
         <p style={s.p}>
-          Apple is currently reviewing the build. Once it&rsquo;s approved,
-          there will be a TestFlight link here. Tap it on your iPhone or iPad,
-          install <em>TestFlight</em> from the App Store if you don&rsquo;t
-          already have it, then tap <em>Accept</em> and <em>Install</em>. The
-          app appears on your home screen like any other. If you want a
-          heads-up when it&rsquo;s live, drop me an email at{" "}
-          <a href="mailto:bibletour@askadam.cloud?subject=iOS%20beta%20notify%20me" style={s.link}>
-            bibletour@askadam.cloud
-          </a>{" "}with the subject &ldquo;iOS beta notify me&rdquo;.
+          Tap the iOS button above on your iPhone or iPad — it opens the App
+          Store listing for Tour of the Bible. Tap <em>Get</em> and the app
+          installs like any other. No TestFlight, no invite codes, no account
+          required.
         </p>
 
         <h3 style={s.h3}>Android (Play Store)</h3>
