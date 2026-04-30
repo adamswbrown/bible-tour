@@ -463,6 +463,7 @@ function VersePanel({ book, verseRef, onClose, mode = "overlay" }) {
 
 const EAGLE_BANNER_DISMISSED_KEY = "bt:eagleBannerDismissed";
 const ORIGINALS_BANNER_DISMISSED_KEY = "bt:originalsBannerDismissed";
+const MOBILE_APP_BANNER_DISMISSED_KEY = "bt:mobileAppBannerDismissed";
 
 function store(key, value) {
   try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
@@ -489,6 +490,7 @@ function ChecklistView({ checked, onToggle, onReset }) {
   const [versePanel, setVersePanel] = useState(null); // { book, ref, youVersionUrl }
   const [showEagleBanner, setShowEagleBanner] = useState(false);
   const [showOriginalsBanner, setShowOriginalsBanner] = useState(false);
+  const [showMobileAppBanner, setShowMobileAppBanner] = useState(false);
   const [bannerReady, setBannerReady] = useState(false);
   const isIpad = useIsIpad();
 
@@ -517,6 +519,7 @@ function ChecklistView({ checked, onToggle, onReset }) {
   useEffect(() => {
     setShowEagleBanner(!load(EAGLE_BANNER_DISMISSED_KEY));
     setShowOriginalsBanner(!load(ORIGINALS_BANNER_DISMISSED_KEY));
+    setShowMobileAppBanner(!load(MOBILE_APP_BANNER_DISMISSED_KEY));
     setBannerReady(true);
   }, []);
 
@@ -528,6 +531,11 @@ function ChecklistView({ checked, onToggle, onReset }) {
   const dismissEagleBanner = useCallback(() => {
     setShowEagleBanner(false);
     store(EAGLE_BANNER_DISMISSED_KEY, true);
+  }, []);
+
+  const dismissMobileAppBanner = useCallback(() => {
+    setShowMobileAppBanner(false);
+    store(MOBILE_APP_BANNER_DISMISSED_KEY, true);
   }, []);
 
   const vis = section === "ot" ? { "Old Testament": READING_PLAN["Old Testament"] }
@@ -662,6 +670,23 @@ function ChecklistView({ checked, onToggle, onReset }) {
             </div>
           )}
 
+          {bannerReady && showMobileAppBanner && (
+            <div style={{ ...s.eagleBannerWrap, maxWidth: "none" }}>
+              <div style={s.eagleBannerShell}>
+                <a href="/beta" style={s.mobileAppBanner}>
+                  <span style={s.mobileAppBannerPill}>App</span>
+                  <span style={s.mobileAppBannerText}>Now on iPhone · Android beta open</span>
+                  <span style={s.eagleBannerArrow} aria-hidden="true">→</span>
+                </a>
+                <button type="button" onClick={dismissMobileAppBanner} aria-label="Dismiss mobile app banner" style={s.eagleBannerClose}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          )}
+
           <div style={{ ...s.progressSection, maxWidth: "none" }}>
             <div style={s.progressStats}>
               <div style={s.statBox}>
@@ -774,6 +799,30 @@ function ChecklistView({ checked, onToggle, onReset }) {
               type="button"
               onClick={dismissEagleBanner}
               aria-label="Dismiss Eagle Method banner"
+              style={s.eagleBannerClose}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {bannerReady && showMobileAppBanner && (
+        <div style={s.eagleBannerWrap}>
+          <div style={s.eagleBannerShell}>
+            <a href="/beta" style={s.mobileAppBanner}>
+              <span style={s.mobileAppBannerPill}>App</span>
+              <span style={s.mobileAppBannerText}>
+                Now on iPhone · Android beta open
+              </span>
+              <span style={s.eagleBannerArrow} aria-hidden="true">→</span>
+            </a>
+            <button
+              type="button"
+              onClick={dismissMobileAppBanner}
+              aria-label="Dismiss mobile app banner"
               style={s.eagleBannerClose}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -909,6 +958,25 @@ const s = {
     textTransform: "uppercase", flexShrink: 0,
   },
   eagleBannerText: { flex: 1, fontSize: 14, fontWeight: 700, lineHeight: 1.4 },
+  mobileAppBanner: {
+    display: "flex", alignItems: "center", gap: 10,
+    padding: "12px 48px 12px 16px",
+    borderRadius: 14,
+    background: C.tealDark,
+    border: `1px solid ${C.yellow}`,
+    textDecoration: "none",
+    color: C.yellow,
+    boxShadow: "0 2px 12px rgba(0,0,0,0.18)",
+    transition: "all .15s",
+  },
+  mobileAppBannerPill: {
+    display: "inline-flex", alignItems: "center", justifyContent: "center",
+    padding: "2px 7px", borderRadius: 999,
+    background: C.yellow, color: C.tealDark,
+    fontSize: 10, fontWeight: 800, letterSpacing: "0.1em",
+    textTransform: "uppercase", flexShrink: 0,
+  },
+  mobileAppBannerText: { flex: 1, fontSize: 14, fontWeight: 700, lineHeight: 1.4, color: C.yellow },
   eagleBannerArrow: { fontSize: 16, opacity: 0.6, flexShrink: 0 },
   eagleBannerClose: {
     position: "absolute", top: 8, right: 8,
