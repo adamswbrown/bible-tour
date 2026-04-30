@@ -591,6 +591,13 @@ function ChecklistView({ checked, onToggle, onReset }) {
         </svg>
         Watch Matt explain the tour
       </a>
+      <p style={s.footerNav}>
+        <a href="/beta" style={s.footerNavLink}>Try the mobile app</a>
+        <span style={s.footerNavSep}>·</span>
+        <a href="/support" style={s.footerNavLink}>Support</a>
+        <span style={s.footerNavSep}>·</span>
+        <a href="/privacy" style={s.footerNavLink}>Privacy</a>
+      </p>
       <p style={s.madeBy}>
         Made by{" "}
         <a href="https://askadam.cloud/" target="_blank" rel="noopener noreferrer" style={s.madeByLink}>Adam Brown</a>
@@ -980,6 +987,9 @@ const s = {
   footerDisclaimer: { fontSize: 11, color: C.tealLight, margin: "0 0 12px", opacity: 0.6, lineHeight: 1.5 },
   footerYt: { display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: C.teal, textDecoration: "none", borderBottom: `1px dashed rgba(27,58,75,0.3)` },
   madeBy: { fontSize: 12, color: C.tealLight, margin: "16px 0 0", opacity: 0.5 },
+  footerNav: { fontSize: 13, margin: "16px 0 0", color: C.tealLight },
+  footerNavLink: { color: C.teal, textDecoration: "none", fontWeight: 600, borderBottom: `1px dashed rgba(27,58,75,0.3)` },
+  footerNavSep: { margin: "0 10px", opacity: 0.4 },
   madeByLink: { color: C.teal, fontWeight: 600, textDecoration: "none", borderBottom: `1px dashed rgba(27,58,75,0.3)` },
 
   // Celebrate
