@@ -8,6 +8,7 @@ import TourLinkButton from "../components/TourLinkButton";
 
 const STORAGE_KEY = "bt:eagle";
 const MILESTONE_KEY = "bt:eagleMilestones";
+const TOUR_PROGRESS_KEY = "bt:progress";
 
 const C = {
   sand: "#f6f1e5",
@@ -142,6 +143,7 @@ function MilestoneIcon({ id, earned, size = 26 }) {
 export default function EagleIndexPage() {
   const [section, setSection] = useState("all");
   const [studied, setStudied] = useState({});
+  const [tourRead, setTourRead] = useState({});
   const [mounted, setMounted] = useState(false);
   const [earnedIds, setEarnedIds] = useState([]);
   const [toast, setToast] = useState(null);
@@ -181,6 +183,13 @@ export default function EagleIndexPage() {
       setEarnedIds(initialEarned);
 
       checkMilestones(studiedData, true);
+    } catch {}
+    // Read-only cross-pollination from the Tour. We never write this key —
+    // the Tour owns it. Stays in its own try/catch so a corrupt Tour blob
+    // can't break the Eagle index.
+    try {
+      const tourRaw = localStorage.getItem(TOUR_PROGRESS_KEY);
+      if (tourRaw) setTourRead(JSON.parse(tourRaw));
     } catch {}
     setMounted(true);
   }, []);
@@ -442,8 +451,26 @@ export default function EagleIndexPage() {
         .eagle-card-meta {
           display: flex; justify-content: space-between; gap: 10px;
           font-size: 12px; font-weight: 700; color: ${C.teal};
+          align-items: center;
         }
         .eagle-card-meta-done { color: ${C.green}; }
+        .eagle-card-meta-left {
+          display: inline-flex; align-items: center; gap: 8px; min-width: 0;
+        }
+        /* Tour "Read" cross-pollination badge — read-only mirror of bt:progress */
+        .eagle-card-readbadge {
+          display: inline-flex; align-items: center; gap: 4px;
+          padding: 2px 7px;
+          border-radius: 999px;
+          background: ${C.greenBg};
+          border: 1px solid ${C.greenBorder};
+          color: ${C.green};
+          font-family: "DM Sans", system-ui, sans-serif;
+          font-size: 10px; font-weight: 800; letter-spacing: 0.08em;
+          text-transform: uppercase;
+          line-height: 1.2;
+          flex-shrink: 0;
+        }
         .eagle-card-check {
           cursor: pointer; background: transparent; border: 2px solid rgba(27,58,75,0.2);
           appearance: none; -webkit-appearance: none; padding: 0;
@@ -658,6 +685,7 @@ export default function EagleIndexPage() {
                   const entry = BOOKS.find(c => c.book === book);
                   const chapterCount = getChapterSummaries(book).length;
                   const done = mounted && !!studied[book];
+                  const tourReadFlag = mounted && !!tourRead[book];
 
                   return (
                     <Link
@@ -684,7 +712,21 @@ export default function EagleIndexPage() {
                       {note && <p className="eagle-card-copy">{note}</p>}
 
                       <div className={`eagle-card-meta${done ? " eagle-card-meta-done" : ""}`}>
-                        <span>{chapterCount} chapters</span>
+                        <span className="eagle-card-meta-left">
+                          <span>{chapterCount} chapters</span>
+                          {tourReadFlag && (
+                            <span
+                              className="eagle-card-readbadge"
+                              title="You've ticked this book in the main Tour"
+                              aria-label={`${book} read in the Tour of the Bible`}
+                            >
+                              <svg width="9" height="9" viewBox="0 0 14 14" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
+                                <path d="M2.5 7.5L5.5 10.5L11.5 3.5" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"/>
+                              </svg>
+                              Read
+                            </span>
+                          )}
+                        </span>
                         <span style={{ color: done ? C.green : C.teal }}>
                           {done ? "Review ↗" : "Study ↗"}
                         </span>

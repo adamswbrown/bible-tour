@@ -24,6 +24,7 @@ The feature has two user-facing routes:
   - optional note from the plan
   - chapter count from the local chapter summary data
 - Inline studied toggle on each card.
+- "Read" badge appears on a card when that book is ticked in the main Tour (`bt:progress`) — read-only cross-pollination, no write-back.
 - Reset button that clears the Eagle-only local study state.
 
 ### `/eagle/[book]`
