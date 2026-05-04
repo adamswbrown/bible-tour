@@ -1,0 +1,534 @@
+{
+  "Genesis": {
+    "12": [
+      { "ref": "Galatians 3:8", "kind": "nt-quotes-ot", "note": "Paul quotes the promise to Abraham as the gospel preached beforehand." },
+      { "ref": "Acts 3:25", "kind": "nt-quotes-ot", "note": "Peter cites the Abrahamic blessing to all families of the earth." },
+      { "ref": "Hebrews 11:8-10", "kind": "echo", "note": "Abraham's call recalled in the faith hall of fame." }
+    ],
+    "50": [
+      { "ref": "Romans 8:28", "kind": "echo", "note": "Joseph's 'meant for good' theme echoed in Paul's providence claim." },
+      { "ref": "Hebrews 11:22", "kind": "echo", "note": "Joseph's burial instructions remembered as an act of faith." }
+    ]
+  },
+  "Exodus": {
+    "3": [
+      { "ref": "Acts 7:30-34", "kind": "nt-quotes-ot", "note": "Stephen retells the burning bush in his speech." },
+      { "ref": "Mark 12:26", "kind": "nt-quotes-ot", "note": "Jesus cites 'God of Abraham, Isaac, and Jacob' to prove the resurrection." }
+    ],
+    "20": [
+      { "ref": "Matthew 5:21-37", "kind": "nt-quotes-ot", "note": "Jesus' antitheses build on the Decalogue." },
+      { "ref": "Romans 13:8-10", "kind": "nt-quotes-ot", "note": "Paul lists commandments and sums them in love of neighbor." },
+      { "ref": "Ephesians 6:2-3", "kind": "nt-quotes-ot", "note": "Paul cites 'honor your father and mother' as the first commandment with promise." }
+    ]
+  },
+  "Leviticus": {
+    "19": [
+      { "ref": "Matthew 22:39", "kind": "nt-quotes-ot", "note": "Jesus quotes 'love your neighbor as yourself' as the second great commandment." },
+      { "ref": "Romans 13:9", "kind": "nt-quotes-ot", "note": "Paul cites Lev 19:18 as the summary of the law." },
+      { "ref": "James 2:8", "kind": "nt-quotes-ot", "note": "James names Lev 19:18 the 'royal law'." }
+    ]
+  },
+  "Numbers": {
+    "14": [
+      { "ref": "Hebrews 3:7-19", "kind": "nt-quotes-ot", "note": "Hebrews uses the wilderness rebellion as a warning against unbelief." },
+      { "ref": "I Corinthians 10:5-10", "kind": "nt-quotes-ot", "note": "Paul cites the wilderness judgments as examples for the church." }
+    ]
+  },
+  "Deuteronomy": {
+    "6": [
+      { "ref": "Mark 12:29-30", "kind": "nt-quotes-ot", "note": "Jesus quotes the Shema as the greatest commandment." },
+      { "ref": "Matthew 4:7", "kind": "nt-quotes-ot", "note": "Jesus quotes Deut 6:16 against the second wilderness temptation." },
+      { "ref": "Matthew 4:10", "kind": "nt-quotes-ot", "note": "Jesus quotes Deut 6:13 against the third temptation." }
+    ]
+  },
+  "Joshua": {
+    "1": [
+      { "ref": "Hebrews 13:5", "kind": "nt-quotes-ot", "note": "'I will never leave you nor forsake you' echoes Josh 1:5." }
+    ]
+  },
+  "Ruth": {
+    "1": [
+      { "ref": "Matthew 1:5", "kind": "echo", "note": "Ruth named in Jesus' genealogy through Boaz and Obed." }
+    ]
+  },
+  "I Samuel": {
+    "8": [
+      { "ref": "Hosea 13:10-11", "kind": "echo", "note": "Israel's demand for a king recalled as a judgment in Hosea." }
+    ],
+    "15": [
+      { "ref": "Hosea 6:6", "kind": "echo", "note": "'To obey is better than sacrifice' parallels Hosea's 'I desire mercy, not sacrifice.'" },
+      { "ref": "Matthew 9:13", "kind": "echo", "note": "Jesus' citation of Hosea 6:6 echoes the same Samuel principle." }
+    ],
+    "16": [
+      { "ref": "Acts 13:22", "kind": "nt-quotes-ot", "note": "Paul quotes God's choice of David as 'a man after my own heart'." }
+    ]
+  },
+  "II Samuel": {
+    "7": [
+      { "ref": "Luke 1:32-33", "kind": "ot-source-of-nt", "note": "Gabriel applies the Davidic covenant to Jesus at the annunciation." },
+      { "ref": "Hebrews 1:5", "kind": "nt-quotes-ot", "note": "Hebrews quotes 'I will be his Father' from the Davidic covenant." },
+      { "ref": "Acts 2:30", "kind": "echo", "note": "Peter appeals to the Davidic oath at Pentecost." }
+    ]
+  },
+  "I Kings": {
+    "18": [
+      { "ref": "Romans 11:2-4", "kind": "nt-quotes-ot", "note": "Paul cites Elijah and the 7,000 who did not bow to Baal." },
+      { "ref": "James 5:17-18", "kind": "echo", "note": "James points to Elijah's prayer for rain as a model." }
+    ]
+  },
+  "II Chronicles": {
+    "7": [
+      { "ref": "James 4:10", "kind": "echo", "note": "'Humble yourselves' echoes the 2 Chron 7:14 pattern." }
+    ]
+  },
+  "Esther": {
+    "4": [
+      { "ref": "Romans 8:28", "kind": "echo", "note": "Esther's 'for such a time as this' resonates with Paul's providence theme." }
+    ]
+  },
+  "Job": {
+    "1": [
+      { "ref": "James 5:11", "kind": "echo", "note": "James points to Job's steadfastness under trial." },
+      { "ref": "I Timothy 6:7", "kind": "echo", "note": "'We brought nothing into the world' echoes Job 1:21." }
+    ]
+  },
+  "Psalms": {
+    "22": [
+      { "ref": "Matthew 27:46", "kind": "ot-source-of-nt", "note": "Jesus cries the opening line from the cross." },
+      { "ref": "John 19:24", "kind": "nt-quotes-ot", "note": "John cites 'they divided my garments' fulfilled at the crucifixion." },
+      { "ref": "Hebrews 2:12", "kind": "nt-quotes-ot", "note": "Hebrews quotes Psalm 22:22 on Jesus among his brothers." }
+    ],
+    "23": [
+      { "ref": "John 10:11", "kind": "echo", "note": "Jesus' 'I am the good shepherd' echoes Psalm 23." },
+      { "ref": "Revelation 7:17", "kind": "echo", "note": "The Lamb-shepherd 'leading to springs of living water' echoes Psalm 23." }
+    ],
+    "46": [
+      { "ref": "Revelation 22:1-2", "kind": "echo", "note": "The river that gladdens the city echoes in the river of life." }
+    ],
+    "110": [
+      { "ref": "Matthew 22:44", "kind": "nt-quotes-ot", "note": "Jesus uses Psalm 110:1 to question how David's son is David's Lord." },
+      { "ref": "Acts 2:34-35", "kind": "nt-quotes-ot", "note": "Peter quotes Psalm 110:1 at Pentecost." },
+      { "ref": "Hebrews 5:6", "kind": "nt-quotes-ot", "note": "Hebrews cites Psalm 110:4 on Christ's Melchizedek priesthood." }
+    ],
+    "118": [
+      { "ref": "Matthew 21:9", "kind": "nt-quotes-ot", "note": "The Triumphal Entry crowd quotes Psalm 118:26." },
+      { "ref": "Matthew 21:42", "kind": "nt-quotes-ot", "note": "Jesus cites the 'stone the builders rejected' from Psalm 118." },
+      { "ref": "I Peter 2:7", "kind": "nt-quotes-ot", "note": "Peter applies the rejected stone to Christ." }
+    ]
+  },
+  "Proverbs": {
+    "1": [
+      { "ref": "Romans 1:22", "kind": "echo", "note": "Paul echoes the wisdom/folly contrast of Proverbs." },
+      { "ref": "James 3:13-18", "kind": "echo", "note": "James contrasts heavenly and earthly wisdom in Proverbs cadence." }
+    ],
+    "3": [
+      { "ref": "Hebrews 12:5-6", "kind": "nt-quotes-ot", "note": "Hebrews quotes Prov 3:11-12 on the Lord's discipline." },
+      { "ref": "James 4:6", "kind": "nt-quotes-ot", "note": "James cites Prov 3:34 ('God opposes the proud')." },
+      { "ref": "I Peter 5:5", "kind": "nt-quotes-ot", "note": "Peter cites Prov 3:34 on humility." }
+    ],
+    "25": [
+      { "ref": "Romans 12:20", "kind": "nt-quotes-ot", "note": "Paul quotes Prov 25:21-22 on heaping coals on an enemy's head." }
+    ],
+    "26": [
+      { "ref": "II Peter 2:22", "kind": "nt-quotes-ot", "note": "Peter quotes Prov 26:11 ('a dog returns to its vomit')." }
+    ]
+  },
+  "Ecclesiastes": {
+    "1": [
+      { "ref": "Romans 8:20", "kind": "echo", "note": "Creation 'subjected to futility' echoes Qoheleth's hevel." }
+    ]
+  },
+  "Isaiah": {
+    "6": [
+      { "ref": "John 12:40-41", "kind": "nt-quotes-ot", "note": "John cites Isaiah's vision to explain unbelief." },
+      { "ref": "Matthew 13:14-15", "kind": "nt-quotes-ot", "note": "Jesus quotes Isa 6:9-10 on hardened hearing." },
+      { "ref": "Acts 28:26-27", "kind": "nt-quotes-ot", "note": "Paul closes Acts citing Isa 6:9-10." }
+    ],
+    "7": [
+      { "ref": "Matthew 1:23", "kind": "nt-quotes-ot", "note": "Matthew quotes 'the virgin shall conceive' for Jesus' birth." }
+    ],
+    "9": [
+      { "ref": "Matthew 4:15-16", "kind": "nt-quotes-ot", "note": "Matthew cites 'the people walking in darkness have seen a great light' over Galilee." },
+      { "ref": "Luke 1:32-33", "kind": "echo", "note": "Gabriel's 'his kingdom will have no end' echoes Isa 9:7." }
+    ],
+    "11": [
+      { "ref": "Romans 15:12", "kind": "nt-quotes-ot", "note": "Paul quotes 'the root of Jesse' as the Gentiles' hope." },
+      { "ref": "Revelation 5:5", "kind": "echo", "note": "'The root of David' echoes Isa 11:1, 10." }
+    ],
+    "40": [
+      { "ref": "Mark 1:2-3", "kind": "nt-quotes-ot", "note": "Mark opens with 'a voice crying in the wilderness' from Isa 40." },
+      { "ref": "Luke 3:4-6", "kind": "nt-quotes-ot", "note": "Luke quotes Isa 40:3-5 of John the Baptist." },
+      { "ref": "I Peter 1:24-25", "kind": "nt-quotes-ot", "note": "Peter quotes 'the grass withers, the word stands forever'." }
+    ],
+    "53": [
+      { "ref": "Acts 8:32-33", "kind": "nt-quotes-ot", "note": "Philip reads Isaiah 53 with the Ethiopian eunuch." },
+      { "ref": "I Peter 2:22-25", "kind": "nt-quotes-ot", "note": "Peter applies the Suffering Servant to Christ." },
+      { "ref": "Matthew 8:17", "kind": "nt-quotes-ot", "note": "Matthew quotes 'he took up our infirmities' over Jesus' healings." }
+    ],
+    "61": [
+      { "ref": "Luke 4:18-19", "kind": "nt-quotes-ot", "note": "Jesus reads Isa 61 in the Nazareth synagogue." }
+    ]
+  },
+  "Jeremiah": {
+    "31": [
+      { "ref": "Hebrews 8:8-12", "kind": "nt-quotes-ot", "note": "Hebrews quotes the new covenant promise in full." },
+      { "ref": "Hebrews 10:16-17", "kind": "nt-quotes-ot", "note": "Hebrews recites Jer 31:33-34 on forgotten sins." },
+      { "ref": "Matthew 2:18", "kind": "nt-quotes-ot", "note": "Matthew cites 'Rachel weeping' (Jer 31:15) at the slaughter of innocents." }
+    ]
+  },
+  "Lamentations": {
+    "3": [
+      { "ref": "II Corinthians 4:1", "kind": "echo", "note": "'We do not lose heart' resonates with Lamentations' steadfast-love hope." }
+    ]
+  },
+  "Ezekiel": {
+    "36": [
+      { "ref": "John 3:5", "kind": "echo", "note": "Jesus' 'born of water and Spirit' echoes Ezek 36:25-27." },
+      { "ref": "II Corinthians 3:3", "kind": "echo", "note": "'Tablets of human hearts' echoes the new heart promise." }
+    ]
+  },
+  "Daniel": {
+    "7": [
+      { "ref": "Mark 14:62", "kind": "nt-quotes-ot", "note": "Jesus identifies himself before the Sanhedrin as the Son of Man of Dan 7." },
+      { "ref": "Matthew 24:30", "kind": "ot-source-of-nt", "note": "The Olivet Discourse pictures the Son of Man on the clouds from Dan 7:13." },
+      { "ref": "Revelation 1:13-14", "kind": "echo", "note": "John's vision of the Son of Man draws from Dan 7:9, 13." }
+    ]
+  },
+  "Hosea": {
+    "6": [
+      { "ref": "Matthew 9:13", "kind": "nt-quotes-ot", "note": "Jesus cites 'I desire mercy, not sacrifice' to the Pharisees." },
+      { "ref": "Matthew 12:7", "kind": "nt-quotes-ot", "note": "Jesus quotes Hosea 6:6 again over Sabbath grain-plucking." }
+    ]
+  },
+  "Joel": {
+    "2": [
+      { "ref": "Acts 2:17-21", "kind": "nt-quotes-ot", "note": "Peter quotes Joel 2:28-32 to interpret Pentecost." },
+      { "ref": "Romans 10:13", "kind": "nt-quotes-ot", "note": "Paul cites Joel 2:32 ('whoever calls on the name of the Lord')." }
+    ]
+  },
+  "Amos": {
+    "5": [
+      { "ref": "Acts 7:42-43", "kind": "nt-quotes-ot", "note": "Stephen quotes Amos 5:25-27 in his speech." }
+    ],
+    "9": [
+      { "ref": "Acts 15:16-17", "kind": "nt-quotes-ot", "note": "James cites Amos 9:11-12 at the Jerusalem Council." }
+    ]
+  },
+  "Jonah": {
+    "1": [
+      { "ref": "Matthew 12:40", "kind": "ot-source-of-nt", "note": "Jesus calls Jonah's three days in the fish a sign of the resurrection." }
+    ]
+  },
+  "Micah": {
+    "5": [
+      { "ref": "Matthew 2:6", "kind": "nt-quotes-ot", "note": "The chief priests cite Mic 5:2 on Bethlehem as the Messiah's birthplace." }
+    ],
+    "6": [
+      { "ref": "Matthew 23:23", "kind": "echo", "note": "Jesus' 'justice, mercy, faithfulness' echoes Micah 6:8." }
+    ]
+  },
+  "Habakkuk": {
+    "2": [
+      { "ref": "Romans 1:17", "kind": "nt-quotes-ot", "note": "Paul quotes 'the righteous shall live by faith' as the gospel's center." },
+      { "ref": "Galatians 3:11", "kind": "nt-quotes-ot", "note": "Paul cites Hab 2:4 against justification by law." },
+      { "ref": "Hebrews 10:37-38", "kind": "nt-quotes-ot", "note": "Hebrews quotes Hab 2:3-4 on faith and endurance." }
+    ]
+  },
+  "Zechariah": {
+    "9": [
+      { "ref": "Matthew 21:5", "kind": "nt-quotes-ot", "note": "Matthew quotes 'your king comes, riding on a donkey' at the Triumphal Entry." },
+      { "ref": "John 12:15", "kind": "nt-quotes-ot", "note": "John cites Zech 9:9 at the Triumphal Entry." }
+    ],
+    "12": [
+      { "ref": "John 19:37", "kind": "nt-quotes-ot", "note": "John cites 'they will look on the one they pierced' at the cross." },
+      { "ref": "Revelation 1:7", "kind": "nt-quotes-ot", "note": "Revelation echoes Zech 12:10 on every eye seeing him." }
+    ]
+  },
+  "Malachi": {
+    "3": [
+      { "ref": "Mark 1:2", "kind": "nt-quotes-ot", "note": "Mark cites 'I send my messenger' from Mal 3:1 of John the Baptist." },
+      { "ref": "Matthew 11:10", "kind": "nt-quotes-ot", "note": "Jesus quotes Mal 3:1 of John the Baptist." }
+    ],
+    "4": [
+      { "ref": "Matthew 17:10-13", "kind": "nt-quotes-ot", "note": "Jesus connects Elijah's coming (Mal 4:5-6) to John the Baptist." },
+      { "ref": "Luke 1:17", "kind": "nt-quotes-ot", "note": "Gabriel applies Mal 4:5-6 to John the Baptist." }
+    ]
+  },
+  "Matthew": {
+    "1": [
+      { "ref": "Isaiah 7:14", "kind": "ot-source-of-nt", "note": "'The virgin shall conceive' is quoted of Jesus' birth." },
+      { "ref": "II Samuel 7:12-16", "kind": "ot-source-of-nt", "note": "The genealogy traces the Davidic covenant promise." }
+    ],
+    "2": [
+      { "ref": "Micah 5:2", "kind": "ot-source-of-nt", "note": "Bethlehem cited as the Messiah's birthplace." },
+      { "ref": "Hosea 11:1", "kind": "ot-source-of-nt", "note": "'Out of Egypt I called my son' applied to Jesus." },
+      { "ref": "Jeremiah 31:15", "kind": "ot-source-of-nt", "note": "'Rachel weeping' quoted at the slaughter of innocents." }
+    ],
+    "4": [
+      { "ref": "Deuteronomy 8:3", "kind": "ot-source-of-nt", "note": "Jesus cites 'man does not live by bread alone' against the first temptation." },
+      { "ref": "Deuteronomy 6:16", "kind": "ot-source-of-nt", "note": "'Do not put the Lord your God to the test' answers the second temptation." },
+      { "ref": "Isaiah 9:1-2", "kind": "ot-source-of-nt", "note": "Galilee 'people in darkness see great light' fulfilled in Jesus' ministry." }
+    ],
+    "5": [
+      { "ref": "Exodus 20", "kind": "ot-source-of-nt", "note": "The antitheses build on the Decalogue." },
+      { "ref": "Leviticus 19:18", "kind": "ot-source-of-nt", "note": "'Love your neighbor' framed against 'hate your enemy'." }
+    ],
+    "16": [
+      { "ref": "Daniel 7:13-14", "kind": "ot-source-of-nt", "note": "'The Son of Man coming in his kingdom' draws on Dan 7." }
+    ],
+    "22": [
+      { "ref": "Deuteronomy 6:5", "kind": "ot-source-of-nt", "note": "Jesus quotes the Shema as the greatest commandment." },
+      { "ref": "Leviticus 19:18", "kind": "ot-source-of-nt", "note": "Jesus quotes 'love your neighbor' as the second great command." },
+      { "ref": "Psalms 110:1", "kind": "ot-source-of-nt", "note": "Jesus uses 'the Lord said to my Lord' to question the Pharisees." }
+    ],
+    "24": [
+      { "ref": "Mark 13", "kind": "parallel", "note": "Synoptic parallel of the Olivet Discourse." },
+      { "ref": "Luke 21", "kind": "parallel", "note": "Synoptic parallel of the Olivet Discourse." },
+      { "ref": "Daniel 7:13-14", "kind": "ot-source-of-nt", "note": "'Son of Man coming on the clouds' draws on Dan 7." }
+    ],
+    "27": [
+      { "ref": "Psalms 22", "kind": "ot-source-of-nt", "note": "Jesus cries Psalm 22's opening line; soldiers fulfill v. 18." },
+      { "ref": "Isaiah 53", "kind": "ot-source-of-nt", "note": "The Suffering Servant lies behind the passion narrative." }
+    ],
+    "28": [
+      { "ref": "Daniel 7:14", "kind": "ot-source-of-nt", "note": "'All authority' echoes the Son of Man's universal dominion." }
+    ]
+  },
+  "Mark": {
+    "1": [
+      { "ref": "Isaiah 40:3", "kind": "ot-source-of-nt", "note": "Mark opens with 'a voice crying in the wilderness'." },
+      { "ref": "Malachi 3:1", "kind": "ot-source-of-nt", "note": "Mark blends Mal 3:1 with Isa 40:3 at the gospel's start." }
+    ],
+    "10": [
+      { "ref": "Isaiah 53:10-12", "kind": "ot-source-of-nt", "note": "'A ransom for many' echoes the Servant pouring out his soul." }
+    ],
+    "12": [
+      { "ref": "Deuteronomy 6:4-5", "kind": "ot-source-of-nt", "note": "Jesus quotes the Shema as the greatest commandment." },
+      { "ref": "Leviticus 19:18", "kind": "ot-source-of-nt", "note": "Jesus quotes 'love your neighbor' as second." },
+      { "ref": "Psalms 110:1", "kind": "ot-source-of-nt", "note": "Jesus cites Ps 110 to question how Messiah is David's Lord." }
+    ],
+    "13": [
+      { "ref": "Matthew 24", "kind": "parallel", "note": "Synoptic parallel of the Olivet Discourse." },
+      { "ref": "Luke 21", "kind": "parallel", "note": "Synoptic parallel of the Olivet Discourse." },
+      { "ref": "Daniel 7:13-14", "kind": "ot-source-of-nt", "note": "'Son of Man coming on clouds' draws on Daniel." }
+    ],
+    "15": [
+      { "ref": "Psalms 22", "kind": "ot-source-of-nt", "note": "Jesus cries 'My God, my God' from Ps 22 at the cross." },
+      { "ref": "Isaiah 53", "kind": "ot-source-of-nt", "note": "The Suffering Servant frames the crucifixion." }
+    ]
+  },
+  "Luke": {
+    "4": [
+      { "ref": "Isaiah 61:1-2", "kind": "ot-source-of-nt", "note": "Jesus reads Isa 61 at the Nazareth synagogue." },
+      { "ref": "Deuteronomy 6-8", "kind": "ot-source-of-nt", "note": "Jesus answers the wilderness temptations from Deuteronomy." }
+    ],
+    "21": [
+      { "ref": "Matthew 24", "kind": "parallel", "note": "Synoptic parallel of the Olivet Discourse." },
+      { "ref": "Mark 13", "kind": "parallel", "note": "Synoptic parallel of the Olivet Discourse." }
+    ],
+    "24": [
+      { "ref": "Psalms 16:10", "kind": "ot-source-of-nt", "note": "Resurrection 'not abandoned to the grave' theme." },
+      { "ref": "Isaiah 53", "kind": "ot-source-of-nt", "note": "The risen Jesus opens the Scriptures on the Suffering Servant." }
+    ]
+  },
+  "John": {
+    "1": [
+      { "ref": "Genesis 1:1", "kind": "ot-source-of-nt", "note": "'In the beginning' deliberately echoes Genesis." },
+      { "ref": "Proverbs 8:22-31", "kind": "echo", "note": "Wisdom 'with God at creation' lies behind the Logos prologue." }
+    ],
+    "3": [
+      { "ref": "Numbers 21:8-9", "kind": "ot-source-of-nt", "note": "'As Moses lifted up the serpent' explains the cross." },
+      { "ref": "Genesis 22", "kind": "echo", "note": "'God so loved the world he gave his only Son' echoes the Aqedah." }
+    ],
+    "12": [
+      { "ref": "Zechariah 9:9", "kind": "ot-source-of-nt", "note": "Triumphal Entry quotation: 'your king comes on a donkey'." },
+      { "ref": "Isaiah 6:10", "kind": "ot-source-of-nt", "note": "Hardened-eyes verdict on unbelief." },
+      { "ref": "Isaiah 53:1", "kind": "ot-source-of-nt", "note": "'Who has believed our message?' cited over Israel's response." }
+    ],
+    "19": [
+      { "ref": "Psalms 22:18", "kind": "ot-source-of-nt", "note": "'They divided my garments' fulfilled at the cross." },
+      { "ref": "Psalms 34:20", "kind": "ot-source-of-nt", "note": "'Not one of his bones will be broken' applied to Jesus." },
+      { "ref": "Zechariah 12:10", "kind": "ot-source-of-nt", "note": "'They will look on the one they pierced'." }
+    ],
+    "20": [
+      { "ref": "Psalms 16:10", "kind": "echo", "note": "Resurrection fulfills 'you will not let your Holy One see decay'." }
+    ]
+  },
+  "Acts": {
+    "1": [
+      { "ref": "Isaiah 49:6", "kind": "echo", "note": "'To the ends of the earth' echoes the Servant as light to the nations." },
+      { "ref": "Daniel 7:13-14", "kind": "echo", "note": "Ascension 'on the clouds' draws on the Son of Man vision." }
+    ],
+    "2": [
+      { "ref": "Joel 2:28-32", "kind": "ot-source-of-nt", "note": "Peter quotes Joel to interpret Pentecost." },
+      { "ref": "Psalms 16:8-11", "kind": "ot-source-of-nt", "note": "Peter cites Ps 16 on the resurrection." },
+      { "ref": "Psalms 110:1", "kind": "ot-source-of-nt", "note": "Peter cites Ps 110 on Jesus' enthronement." }
+    ],
+    "7": [
+      { "ref": "Genesis 12-50", "kind": "ot-source-of-nt", "note": "Stephen retells the patriarchs in his speech." },
+      { "ref": "Exodus 3", "kind": "ot-source-of-nt", "note": "Stephen retells the burning bush." },
+      { "ref": "Amos 5:25-27", "kind": "ot-source-of-nt", "note": "Stephen quotes Amos 5 on idolatry in the wilderness." }
+    ],
+    "8": [
+      { "ref": "Isaiah 53:7-8", "kind": "ot-source-of-nt", "note": "Philip reads Isaiah 53 with the Ethiopian eunuch." }
+    ],
+    "13": [
+      { "ref": "Psalms 2:7", "kind": "ot-source-of-nt", "note": "Paul quotes 'You are my Son' applied to the resurrection." },
+      { "ref": "Isaiah 55:3", "kind": "ot-source-of-nt", "note": "Paul cites 'the holy and sure blessings of David'." },
+      { "ref": "Habakkuk 1:5", "kind": "ot-source-of-nt", "note": "Paul warns scoffers with Habakkuk's 'I am doing a work'." }
+    ],
+    "15": [
+      { "ref": "Amos 9:11-12", "kind": "ot-source-of-nt", "note": "James cites Amos at the Jerusalem Council on Gentile inclusion." }
+    ]
+  },
+  "Romans": {
+    "1": [
+      { "ref": "Habakkuk 2:4", "kind": "ot-source-of-nt", "note": "'The righteous shall live by faith' is the letter's thesis." }
+    ],
+    "3": [
+      { "ref": "Psalms 14:1-3", "kind": "ot-source-of-nt", "note": "'None is righteous' chained citations begin from Ps 14." },
+      { "ref": "Psalms 51:4", "kind": "ot-source-of-nt", "note": "'That you may be justified in your words' from Ps 51." },
+      { "ref": "Isaiah 59:7-8", "kind": "ot-source-of-nt", "note": "'Their feet are swift to shed blood' from Isa 59." }
+    ],
+    "4": [
+      { "ref": "Genesis 15:6", "kind": "ot-source-of-nt", "note": "Paul cites Gen 15:6 to ground justification by faith." },
+      { "ref": "Psalms 32:1-2", "kind": "ot-source-of-nt", "note": "Paul cites David's blessing on the forgiven." }
+    ],
+    "9": [
+      { "ref": "Genesis 21:12", "kind": "ot-source-of-nt", "note": "'Through Isaac shall your offspring be named'." },
+      { "ref": "Exodus 33:19", "kind": "ot-source-of-nt", "note": "'I will have mercy on whom I have mercy'." },
+      { "ref": "Hosea 1-2", "kind": "ot-source-of-nt", "note": "'Not my people' / 'my people' applied to Gentile inclusion." }
+    ],
+    "10": [
+      { "ref": "Deuteronomy 30:12-14", "kind": "ot-source-of-nt", "note": "'The word is near you' applied to the gospel." },
+      { "ref": "Joel 2:32", "kind": "ot-source-of-nt", "note": "'Whoever calls on the name of the Lord will be saved'." },
+      { "ref": "Isaiah 53:1", "kind": "ot-source-of-nt", "note": "'Who has believed our message?' on Israel's unbelief." }
+    ],
+    "11": [
+      { "ref": "I Kings 19:18", "kind": "ot-source-of-nt", "note": "Paul cites the 7,000 who did not bow to Baal." },
+      { "ref": "Isaiah 59:20-21", "kind": "ot-source-of-nt", "note": "'The Deliverer will come from Zion'." }
+    ],
+    "12": [
+      { "ref": "Proverbs 25:21-22", "kind": "ot-source-of-nt", "note": "'Heap burning coals on his head' from Proverbs." }
+    ]
+  },
+  "I Corinthians": {
+    "10": [
+      { "ref": "Exodus 14", "kind": "ot-source-of-nt", "note": "Paul reads the Red Sea crossing as baptism into Moses." },
+      { "ref": "Exodus 17:6", "kind": "ot-source-of-nt", "note": "'The rock that followed them was Christ' draws on Exodus." },
+      { "ref": "Numbers 14", "kind": "ot-source-of-nt", "note": "Wilderness judgments cited as warnings." }
+    ],
+    "15": [
+      { "ref": "Isaiah 25:8", "kind": "ot-source-of-nt", "note": "'Death is swallowed up in victory' quoted on the resurrection." },
+      { "ref": "Hosea 13:14", "kind": "ot-source-of-nt", "note": "'O death, where is your sting?' from Hosea." },
+      { "ref": "Psalms 8:6", "kind": "ot-source-of-nt", "note": "'He has put all things under his feet' applied to Christ." }
+    ]
+  },
+  "II Corinthians": {
+    "5": [
+      { "ref": "Isaiah 43:18-19", "kind": "echo", "note": "'New creation' echoes Isaiah's promised new thing." }
+    ]
+  },
+  "Galatians": {
+    "3": [
+      { "ref": "Genesis 15:6", "kind": "ot-source-of-nt", "note": "'Abraham believed God and it was counted as righteousness'." },
+      { "ref": "Habakkuk 2:4", "kind": "ot-source-of-nt", "note": "'The righteous shall live by faith'." },
+      { "ref": "Deuteronomy 21:23", "kind": "ot-source-of-nt", "note": "'Cursed is everyone hung on a tree' applied to the cross." }
+    ]
+  },
+  "Ephesians": {
+    "6": [
+      { "ref": "Isaiah 11:5", "kind": "ot-source-of-nt", "note": "Belt of righteousness draws on the Messiah's armor." },
+      { "ref": "Isaiah 59:17", "kind": "ot-source-of-nt", "note": "Breastplate and helmet from the Lord's own armor." },
+      { "ref": "Exodus 20:12", "kind": "nt-quotes-ot", "note": "Paul cites the fifth commandment in Eph 6:2-3." }
+    ]
+  },
+  "Philippians": {
+    "2": [
+      { "ref": "Isaiah 45:23", "kind": "ot-source-of-nt", "note": "'Every knee shall bow' applied to Jesus' name." }
+    ]
+  },
+  "Colossians": {
+    "1": [
+      { "ref": "Proverbs 8:22-31", "kind": "echo", "note": "Wisdom's role in creation lies behind 'in him all things were created'." },
+      { "ref": "Genesis 1:26-27", "kind": "echo", "note": "'Image of the invisible God' draws on Genesis." }
+    ]
+  },
+  "Hebrews": {
+    "1": [
+      { "ref": "Psalms 2:7", "kind": "ot-source-of-nt", "note": "'You are my Son' opens the catena of citations." },
+      { "ref": "II Samuel 7:14", "kind": "ot-source-of-nt", "note": "'I will be his Father' from the Davidic covenant." },
+      { "ref": "Psalms 110:1", "kind": "ot-source-of-nt", "note": "'Sit at my right hand' closes the chain." }
+    ],
+    "2": [
+      { "ref": "Psalms 8:4-6", "kind": "ot-source-of-nt", "note": "'What is man that you are mindful of him' applied to Jesus." }
+    ],
+    "4": [
+      { "ref": "Genesis 2:2", "kind": "ot-source-of-nt", "note": "'God rested on the seventh day' grounds the Sabbath rest argument." },
+      { "ref": "Psalms 95:7-11", "kind": "ot-source-of-nt", "note": "'Today, if you hear his voice' cited as a warning." }
+    ],
+    "5": [
+      { "ref": "Psalms 110:4", "kind": "ot-source-of-nt", "note": "'A priest forever after the order of Melchizedek'." },
+      { "ref": "Psalms 2:7", "kind": "ot-source-of-nt", "note": "'You are my Son, today I have begotten you'." }
+    ],
+    "8": [
+      { "ref": "Jeremiah 31:31-34", "kind": "ot-source-of-nt", "note": "Hebrews quotes the new covenant promise in full." },
+      { "ref": "Exodus 25:40", "kind": "ot-source-of-nt", "note": "'Make everything according to the pattern' on the heavenly tabernacle." }
+    ],
+    "9": [
+      { "ref": "Leviticus 16", "kind": "ot-source-of-nt", "note": "The Day of Atonement frames Christ's once-for-all sacrifice." },
+      { "ref": "Exodus 24:8", "kind": "ot-source-of-nt", "note": "'The blood of the covenant' inaugurates the new covenant." }
+    ],
+    "10": [
+      { "ref": "Psalms 40:6-8", "kind": "ot-source-of-nt", "note": "'Sacrifice you did not desire' applied to Christ's coming." },
+      { "ref": "Jeremiah 31:33-34", "kind": "ot-source-of-nt", "note": "'I will remember their sins no more'." },
+      { "ref": "Habakkuk 2:3-4", "kind": "ot-source-of-nt", "note": "'The righteous shall live by faith' as the call to endurance." }
+    ],
+    "11": [
+      { "ref": "Genesis 4-22", "kind": "ot-source-of-nt", "note": "The faith hall of fame walks through Abel, Enoch, Noah, Abraham, Sarah." },
+      { "ref": "Habakkuk 2:4", "kind": "ot-source-of-nt", "note": "'The righteous shall live by faith' frames the chapter." }
+    ],
+    "12": [
+      { "ref": "Proverbs 3:11-12", "kind": "ot-source-of-nt", "note": "Hebrews quotes 'do not despise the Lord's discipline'." },
+      { "ref": "Exodus 19", "kind": "ot-source-of-nt", "note": "Mount Sinai contrasted with Mount Zion." },
+      { "ref": "Haggai 2:6", "kind": "ot-source-of-nt", "note": "'Yet once more I will shake' applied to the unshakable kingdom." }
+    ]
+  },
+  "James": {
+    "2": [
+      { "ref": "Genesis 15:6", "kind": "nt-quotes-ot", "note": "James cites 'Abraham believed God' to define faith with works." },
+      { "ref": "Leviticus 19:18", "kind": "nt-quotes-ot", "note": "James names 'love your neighbor' the royal law." }
+    ]
+  },
+  "I Peter": {
+    "1": [
+      { "ref": "Leviticus 11:44", "kind": "nt-quotes-ot", "note": "'Be holy, for I am holy' quoted of the church." },
+      { "ref": "Isaiah 40:6-8", "kind": "nt-quotes-ot", "note": "'The grass withers, the word stands forever'." }
+    ],
+    "2": [
+      { "ref": "Isaiah 53", "kind": "ot-source-of-nt", "note": "Peter applies the Suffering Servant to Christ in 2:22-25." },
+      { "ref": "Isaiah 28:16", "kind": "nt-quotes-ot", "note": "'Behold, I lay in Zion a stone' applied to Christ." },
+      { "ref": "Psalms 118:22", "kind": "nt-quotes-ot", "note": "'The stone the builders rejected'." }
+    ]
+  },
+  "Revelation": {
+    "1": [
+      { "ref": "Daniel 7:13", "kind": "ot-source-of-nt", "note": "'One like a son of man' draws on Daniel's vision." },
+      { "ref": "Zechariah 12:10", "kind": "nt-quotes-ot", "note": "'Every eye will see him, even those who pierced him'." }
+    ],
+    "5": [
+      { "ref": "Isaiah 11:1, 10", "kind": "echo", "note": "'The root of David' echoes Isaiah's Jesse imagery." },
+      { "ref": "Daniel 7:13-14", "kind": "echo", "note": "The Lamb receiving dominion echoes the Son of Man." }
+    ],
+    "21": [
+      { "ref": "Isaiah 65:17", "kind": "ot-source-of-nt", "note": "'A new heaven and a new earth' from Isaiah." },
+      { "ref": "Ezekiel 40-48", "kind": "echo", "note": "The new Jerusalem vision echoes Ezekiel's temple-city." },
+      { "ref": "Genesis 2", "kind": "echo", "note": "Eden imagery returns: river, tree of life, presence of God." }
+    ],
+    "22": [
+      { "ref": "Genesis 2-3", "kind": "echo", "note": "Tree of life and unhindered fellowship return; the curse is undone." },
+      { "ref": "Ezekiel 47:1-12", "kind": "echo", "note": "The river from the throne echoes Ezekiel's temple stream." },
+      { "ref": "Daniel 12:4", "kind": "echo", "note": "'Do not seal the words' inverts Daniel's sealing." }
+    ]
+  }
+}

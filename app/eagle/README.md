@@ -73,6 +73,7 @@ The feature has two user-facing routes:
 - Merges overlapping windows.
 - Renders chapter summary cards inside each window.
 - Highlights chapters that contain the target ref(s).
+- On target-zone chapters, a small **Connects to** strip surfaces 1–3 cross-references (e.g. NT quotations of OT, well-known echoes) sourced from a static `app/data/cross-refs.json`.
 - Shows attribution and source link for the chapter summary dataset in the footer.
 
 ## Data + Helpers

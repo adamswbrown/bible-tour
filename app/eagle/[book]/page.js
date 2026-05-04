@@ -7,6 +7,7 @@ import {
   CHAPTER_SUMMARY_ATTRIBUTION,
   CHAPTER_SUMMARY_SOURCE,
   getChapterSummaries,
+  getCrossRefsForChapter,
   getLocalBookInfo,
 } from "../../lib/book-data";
 import { getCanonVerseCount } from "../../lib/canon";
@@ -650,6 +651,41 @@ export default async function EagleBookPage({ params }) {
           font-weight: 700;
           color: ${C.teal};
         }
+        .eagle-cross-refs {
+          margin-top: 12px;
+          padding: 10px 12px;
+          border-left: 3px solid ${C.gold};
+          background: rgba(243, 191, 33, 0.08);
+          border-radius: 6px;
+        }
+        .eagle-cross-refs-label {
+          margin: 0 0 6px;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: ${C.tealLight};
+        }
+        .eagle-cross-refs-list {
+          list-style: none;
+          margin: 0;
+          padding: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+        .eagle-cross-ref {
+          font-size: 12px;
+          line-height: 1.5;
+          color: ${C.ink};
+        }
+        .eagle-cross-ref-ref {
+          font-weight: 700;
+          color: ${C.teal};
+        }
+        .eagle-cross-ref-note {
+          color: ${C.muted};
+        }
         /* Step strip */
         .eagle-steps {
           display: flex;
@@ -1094,6 +1130,23 @@ export default async function EagleBookPage({ params }) {
                                 ))}
                               </div>
                             ) : null}
+                            {refs.length ? (() => {
+                              const crossRefs = getCrossRefsForChapter(entry.book, chapter).slice(0, 3);
+                              if (!crossRefs.length) return null;
+                              return (
+                                <div className="eagle-cross-refs">
+                                  <p className="eagle-cross-refs-label">Connects to</p>
+                                  <ul className="eagle-cross-refs-list">
+                                    {crossRefs.map((cr) => (
+                                      <li className="eagle-cross-ref" key={`${cr.ref}-${cr.kind}`}>
+                                        <span className="eagle-cross-ref-ref">{cr.ref}</span>
+                                        {cr.note ? <span className="eagle-cross-ref-note"> {"—"} {cr.note}</span> : null}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              );
+                            })() : null}
                           </article>
                         );
                       })}
