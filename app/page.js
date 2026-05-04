@@ -70,10 +70,9 @@ function VerseLinks({ book, refs, done, onVerseClick }) {
           return (
             <span key={i} style={{ display: "inline-flex", alignItems: "center" }}>
               {separator && <span style={{ margin: "0 2px", fontSize: 13, color: done ? C.done : C.tealLight }}>{separator}</span>}
-              <a
-                href={p.url}
+              <button
+                type="button"
                 onClick={e => {
-                  e.preventDefault();
                   e.stopPropagation();
                   onVerseClick(book, p.ref, p.url);
                 }}
@@ -89,6 +88,7 @@ function VerseLinks({ book, refs, done, onVerseClick }) {
                   border: `1px solid ${done ? "rgba(27,107,58,0.15)" : "rgba(27,58,75,0.12)"}`,
                   transition: "all .15s",
                   cursor: "pointer",
+                  font: "inherit",
                 }}
                 onMouseEnter={e => {
                   e.currentTarget.style.background = done ? "rgba(27,107,58,0.15)" : "rgba(27,58,75,0.13)";
@@ -103,7 +103,7 @@ function VerseLinks({ book, refs, done, onVerseClick }) {
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ opacity: 0.5, flexShrink: 0 }}>
                   <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-              </a>
+              </button>
             </span>
           );
         }
