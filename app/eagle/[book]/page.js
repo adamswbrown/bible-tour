@@ -8,9 +8,13 @@ import {
   CHAPTER_SUMMARY_SOURCE,
   getChapterSummaries,
   getLocalBookInfo,
-  hasMeaningfulBookInfo,
 } from "../../lib/book-data";
-import { getIqBookInfo, getIqVerseCount } from "../../lib/iq-bible";
+import { getCanonVerseCount } from "../../lib/canon";
+import {
+  getBookGenre,
+  getGenreLabel,
+  getSurveyQuestions,
+} from "../../lib/genre";
 import MarkStudiedButton from "./MarkStudiedButton";
 import VersePreviewPanel from "./VersePreviewPanel";
 import TourLinkButton from "../../components/TourLinkButton";
@@ -206,8 +210,7 @@ export default async function EagleBookPage({ params }) {
   const chapterSummaries = getChapterSummaries(entry.book);
   const chapterCount = chapterSummaries.length;
   const localBookInfo = getLocalBookInfo(entry.book);
-  const remoteBookInfo = hasMeaningfulBookInfo(localBookInfo) ? null : await getIqBookInfo(entry.id);
-  const bookInfo = { ...(remoteBookInfo || {}), ...(localBookInfo || {}) };
+  const bookInfo = { ...(localBookInfo || {}) };
   const infoFields = getBookInfoFields(bookInfo);
   const intro = getBookIntro(bookInfo);
   const chapterHits = buildChapterHits(parsedRefs);
@@ -219,16 +222,18 @@ export default async function EagleBookPage({ params }) {
   )];
 
   const verseCounts = Object.fromEntries(
-    (
-      await Promise.all(
-        verseCountChapters.map(async (chapter) => [chapter, await getIqVerseCount(entry.id, chapter)])
-      )
-    ).filter(([, count]) => Number.isFinite(count))
+    verseCountChapters
+      .map((chapter) => [chapter, getCanonVerseCount(entry.book, chapter)])
+      .filter(([, count]) => Number.isFinite(count))
   );
 
   const currentIndex = BOOKS.findIndex(({ book }) => book === entry.book);
   const previousBook = currentIndex > 0 ? BOOKS[currentIndex - 1] : null;
   const nextBook = currentIndex < BOOKS.length - 1 ? BOOKS[currentIndex + 1] : null;
+
+  const bookGenre = getBookGenre(entry.book);
+  const bookGenreLabel = getGenreLabel(bookGenre);
+  const surveyQuestions = getSurveyQuestions(entry.book);
 
   return (
     <main className="eagle-shell">
@@ -441,6 +446,30 @@ export default async function EagleBookPage({ params }) {
           line-height: 1.55;
           color: #162636;
           font-style: italic;
+        }
+        .eagle-genre-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 6px 12px;
+          border-radius: 999px;
+          background: rgba(243, 191, 33, 0.12);
+          border: 1px solid rgba(243, 191, 33, 0.55);
+          font-size: 12px;
+          font-family: system-ui, sans-serif;
+          line-height: 1.2;
+          flex-shrink: 0;
+          align-self: flex-start;
+        }
+        .eagle-genre-pill-key {
+          font-weight: 700;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: ${C.tealLight};
+        }
+        .eagle-genre-pill-value {
+          font-weight: 600;
+          color: ${C.ink};
         }
         .eagle-empty {
           margin: 0;
@@ -867,14 +896,14 @@ export default async function EagleBookPage({ params }) {
                 </p>
               </div>
             </div>
+            <span className="eagle-genre-pill" title="Framing questions are tuned to this book's genre">
+              <span className="eagle-genre-pill-key">Genre</span>
+              <span className="eagle-genre-pill-value">{bookGenreLabel}</span>
+            </span>
           </div>
 
           <div className="eagle-questions">
-            {[
-              { label: "Question 1", prompt: "Who wrote it, and when?" },
-              { label: "Question 2", prompt: "Who were the original audience?" },
-              { label: "Question 3", prompt: "What is the purpose of the book?" },
-            ].map((q) => (
+            {surveyQuestions.map((q) => (
               <div className="eagle-q" key={q.label}>
                 <p className="eagle-q-label">{q.label}</p>
                 <p className="eagle-q-prompt">{q.prompt}</p>
@@ -904,8 +933,7 @@ export default async function EagleBookPage({ params }) {
             <p className="eagle-empty">
               No overview data is available for this book yet. Populate
               <code> app/data/book-info.json </code>
-              or configure <code>IQ_BIBLE_API_KEY</code> to fill in the author, audience, purpose,
-              and introduction.
+              to fill in the author, audience, purpose, and introduction.
             </p>
           ) : null}
           <div className="eagle-next-nudge">
@@ -1004,7 +1032,7 @@ export default async function EagleBookPage({ params }) {
                     )
                   ) : ref.isStructured && ref.kind !== "chapter-span" ? (
                     <p className="eagle-track-note">
-                      Verse-level placement will appear automatically once IQ Bible verse counts are
+                      Verse-level placement will appear automatically once verse counts are
                       available.
                     </p>
                   ) : null}
