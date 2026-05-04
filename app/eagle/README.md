@@ -24,6 +24,7 @@ The feature has two user-facing routes:
   - optional note from the plan
   - chapter count from the local chapter summary data
 - Inline studied toggle on each card.
+- "Read" badge appears on a card when that book is ticked in the main Tour (`bt:progress`) — read-only cross-pollination, no write-back.
 - Reset button that clears the Eagle-only local study state.
 
 ### `/eagle/[book]`
@@ -35,12 +36,10 @@ The feature has two user-facing routes:
 
 #### Stage 1: Survey The River
 
-- Shows the three framing questions from the Eagle Method:
-  - Who wrote it, and when?
-  - Who were the original audience?
-  - What is the purpose of the book?
+- Shows three framing questions tuned to the book's genre (law, narrative, wisdom, psalm, prophecy, apocalyptic, gospel, acts, epistle).
+- The genre classification and the per-genre questions live in `app/lib/genre.js` (kept in code, not in `book-info.json`).
+- A small genre pill near the stage heading surfaces the active genre to the reader.
 - Pulls book overview data from `app/data/book-info.json`.
-- If local overview data is missing, it can fall back to IQ Bible `GetBookInfo` when `IQ_BIBLE_API_KEY` is configured.
 - Renders:
   - author
   - date
@@ -63,9 +62,8 @@ The feature has two user-facing routes:
 - Highlights target chapters in the map.
 - Shows a per-target card with:
   - book-level position
-  - verse-level position when IQ Bible verse counts are available
-  - fallback chapter-only messaging when verse counts are unavailable
-- Verse counts come from IQ Bible `GetVerseCount` via `app/lib/iq-bible.js`.
+  - verse-level position derived from the static canon table
+- Verse counts come from `app/data/canon.json` via `app/lib/canon.js`.
 
 #### Stage 3: Follow The Current
 
@@ -76,6 +74,7 @@ The feature has two user-facing routes:
 - Merges overlapping windows.
 - Renders chapter summary cards inside each window.
 - Highlights chapters that contain the target ref(s).
+- On target-zone chapters, a small **Connects to** strip surfaces 1–3 cross-references (e.g. NT quotations of OT, well-known echoes) sourced from a static `app/data/cross-refs.json`.
 - Shows attribution and source link for the chapter summary dataset in the footer.
 
 ## Data + Helpers
@@ -101,14 +100,16 @@ Local data access helpers for:
 
 It also normalizes book info objects and exposes chapter summary attribution.
 
-### `app/lib/iq-bible.js`
+### `app/lib/canon.js`
 
-Optional server-only IQ Bible integration with cached fetch helpers for:
+Pure data accessors over `app/data/canon.json`, the static 66-book canon
+table (Protestant / KJV chapter and verse counts).
 
-- `GetBookInfo`
-- `GetVerseCount`
+- `getCanonEntry(book)` — full record `{ id, chapterCount, verseCounts }`
+- `getCanonVerseCount(book, chapter)`
+- `getCanonChapterCount(book)`
 
-If `IQ_BIBLE_API_KEY` is missing, the Eagle pages still render, but verse-level positioning and any missing Stage 1 overview data will gracefully degrade.
+No network, no API keys, no `server-only` boundary.
 
 ## State
 
@@ -119,17 +120,11 @@ If `IQ_BIBLE_API_KEY` is missing, the Eagle pages still render, but verse-level 
 
 ## Environment
 
-Optional variables relevant to the Eagle feature:
-
-- `IQ_BIBLE_API_KEY`
-  RapidAPI key for IQ Bible enrichment.
-- `IQ_BIBLE_HOST`
-  Defaults to `iq-bible.p.rapidapi.com`.
-
-Without these, the feature still works off baked project data, but with reduced enrichment.
+The Eagle feature has no required or optional environment variables. All
+data is baked into the repo (`app/data/book-info.json`,
+`app/data/chapter-summaries.json`, and `app/data/canon.json`).
 
 ## Known Current Limitations
 
-- Stage 2 verse-level placement depends on IQ Bible verse counts being available.
 - Unstructured reading-plan items are shown as manual / qualitative targets rather than precise verse math.
 - The Eagle UI is implemented inline in route files rather than extracted into reusable components yet.

@@ -7,7 +7,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "build:data": "node scripts/build-lexicon.mjs && node scripts/build-tagged-verses.mjs"
+    "build:data": "node scripts/build-lexicon.mjs && node scripts/build-tagged-verses.mjs && node scripts/build-canon.mjs"
   },
   "keywords": [],
   "author": "",

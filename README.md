@@ -12,6 +12,7 @@ Live at [bible-tour.vercel.app](https://bible-tour.vercel.app)
 - Inline verse reader — tap any reference to read the passage without leaving the app
 - Multiple translations: NIV, NIrV, NIVUK (via YouVersion API), KJV, WEB, ASV (via bible-api.com), ESV (via Crossway API)
 - Per-verse audio (ESV) via the Crossway API
+- Resume bar — re-entering the Tour offers one-tap resume of the last verse you opened
 - Progress saved in localStorage (no backend, no accounts, no tracking)
 
 ## Tech stack

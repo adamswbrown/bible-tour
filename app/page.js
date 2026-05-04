@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
-import { READING_PLAN, TOTAL, parsePlanRef } from "./lib/bible";
+import { READING_PLAN, TOTAL, parsePlanRef, slugifyBookName } from "./lib/bible";
 import {
   TRANSLATIONS,
   MAIN_DEFAULT_TRANSLATION,
@@ -70,10 +70,9 @@ function VerseLinks({ book, refs, done, onVerseClick }) {
           return (
             <span key={i} style={{ display: "inline-flex", alignItems: "center" }}>
               {separator && <span style={{ margin: "0 2px", fontSize: 13, color: done ? C.done : C.tealLight }}>{separator}</span>}
-              <a
-                href={p.url}
+              <button
+                type="button"
                 onClick={e => {
-                  e.preventDefault();
                   e.stopPropagation();
                   onVerseClick(book, p.ref, p.url);
                 }}
@@ -89,6 +88,7 @@ function VerseLinks({ book, refs, done, onVerseClick }) {
                   border: `1px solid ${done ? "rgba(27,107,58,0.15)" : "rgba(27,58,75,0.12)"}`,
                   transition: "all .15s",
                   cursor: "pointer",
+                  font: "inherit",
                 }}
                 onMouseEnter={e => {
                   e.currentTarget.style.background = done ? "rgba(27,107,58,0.15)" : "rgba(27,58,75,0.13)";
@@ -103,7 +103,7 @@ function VerseLinks({ book, refs, done, onVerseClick }) {
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ opacity: 0.5, flexShrink: 0 }}>
                   <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-              </a>
+              </button>
             </span>
           );
         }
@@ -464,6 +464,14 @@ function VersePanel({ book, verseRef, onClose, mode = "overlay" }) {
 const EAGLE_BANNER_DISMISSED_KEY = "bt:eagleBannerDismissed";
 const ORIGINALS_BANNER_DISMISSED_KEY = "bt:originalsBannerDismissed";
 const MOBILE_APP_BANNER_DISMISSED_KEY = "bt:mobileAppBannerDismissed";
+const RESUME_KEY = "bt:resume";
+// shape: { book: string, ref: string, youVersionUrl: string|null, ts: number } | null
+const EAGLE_STUDIED_KEY = "bt:eagle";
+
+// Set of canonical book names — guards against stale resume entries
+const CANONICAL_BOOK_NAMES = new Set(
+  Object.values(READING_PLAN).flat().map(r => r.book)
+);
 
 function store(key, value) {
   try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
@@ -492,6 +500,8 @@ function ChecklistView({ checked, onToggle, onReset }) {
   const [showOriginalsBanner, setShowOriginalsBanner] = useState(false);
   const [showMobileAppBanner, setShowMobileAppBanner] = useState(false);
   const [bannerReady, setBannerReady] = useState(false);
+  const [resume, setResume] = useState(null);
+  const [eagleStudied, setEagleStudied] = useState({});
   const isIpad = useIsIpad();
 
   const doneCount = Object.values(checked).filter(Boolean).length;
@@ -510,16 +520,32 @@ function ChecklistView({ checked, onToggle, onReset }) {
 
   const openVerse = useCallback((book, ref, youVersionUrl) => {
     setVersePanel({ book, ref, youVersionUrl });
+    const entry = { book, ref, youVersionUrl: youVersionUrl || null, ts: Date.now() };
+    store(RESUME_KEY, entry);
+    setResume(entry);
   }, []);
 
+  // Closing the panel is intentional dismissal of the reader, NOT a memory wipe —
+  // we keep the resume key so the pill persists for re-entry.
   const closeVerse = useCallback(() => {
     setVersePanel(null);
+  }, []);
+
+  const clearResume = useCallback(() => {
+    setResume(null);
+    remove(RESUME_KEY);
   }, []);
 
   useEffect(() => {
     setShowEagleBanner(!load(EAGLE_BANNER_DISMISSED_KEY));
     setShowOriginalsBanner(!load(ORIGINALS_BANNER_DISMISSED_KEY));
     setShowMobileAppBanner(!load(MOBILE_APP_BANNER_DISMISSED_KEY));
+    setResume(load(RESUME_KEY));
+    // Read the Eagle key directly — it's owned by /eagle, we only read it.
+    try {
+      const raw = localStorage.getItem(EAGLE_STUDIED_KEY);
+      setEagleStudied(raw ? JSON.parse(raw) : {});
+    } catch {}
     setBannerReady(true);
   }, []);
 
@@ -542,6 +568,46 @@ function ChecklistView({ checked, onToggle, onReset }) {
     : section === "nt" ? { "New Testament": READING_PLAN["New Testament"] }
     : READING_PLAN;
 
+  // Only show the resume pill once mounted (avoids SSR/CSR flash) AND
+  // when the stored book is still a canonical book name — guards against
+  // stale entries if the reading plan ever changes.
+  const showResume =
+    bannerReady &&
+    resume &&
+    resume.book &&
+    resume.ref &&
+    CANONICAL_BOOK_NAMES.has(resume.book);
+
+  const resumePill = showResume ? (
+    <div style={isIpad ? { ...s.resumeWrap, maxWidth: "none" } : s.resumeWrap}>
+      <div style={s.resumeShell}>
+        <button
+          type="button"
+          onClick={() => openVerse(resume.book, resume.ref, resume.youVersionUrl)}
+          style={s.resumeBody}
+          aria-label={`Resume reading ${resume.book} ${resume.ref}`}
+        >
+          <span style={s.resumePill}>Resume</span>
+          <span style={s.resumeText}>
+            Pick up where you left off
+          </span>
+          <span style={s.resumeArrow} aria-hidden="true">→</span>
+          <span style={s.resumeRef}>{`${resume.book} ${resume.ref}`}</span>
+        </button>
+        <button
+          type="button"
+          onClick={clearResume}
+          aria-label="Dismiss resume suggestion"
+          style={s.resumeClose}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  ) : null;
+
   // Shared book list used in both layouts
   const bookList = (
     <div style={isIpad ? { ...s.listWrap, maxWidth: "none", padding: "0 16px 32px" } : s.listWrap}>
@@ -556,6 +622,7 @@ function ChecklistView({ checked, onToggle, onReset }) {
             <div style={s.grid}>
               {readings.map((r) => {
                 const done = !!checked[r.book];
+                const isStudied = !!eagleStudied[r.book];
                 return (
                   <button key={r.book} onClick={() => toggle(r.book)}
                     style={{ ...s.card, ...(done ? s.cardDone : {}), ...(isIpad && versePanel?.book === r.book ? s.cardActive : {}) }}>
@@ -566,6 +633,23 @@ function ChecklistView({ checked, onToggle, onReset }) {
                         </svg>}
                       </div>
                       <span style={{ ...s.bookName, ...(done ? s.bookDone : {}) }}>{r.book}</span>
+                      {isStudied && (
+                        <a
+                          href={`/eagle/${slugifyBookName(r.book)}`}
+                          onClick={e => e.stopPropagation()}
+                          style={s.studiedBadge}
+                          title="You've studied this book in Eagle Method"
+                          aria-label={`${r.book} studied in Eagle Method — open Eagle page`}
+                        >
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
+                            {/* Wing silhouette — matches the Eagle hero bird vocabulary */}
+                            <path d="M12 13 C9.5 11 6 10 2 11.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                            <path d="M12 13 C14.5 11 18 10 22 11.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                            <ellipse cx="12" cy="12" rx="1.6" ry="2" fill="currentColor"/>
+                          </svg>
+                          Studied
+                        </a>
+                      )}
                     </div>
                     <p style={{ ...s.refs, ...(done ? s.refsDone : {}) }}>
                       <VerseLinks book={r.book} refs={r.refs} done={done} onVerseClick={openVerse} />
@@ -706,6 +790,8 @@ function ChecklistView({ checked, onToggle, onReset }) {
               <span>NT: {ntDone}/{READING_PLAN["New Testament"].length}</span>
             </div>
           </div>
+
+          {resumePill}
 
           <div style={s.filters}>
             {[["all","All"],["ot","Old Testament"],["nt","New Testament"]].map(([k,l]) => (
@@ -855,6 +941,8 @@ function ChecklistView({ checked, onToggle, onReset }) {
           <span>NT: {ntDone}/{READING_PLAN["New Testament"].length}</span>
         </div>
       </div>
+
+      {resumePill}
 
       <div style={s.filters}>
         {[["all","All"],["ot","Old Testament"],["nt","New Testament"]].map(([k,l]) => (
@@ -1106,6 +1194,77 @@ const s = {
     background: "rgba(27,58,75,0.07)",
     borderColor: "rgba(27,58,75,0.3)",
     boxShadow: `inset 3px 0 0 ${C.teal}`,
+  },
+
+  // ── Resume pill ────────────────────────────────────────────────────────────
+  resumeWrap: { maxWidth: 600, margin: "0 auto", padding: "0 20px 12px" },
+  resumeShell: { position: "relative" },
+  resumeBody: {
+    display: "flex", alignItems: "center", gap: 10,
+    width: "100%",
+    padding: "10px 44px 10px 14px",
+    minHeight: 38,
+    borderRadius: 12,
+    background: C.tealLight,
+    border: `1px solid rgba(0,0,0,0.18)`,
+    color: "#fff",
+    fontFamily: "'DM Sans',sans-serif",
+    fontSize: 13,
+    fontWeight: 600,
+    cursor: "pointer",
+    textAlign: "left",
+    boxShadow: "0 2px 10px rgba(0,0,0,0.10)",
+    transition: "all .15s",
+  },
+  resumePill: {
+    display: "inline-flex", alignItems: "center", justifyContent: "center",
+    padding: "2px 7px", borderRadius: 999,
+    background: C.yellow, color: C.teal,
+    fontSize: 10, fontWeight: 800, letterSpacing: "0.1em",
+    textTransform: "uppercase", flexShrink: 0,
+  },
+  resumeText: {
+    flexShrink: 0,
+    fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)",
+  },
+  resumeArrow: {
+    flexShrink: 0,
+    fontSize: 14, color: C.yellowPale, opacity: 0.7,
+  },
+  resumeRef: {
+    flex: 1, minWidth: 0,
+    fontFamily: "'Oswald',sans-serif",
+    fontSize: 14, fontWeight: 700,
+    color: C.yellow,
+    textTransform: "uppercase", letterSpacing: "0.02em",
+    whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+  },
+  resumeClose: {
+    position: "absolute", top: 5, right: 6,
+    width: 28, height: 28,
+    borderRadius: 999,
+    border: "none",
+    background: "rgba(255,255,255,0.12)",
+    color: "rgba(255,255,255,0.82)",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    cursor: "pointer", padding: 0,
+  },
+
+  // ── Studied (Eagle cross-pollination) badge ────────────────────────────────
+  studiedBadge: {
+    display: "inline-flex", alignItems: "center", gap: 4,
+    padding: "2px 7px",
+    marginLeft: "auto",
+    borderRadius: 999,
+    background: C.yellowPale,
+    border: `1px solid rgba(243,191,33,0.6)`,
+    color: "#7a5a00",
+    fontFamily: "'DM Sans',sans-serif",
+    fontSize: 10, fontWeight: 800, letterSpacing: "0.08em",
+    textTransform: "uppercase",
+    textDecoration: "none",
+    flexShrink: 0,
+    lineHeight: 1.2,
   },
 };
 

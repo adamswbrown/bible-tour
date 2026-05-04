@@ -7,10 +7,15 @@ import {
   CHAPTER_SUMMARY_ATTRIBUTION,
   CHAPTER_SUMMARY_SOURCE,
   getChapterSummaries,
+  getCrossRefsForChapter,
   getLocalBookInfo,
-  hasMeaningfulBookInfo,
 } from "../../lib/book-data";
-import { getIqBookInfo, getIqVerseCount } from "../../lib/iq-bible";
+import { getCanonVerseCount } from "../../lib/canon";
+import {
+  getBookGenre,
+  getGenreLabel,
+  getSurveyQuestions,
+} from "../../lib/genre";
 import MarkStudiedButton from "./MarkStudiedButton";
 import VersePreviewPanel from "./VersePreviewPanel";
 import TourLinkButton from "../../components/TourLinkButton";
@@ -206,8 +211,7 @@ export default async function EagleBookPage({ params }) {
   const chapterSummaries = getChapterSummaries(entry.book);
   const chapterCount = chapterSummaries.length;
   const localBookInfo = getLocalBookInfo(entry.book);
-  const remoteBookInfo = hasMeaningfulBookInfo(localBookInfo) ? null : await getIqBookInfo(entry.id);
-  const bookInfo = { ...(remoteBookInfo || {}), ...(localBookInfo || {}) };
+  const bookInfo = { ...(localBookInfo || {}) };
   const infoFields = getBookInfoFields(bookInfo);
   const intro = getBookIntro(bookInfo);
   const chapterHits = buildChapterHits(parsedRefs);
@@ -219,16 +223,18 @@ export default async function EagleBookPage({ params }) {
   )];
 
   const verseCounts = Object.fromEntries(
-    (
-      await Promise.all(
-        verseCountChapters.map(async (chapter) => [chapter, await getIqVerseCount(entry.id, chapter)])
-      )
-    ).filter(([, count]) => Number.isFinite(count))
+    verseCountChapters
+      .map((chapter) => [chapter, getCanonVerseCount(entry.book, chapter)])
+      .filter(([, count]) => Number.isFinite(count))
   );
 
   const currentIndex = BOOKS.findIndex(({ book }) => book === entry.book);
   const previousBook = currentIndex > 0 ? BOOKS[currentIndex - 1] : null;
   const nextBook = currentIndex < BOOKS.length - 1 ? BOOKS[currentIndex + 1] : null;
+
+  const bookGenre = getBookGenre(entry.book);
+  const bookGenreLabel = getGenreLabel(bookGenre);
+  const surveyQuestions = getSurveyQuestions(entry.book);
 
   return (
     <main className="eagle-shell">
@@ -442,6 +448,30 @@ export default async function EagleBookPage({ params }) {
           color: #162636;
           font-style: italic;
         }
+        .eagle-genre-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 6px 12px;
+          border-radius: 999px;
+          background: rgba(243, 191, 33, 0.12);
+          border: 1px solid rgba(243, 191, 33, 0.55);
+          font-size: 12px;
+          font-family: system-ui, sans-serif;
+          line-height: 1.2;
+          flex-shrink: 0;
+          align-self: flex-start;
+        }
+        .eagle-genre-pill-key {
+          font-weight: 700;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: ${C.tealLight};
+        }
+        .eagle-genre-pill-value {
+          font-weight: 600;
+          color: ${C.ink};
+        }
         .eagle-empty {
           margin: 0;
           padding: 18px 20px;
@@ -620,6 +650,41 @@ export default async function EagleBookPage({ params }) {
           font-size: 12px;
           font-weight: 700;
           color: ${C.teal};
+        }
+        .eagle-cross-refs {
+          margin-top: 12px;
+          padding: 10px 12px;
+          border-left: 3px solid ${C.gold};
+          background: rgba(243, 191, 33, 0.08);
+          border-radius: 6px;
+        }
+        .eagle-cross-refs-label {
+          margin: 0 0 6px;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: ${C.tealLight};
+        }
+        .eagle-cross-refs-list {
+          list-style: none;
+          margin: 0;
+          padding: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+        .eagle-cross-ref {
+          font-size: 12px;
+          line-height: 1.5;
+          color: ${C.ink};
+        }
+        .eagle-cross-ref-ref {
+          font-weight: 700;
+          color: ${C.teal};
+        }
+        .eagle-cross-ref-note {
+          color: ${C.muted};
         }
         /* Step strip */
         .eagle-steps {
@@ -867,14 +932,14 @@ export default async function EagleBookPage({ params }) {
                 </p>
               </div>
             </div>
+            <span className="eagle-genre-pill" title="Framing questions are tuned to this book's genre">
+              <span className="eagle-genre-pill-key">Genre</span>
+              <span className="eagle-genre-pill-value">{bookGenreLabel}</span>
+            </span>
           </div>
 
           <div className="eagle-questions">
-            {[
-              { label: "Question 1", prompt: "Who wrote it, and when?" },
-              { label: "Question 2", prompt: "Who were the original audience?" },
-              { label: "Question 3", prompt: "What is the purpose of the book?" },
-            ].map((q) => (
+            {surveyQuestions.map((q) => (
               <div className="eagle-q" key={q.label}>
                 <p className="eagle-q-label">{q.label}</p>
                 <p className="eagle-q-prompt">{q.prompt}</p>
@@ -904,8 +969,7 @@ export default async function EagleBookPage({ params }) {
             <p className="eagle-empty">
               No overview data is available for this book yet. Populate
               <code> app/data/book-info.json </code>
-              or configure <code>IQ_BIBLE_API_KEY</code> to fill in the author, audience, purpose,
-              and introduction.
+              to fill in the author, audience, purpose, and introduction.
             </p>
           ) : null}
           <div className="eagle-next-nudge">
@@ -1004,7 +1068,7 @@ export default async function EagleBookPage({ params }) {
                     )
                   ) : ref.isStructured && ref.kind !== "chapter-span" ? (
                     <p className="eagle-track-note">
-                      Verse-level placement will appear automatically once IQ Bible verse counts are
+                      Verse-level placement will appear automatically once verse counts are
                       available.
                     </p>
                   ) : null}
@@ -1066,6 +1130,23 @@ export default async function EagleBookPage({ params }) {
                                 ))}
                               </div>
                             ) : null}
+                            {refs.length ? (() => {
+                              const crossRefs = getCrossRefsForChapter(entry.book, chapter).slice(0, 3);
+                              if (!crossRefs.length) return null;
+                              return (
+                                <div className="eagle-cross-refs">
+                                  <p className="eagle-cross-refs-label">Connects to</p>
+                                  <ul className="eagle-cross-refs-list">
+                                    {crossRefs.map((cr) => (
+                                      <li className="eagle-cross-ref" key={`${cr.ref}-${cr.kind}`}>
+                                        <span className="eagle-cross-ref-ref">{cr.ref}</span>
+                                        {cr.note ? <span className="eagle-cross-ref-note"> {"—"} {cr.note}</span> : null}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              );
+                            })() : null}
                           </article>
                         );
                       })}

@@ -1,5 +1,6 @@
 import bookInfoData from "../data/book-info.json";
 import chapterSummariesData from "../data/chapter-summaries.json";
+import crossRefsData from "../data/cross-refs.json";
 
 export const CHAPTER_SUMMARY_ATTRIBUTION = chapterSummariesData._attribution || null;
 export const CHAPTER_SUMMARY_SOURCE = chapterSummariesData._source || null;
@@ -50,4 +51,11 @@ export function getChapterSummaries(book) {
       chapter: Number(chapter),
       summary,
     }));
+}
+
+export function getCrossRefsForChapter(book, chapter) {
+  const bookEntries = crossRefsData[book];
+  if (!bookEntries) return [];
+  const entries = bookEntries[String(chapter)];
+  return Array.isArray(entries) ? entries : [];
 }
