@@ -504,6 +504,7 @@ function VersePanel({ book, verseRef, onClose, mode = "overlay" }) {
 const EAGLE_BANNER_DISMISSED_KEY = "bt:eagleBannerDismissed";
 const ORIGINALS_BANNER_DISMISSED_KEY = "bt:originalsBannerDismissed";
 const MOBILE_APP_BANNER_DISMISSED_KEY = "bt:mobileAppBannerDismissed";
+const MEMORY_BANNER_DISMISSED_KEY = "bt:memoryBannerDismissed";
 const RESUME_KEY = "bt:resume";
 // shape: { book: string, ref: string, youVersionUrl: string|null, ts: number } | null
 const EAGLE_STUDIED_KEY = "bt:eagle";
@@ -539,6 +540,7 @@ function ChecklistView({ checked, onToggle, onReset }) {
   const [showEagleBanner, setShowEagleBanner] = useState(false);
   const [showOriginalsBanner, setShowOriginalsBanner] = useState(false);
   const [showMobileAppBanner, setShowMobileAppBanner] = useState(false);
+  const [showMemoryBanner, setShowMemoryBanner] = useState(false);
   const [bannerReady, setBannerReady] = useState(false);
   const [resume, setResume] = useState(null);
   const [eagleStudied, setEagleStudied] = useState({});
@@ -568,7 +570,7 @@ function ChecklistView({ checked, onToggle, onReset }) {
 
   // Closing the panel is intentional dismissal of the reader, NOT a memory wipe —
   // we keep the resume key so the pill persists for re-entry. Refresh the
-  // Memory count so the floating link appears after a verse is starred.
+  // Memory count so the chiclet appears as soon as a verse has been starred.
   const closeVerse = useCallback(() => {
     setVersePanel(null);
     setMemoryCount(countMemory(loadMemory()));
@@ -583,6 +585,7 @@ function ChecklistView({ checked, onToggle, onReset }) {
     setShowEagleBanner(!load(EAGLE_BANNER_DISMISSED_KEY));
     setShowOriginalsBanner(!load(ORIGINALS_BANNER_DISMISSED_KEY));
     setShowMobileAppBanner(!load(MOBILE_APP_BANNER_DISMISSED_KEY));
+    setShowMemoryBanner(!load(MEMORY_BANNER_DISMISSED_KEY));
     setResume(load(RESUME_KEY));
     // Read the Eagle key directly — it's owned by /eagle, we only read it.
     try {
@@ -606,6 +609,11 @@ function ChecklistView({ checked, onToggle, onReset }) {
   const dismissMobileAppBanner = useCallback(() => {
     setShowMobileAppBanner(false);
     store(MOBILE_APP_BANNER_DISMISSED_KEY, true);
+  }, []);
+
+  const dismissMemoryBanner = useCallback(() => {
+    setShowMemoryBanner(false);
+    store(MEMORY_BANNER_DISMISSED_KEY, true);
   }, []);
 
   const vis = section === "ot" ? { "Old Testament": READING_PLAN["Old Testament"] }
@@ -817,6 +825,23 @@ function ChecklistView({ checked, onToggle, onReset }) {
             </div>
           )}
 
+          {bannerReady && showMemoryBanner && (
+            <div style={{ ...s.eagleBannerWrap, maxWidth: "none" }}>
+              <div style={s.eagleBannerShell}>
+                <a href="/memory" style={s.memoryBanner}>
+                  <span style={s.memoryBannerPill}>New</span>
+                  <span style={s.memoryBannerText}>Memory — learn a verse by heart</span>
+                  <span style={s.eagleBannerArrow} aria-hidden="true">→</span>
+                </a>
+                <button type="button" onClick={dismissMemoryBanner} aria-label="Dismiss Memory banner" style={s.eagleBannerClose}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          )}
+
           <div style={{ ...s.progressSection, maxWidth: "none" }}>
             <div style={s.progressStats}>
               <div style={s.statBox}>
@@ -873,7 +898,7 @@ function ChecklistView({ checked, onToggle, onReset }) {
           )}
         </div>
         <EagleLinkButton visible={bannerReady && !showEagleBanner} />
-        <MemoryLinkButton visible={bannerReady && memoryCount > 0} />
+        <MemoryLinkButton visible={bannerReady && (!showMemoryBanner || memoryCount > 0)} />
       </div>
     );
   }
@@ -956,6 +981,30 @@ function ChecklistView({ checked, onToggle, onReset }) {
               type="button"
               onClick={dismissMobileAppBanner}
               aria-label="Dismiss mobile app banner"
+              style={s.eagleBannerClose}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {bannerReady && showMemoryBanner && (
+        <div style={s.eagleBannerWrap}>
+          <div style={s.eagleBannerShell}>
+            <a href="/memory" style={s.memoryBanner}>
+              <span style={s.memoryBannerPill}>New</span>
+              <span style={s.memoryBannerText}>
+                Memory — learn a verse by heart
+              </span>
+              <span style={s.eagleBannerArrow} aria-hidden="true">→</span>
+            </a>
+            <button
+              type="button"
+              onClick={dismissMemoryBanner}
+              aria-label="Dismiss Memory banner"
               style={s.eagleBannerClose}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -1112,6 +1161,25 @@ const s = {
     textTransform: "uppercase", flexShrink: 0,
   },
   mobileAppBannerText: { flex: 1, fontSize: 14, fontWeight: 700, lineHeight: 1.4, color: C.yellow },
+  memoryBanner: {
+    display: "flex", alignItems: "center", gap: 10,
+    padding: "12px 48px 12px 16px",
+    borderRadius: 14,
+    background: C.done,
+    border: `1px solid rgba(0,0,0,0.15)`,
+    textDecoration: "none",
+    color: "#fff",
+    boxShadow: "0 2px 12px rgba(0,0,0,0.15)",
+    transition: "all .15s",
+  },
+  memoryBannerPill: {
+    display: "inline-flex", alignItems: "center", justifyContent: "center",
+    padding: "2px 7px", borderRadius: 999,
+    background: C.yellow, color: C.done,
+    fontSize: 10, fontWeight: 800, letterSpacing: "0.1em",
+    textTransform: "uppercase", flexShrink: 0,
+  },
+  memoryBannerText: { flex: 1, fontSize: 14, fontWeight: 700, lineHeight: 1.4 },
   eagleBannerArrow: { fontSize: 16, opacity: 0.6, flexShrink: 0 },
   eagleBannerClose: {
     position: "absolute", top: 8, right: 8,
