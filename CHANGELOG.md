@@ -21,6 +21,8 @@ to production. Format loosely follows [Keep a Changelog](https://keepachangelog.
     place to drill verses whenever you like.
   - A floating **★ Memory** link appears once your deck has at least one
     verse (and a permanent link in the footer).
+  - A dismissible "New — Memory" banner on the home page introduces the
+    feature, matching the existing Eagle / Originals / mobile-app banners.
 
 ## 2026-04-26 — ESV text & audio
 
