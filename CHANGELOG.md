@@ -20,8 +20,8 @@ to production. Format loosely follows [Keep a Changelog](https://keepachangelog.
   - Deliberately no review schedule, due dates, or streaks — just a quiet
     place to drill verses whenever you like.
   - A floating **★ Memory** chiclet (and a permanent footer link), shown
-    once the home-page Memory banner is dismissed — mirroring the Eagle
-    chiclet's behaviour.
+    once the home-page Memory banner is dismissed or once you've saved at
+    least one verse — so there's always a path to /memory after you engage.
   - A dismissible "New — Memory" banner on the home page introduces the
     feature, matching the existing Eagle / Originals / mobile-app banners.
 
