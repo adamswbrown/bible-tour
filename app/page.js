@@ -10,10 +10,12 @@ import {
   buildYouVersionUrl,
 } from "./lib/translations";
 import { hasStudy, getTokens, getEntry, toVerseId } from "./lib/study";
+import { loadMemory, memoryCount as countMemory, isSaved as memIsSaved, toggleVerse as memToggle } from "./lib/memory";
 import StudyVerse from "./components/StudyVerse";
 import WordPopover from "./components/WordPopover";
 import LexiconDrawer from "./components/LexiconDrawer";
 import EagleLinkButton from "./components/EagleLinkButton";
+import MemoryLinkButton from "./components/MemoryLinkButton";
 
 const STUDY_MODE_STORAGE_KEY = "bt:originalsMode";
 
@@ -127,7 +129,29 @@ function VersePanel({ book, verseRef, onClose, mode = "overlay" }) {
   });
   const [studyPopover, setStudyPopover] = useState(null); // { strongsId, anchor } | null
   const [studyDrawer, setStudyDrawer] = useState(null);   // { strongsId } | null
+  const [saved, setSaved] = useState(false);
+  const [savedToast, setSavedToast] = useState(false);
   const panelRef = useRef(null);
+
+  // Reflect whether this verse is already in the Memory deck.
+  useEffect(() => {
+    setSaved(memIsSaved(loadMemory(), book, verseRef));
+    setSavedToast(false);
+  }, [book, verseRef]);
+
+  const toggleSaved = () => {
+    const map = memToggle(book, verseRef);
+    const nowSaved = memIsSaved(map, book, verseRef);
+    setSaved(nowSaved);
+    setSavedToast(nowSaved);
+  };
+
+  // Auto-dismiss the "Saved" toast.
+  useEffect(() => {
+    if (!savedToast) return;
+    const t = setTimeout(() => setSavedToast(false), 2000);
+    return () => clearTimeout(t);
+  }, [savedToast]);
 
   const tx = TRANSLATIONS.find(t => t.id === translationId) || TRANSLATIONS[0];
   const youVersionUrl = buildYouVersionUrl(book, verseRef, tx.youVersionId);
@@ -323,7 +347,23 @@ function VersePanel({ book, verseRef, onClose, mode = "overlay" }) {
           >
             {studyMode ? "Originals ✓" : "Originals ▸"}
           </button>
+          <button
+            type="button"
+            onClick={toggleSaved}
+            aria-pressed={saved}
+            style={{ ...ps.studyToggle, ...(saved ? ps.memToggleOn : {}) }}
+            title={saved ? "Saved to Memory — tap to remove" : "Save to Memory"}
+          >
+            {saved ? "★ Saved" : "☆ Memorize"}
+          </button>
         </div>
+
+        {savedToast && (
+          <div style={ps.savedToast} role="status">
+            Saved to Memory ·{" "}
+            <a href="/memory" style={ps.savedToastLink}>Practice →</a>
+          </div>
+        )}
 
         {parsePlanRef(verseRef).isStructured && (
           <div style={ps.audioBar}>
@@ -502,6 +542,7 @@ function ChecklistView({ checked, onToggle, onReset }) {
   const [bannerReady, setBannerReady] = useState(false);
   const [resume, setResume] = useState(null);
   const [eagleStudied, setEagleStudied] = useState({});
+  const [memoryCount, setMemoryCount] = useState(0);
   const isIpad = useIsIpad();
 
   const doneCount = Object.values(checked).filter(Boolean).length;
@@ -526,9 +567,11 @@ function ChecklistView({ checked, onToggle, onReset }) {
   }, []);
 
   // Closing the panel is intentional dismissal of the reader, NOT a memory wipe —
-  // we keep the resume key so the pill persists for re-entry.
+  // we keep the resume key so the pill persists for re-entry. Refresh the
+  // Memory count so the floating link appears after a verse is starred.
   const closeVerse = useCallback(() => {
     setVersePanel(null);
+    setMemoryCount(countMemory(loadMemory()));
   }, []);
 
   const clearResume = useCallback(() => {
@@ -546,6 +589,7 @@ function ChecklistView({ checked, onToggle, onReset }) {
       const raw = localStorage.getItem(EAGLE_STUDIED_KEY);
       setEagleStudied(raw ? JSON.parse(raw) : {});
     } catch {}
+    setMemoryCount(countMemory(loadMemory()));
     setBannerReady(true);
   }, []);
 
@@ -684,6 +728,8 @@ function ChecklistView({ checked, onToggle, onReset }) {
         Watch Matt explain the tour
       </a>
       <p style={s.footerNav}>
+        <a href="/memory" style={s.footerNavLink}>Memory</a>
+        <span style={s.footerNavSep}>·</span>
         <a href="/beta" style={s.footerNavLink}>Try the mobile app</a>
         <span style={s.footerNavSep}>·</span>
         <a href="/support" style={s.footerNavLink}>Support</a>
@@ -827,6 +873,7 @@ function ChecklistView({ checked, onToggle, onReset }) {
           )}
         </div>
         <EagleLinkButton visible={bannerReady && !showEagleBanner} />
+        <MemoryLinkButton visible={bannerReady && memoryCount > 0} />
       </div>
     );
   }
@@ -1450,6 +1497,29 @@ const ps = {
     background: C.teal,
     color: C.yellow,
     borderColor: C.teal,
+  },
+  memToggleOn: {
+    background: C.done,
+    color: C.white,
+    borderColor: C.done,
+  },
+  savedToast: {
+    margin: "0 20px",
+    marginTop: 10,
+    padding: "8px 12px",
+    borderRadius: 8,
+    background: C.doneBg,
+    border: `1px solid ${C.doneBorder}`,
+    color: C.done,
+    fontSize: 12,
+    fontWeight: 700,
+    letterSpacing: "0.02em",
+    animation: "fadeIn .2s ease forwards",
+  },
+  savedToastLink: {
+    color: C.done,
+    textDecoration: "underline",
+    fontWeight: 700,
   },
   originalsSection: {
     margin: "24px 0 0",

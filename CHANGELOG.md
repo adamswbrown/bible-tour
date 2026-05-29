@@ -6,6 +6,22 @@ This project ships continuously to [bible-tour.vercel.app](https://bible-tour.ve
 and doesn't follow semver — entries are grouped under the date they shipped
 to production. Format loosely follows [Keep a Changelog](https://keepachangelog.com).
 
+## 2026-05-29 — Memory
+
+### Added
+- **Memory** — a calm, scheduler-free surface for learning verses by heart.
+  - A **☆ Memorize** toggle in the verse panel saves any open verse to your
+    deck (stored in `localStorage` under `bt:memory`, like all other state).
+  - A new `/memory` page lists your saved verses and offers a **practice**
+    surface for each: a **Full → Initials → Blanks** fade ladder, tap-any-word
+    to peek, and ESV per-verse audio to settle the verse in your ear.
+  - A **browse key verses by book** picker to add curated key verses without
+    leaving the page.
+  - Deliberately no review schedule, due dates, or streaks — just a quiet
+    place to drill verses whenever you like.
+  - A floating **★ Memory** link appears once your deck has at least one
+    verse (and a permanent link in the footer).
+
 ## 2026-04-26 — ESV text & audio
 
 ### Added

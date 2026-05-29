@@ -13,6 +13,7 @@ Live at [bible-tour.vercel.app](https://bible-tour.vercel.app)
 - Multiple translations: NIV, NIrV, NIVUK (via YouVersion API), KJV, WEB, ASV (via bible-api.com), ESV (via Crossway API)
 - Per-verse audio (ESV) via the Crossway API
 - Resume bar — re-entering the Tour offers one-tap resume of the last verse you opened
+- Memory — star any verse to save it, then practice with a Full → Initials → Blanks fade ladder, tap-to-peek, and ESV audio (no schedule, no streaks)
 - Progress saved in localStorage (no backend, no accounts, no tracking)
 
 ## Tech stack
