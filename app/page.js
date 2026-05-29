@@ -10,7 +10,7 @@ import {
   buildYouVersionUrl,
 } from "./lib/translations";
 import { hasStudy, getTokens, getEntry, toVerseId } from "./lib/study";
-import { loadMemory, memoryCount as countMemory, isSaved as memIsSaved, toggleVerse as memToggle } from "./lib/memory";
+import { loadMemory, isSaved as memIsSaved, toggleVerse as memToggle } from "./lib/memory";
 import StudyVerse from "./components/StudyVerse";
 import WordPopover from "./components/WordPopover";
 import LexiconDrawer from "./components/LexiconDrawer";
@@ -544,7 +544,6 @@ function ChecklistView({ checked, onToggle, onReset }) {
   const [bannerReady, setBannerReady] = useState(false);
   const [resume, setResume] = useState(null);
   const [eagleStudied, setEagleStudied] = useState({});
-  const [memoryCount, setMemoryCount] = useState(0);
   const isIpad = useIsIpad();
 
   const doneCount = Object.values(checked).filter(Boolean).length;
@@ -569,11 +568,9 @@ function ChecklistView({ checked, onToggle, onReset }) {
   }, []);
 
   // Closing the panel is intentional dismissal of the reader, NOT a memory wipe —
-  // we keep the resume key so the pill persists for re-entry. Refresh the
-  // Memory count so the floating link appears after a verse is starred.
+  // we keep the resume key so the pill persists for re-entry.
   const closeVerse = useCallback(() => {
     setVersePanel(null);
-    setMemoryCount(countMemory(loadMemory()));
   }, []);
 
   const clearResume = useCallback(() => {
@@ -592,7 +589,6 @@ function ChecklistView({ checked, onToggle, onReset }) {
       const raw = localStorage.getItem(EAGLE_STUDIED_KEY);
       setEagleStudied(raw ? JSON.parse(raw) : {});
     } catch {}
-    setMemoryCount(countMemory(loadMemory()));
     setBannerReady(true);
   }, []);
 
@@ -898,7 +894,7 @@ function ChecklistView({ checked, onToggle, onReset }) {
           )}
         </div>
         <EagleLinkButton visible={bannerReady && !showEagleBanner} />
-        <MemoryLinkButton visible={bannerReady && memoryCount > 0} />
+        <MemoryLinkButton visible={bannerReady && !showMemoryBanner} />
       </div>
     );
   }
