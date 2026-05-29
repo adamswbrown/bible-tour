@@ -286,9 +286,10 @@ export default function MemoryPage() {
           <div className="mem-kicker">Memory</div>
           <h1 className="mem-title">Learn It By Heart</h1>
           <p className="mem-copy">
-            A quiet place to memorise verses — no schedule, no streaks, no pressure.
-            Fade the words down from full text to first letters to blanks, peek at any
-            word you’re stuck on, and let the ESV audio settle it in your ear.
+            Verses you want to know by heart live here. Practise by hiding the words a
+            little at a time, going from the full text to first letters to blanks, and
+            tap anything you forget. Or play the ESV audio and listen until it sticks.
+            Nothing is timed or scored.
           </p>
         </section>
 
