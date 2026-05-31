@@ -6,6 +6,17 @@ This project ships continuously to [bible-tour.vercel.app](https://bible-tour.ve
 and doesn't follow semver — entries are grouped under the date they shipped
 to production. Format loosely follows [Keep a Changelog](https://keepachangelog.com).
 
+## 2026-05-31 — Modern default translation
+
+### Changed
+- The default reading translation is now the **NIV** instead of the KJV, on
+  both the web Tour and the iOS app. The KJV's Jacobean English can be a
+  hurdle for first-time readers, so new visitors now land on a plain-modern
+  translation by default. Anyone who has already picked a translation keeps
+  their choice (it's still stored under `bt:translation`), and every
+  translation — including the KJV and its Originals/Strong's study mode —
+  remains one tap away in the verse panel and in Settings.
+
 ## 2026-05-29 — Memory
 
 ### Added
