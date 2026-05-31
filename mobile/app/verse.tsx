@@ -11,7 +11,7 @@ import {
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { C } from '../constants/colors';
 import { fetchVerse, type VerseResult } from '../lib/api';
-import { TRANSLATIONS, getTranslation, buildYouVersionUrl } from '../lib/translations';
+import { TRANSLATIONS, getTranslation, buildYouVersionUrl, DEFAULT_TRANSLATION } from '../lib/translations';
 import { hasStudyForRef, getTokensForRef, getEntry } from '../lib/study';
 import StrongsVerse from '../components/StrongsVerse';
 import LexiconDrawer from '../components/LexiconDrawer';
@@ -27,7 +27,7 @@ export default function VerseScreen() {
   }>();
   const book = params.book ?? '';
   const refParam = params.ref ?? '';
-  const initialTranslation = params.translation ?? 'kjv';
+  const initialTranslation = params.translation ?? DEFAULT_TRANSLATION;
 
   const [translation, setTranslation] = useState(initialTranslation);
   const [previousTranslation, setPreviousTranslation] = useState<string | null>(null);

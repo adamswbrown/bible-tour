@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import { Alert, Linking, Platform, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { C } from '../../constants/colors';
-import { TRANSLATIONS } from '../../lib/translations';
+import { TRANSLATIONS, DEFAULT_TRANSLATION } from '../../lib/translations';
 import {
   clearProgress,
   getSavedTranslation,
@@ -14,7 +14,7 @@ import {
 import { scheduleDailyReminder, cancelReminder, sendTestNotification } from '../../lib/notifications';
 
 export default function SettingsScreen() {
-  const [translation, setTranslationState] = useState('kjv');
+  const [translation, setTranslationState] = useState(DEFAULT_TRANSLATION);
   const [notifsEnabled, setNotifsState] = useState(false);
   const [doneCount, setDoneCount] = useState(0);
 

@@ -18,7 +18,7 @@ export const TRANSLATIONS = [
   { id: "asv", name: "American Standard Version", abbr: "ASV", apiCode: "asv", youVersionId: 12, yvLicensed: false },
 ];
 
-export const MAIN_DEFAULT_TRANSLATION = "kjv";
+export const MAIN_DEFAULT_TRANSLATION = "niv";
 export const EAGLE_DEFAULT_TRANSLATION = "niv";
 export const MAIN_TRANSLATION_STORAGE_KEY = "bt:translation";
 export const EAGLE_TRANSLATION_STORAGE_KEY = "bt:eagleTranslation";

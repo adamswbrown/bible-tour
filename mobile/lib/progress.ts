@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { DEFAULT_TRANSLATION } from './translations';
 
 const PROGRESS_KEY = 'bt:progress';
 const TRANSLATION_KEY = 'bt:translation';
@@ -28,9 +29,9 @@ export async function setBookDone(bookId: number, done: boolean): Promise<Progre
 
 export async function getSavedTranslation(): Promise<string> {
   try {
-    return (await AsyncStorage.getItem(TRANSLATION_KEY)) ?? 'kjv';
+    return (await AsyncStorage.getItem(TRANSLATION_KEY)) ?? DEFAULT_TRANSLATION;
   } catch {
-    return 'kjv';
+    return DEFAULT_TRANSLATION;
   }
 }
 

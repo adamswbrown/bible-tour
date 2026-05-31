@@ -62,7 +62,7 @@ export const TRANSLATIONS: Translation[] = [
   },
 ];
 
-export const DEFAULT_TRANSLATION = 'kjv';
+export const DEFAULT_TRANSLATION = 'niv';
 
 export function getTranslation(id: string): Translation {
   return TRANSLATIONS.find(t => t.id === id) ?? TRANSLATIONS[0];

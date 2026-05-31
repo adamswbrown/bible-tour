@@ -16,10 +16,11 @@ import {
   getSavedTranslation,
   type Progress,
 } from '../../lib/progress';
+import { DEFAULT_TRANSLATION } from '../../lib/translations';
 
 export default function ChecklistScreen() {
   const [progress, setProgress] = useState<Progress>({});
-  const [translation, setTranslation] = useState('kjv');
+  const [translation, setTranslation] = useState(DEFAULT_TRANSLATION);
 
   useFocusEffect(
     useCallback(() => {
