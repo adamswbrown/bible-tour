@@ -3,6 +3,12 @@
     "name": "Tour of the Bible",
     "slug": "tour-of-the-bible",
     "version": "1.0.1",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/ae8878e9-bb5e-4de2-80c6-5a0cfdcf9324"
+    },
     "scheme": "bibletour",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
