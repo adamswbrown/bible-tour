@@ -2,7 +2,7 @@
   "expo": {
     "name": "Tour of the Bible",
     "slug": "tour-of-the-bible",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "scheme": "bibletour",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
