@@ -69,6 +69,14 @@ export default function MemoryTab() {
 
   return (
     <View style={styles.container}>
+      <View style={styles.intro}>
+        <Text style={styles.introTitle}>Memory</Text>
+        <Text style={styles.introBody}>
+          A quiet place to learn verses by heart. Save verses to your{' '}
+          <Text style={styles.introBold}>Deck</Text>, then practise by tapping words
+          you remember and peeking the ones you don't.
+        </Text>
+      </View>
       <View style={styles.segmentRow}>
         <SegmentButton label="Deck" active={segment === 'deck'} onPress={() => setSegment('deck')} />
         <SegmentButton label="Library" active={segment === 'library'} onPress={() => setSegment('library')} />
@@ -115,7 +123,10 @@ function DeckPanel({
       <View style={[styles.panel, styles.empty]}>
         <Text style={styles.emptyTitle}>No verses yet</Text>
         <Text style={styles.emptyText}>
-          Tap the ☆ in the verse reader, or pick from the Library above.
+          Your deck is the list of verses you've chosen to memorise. To add a verse:
+          {'\n\n'}• Open <Text style={styles.introBold}>Library</Text> above and tap the ☆
+          next to a curated verse, or
+          {'\n'}• Open any passage in the reader and tap the ☆ in the header.
         </Text>
       </View>
     );
@@ -123,7 +134,7 @@ function DeckPanel({
   return (
     <View style={styles.panel}>
       <Text style={styles.count}>
-        {entries.length} {entries.length === 1 ? 'verse' : 'verses'} saved
+        {entries.length} {entries.length === 1 ? 'verse' : 'verses'} saved · tap to practise
       </Text>
       <FlatList
         data={entries}
@@ -181,6 +192,14 @@ function LibraryPanel({
       keyExtractor={(item) => `${item.book} ${item.ref}`}
       stickySectionHeadersEnabled
       style={styles.panel}
+      ListHeaderComponent={
+        <View style={styles.libraryIntro}>
+          <Text style={styles.libraryIntroText}>
+            The curated reading-plan verses for each book of the Bible. Tap a row
+            to add it to your deck; tap a saved row to remove it.
+          </Text>
+        </View>
+      }
       renderSectionHeader={({ section }) => (
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionHeaderText}>{section.title.toUpperCase()}</Text>
@@ -304,5 +323,35 @@ const styles = StyleSheet.create({
     color: C.textSecondary,
     textAlign: 'center',
     padding: 24,
+  },
+  intro: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 12,
+    backgroundColor: C.tealDark,
+    borderBottomWidth: 1,
+    borderBottomColor: C.border,
+  },
+  introTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: C.yellow,
+    marginBottom: 6,
+  },
+  introBody: {
+    fontSize: 13,
+    color: C.textSecondary,
+    lineHeight: 19,
+  },
+  introBold: { fontWeight: '700', color: C.offWhite },
+  libraryIntro: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: C.teal,
+  },
+  libraryIntroText: {
+    fontSize: 13,
+    color: C.textSecondary,
+    lineHeight: 19,
   },
 });

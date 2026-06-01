@@ -188,6 +188,14 @@ function VerseCard({ entry, width }: { entry: MemoryEntry; width: number }) {
         ))}
       </View>
 
+      <View style={styles.howRow}>
+        <Text style={styles.howText}>
+          <Text style={styles.howBold}>Tap</Text> a word to peek ·{' '}
+          <Text style={styles.howBold}>Hold</Text> when you know it ·{' '}
+          <Text style={styles.howBold}>Swipe</Text> for the next verse
+        </Text>
+      </View>
+
       <ScrollView contentContainerStyle={styles.body}>
         {loading && <ActivityIndicator color={C.yellow} size="large" style={styles.loader} />}
         {error && !loading && (
@@ -220,9 +228,6 @@ function VerseCard({ entry, width }: { entry: MemoryEntry; width: number }) {
               })}
             </Text>
           ))}
-        {text && (
-          <Text style={styles.hint}>Tap a word to peek. Long-press once you know it.</Text>
-        )}
       </ScrollView>
     </View>
   );
@@ -275,11 +280,15 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 40,
   },
-  hint: {
+  howRow: {
+    paddingHorizontal: 20,
+    paddingBottom: 12,
+  },
+  howText: {
     fontSize: 12,
     color: C.textSecondary,
     textAlign: 'center',
-    marginTop: 32,
-    fontStyle: 'italic',
+    lineHeight: 18,
   },
+  howBold: { color: C.offWhite, fontWeight: '700' },
 });
