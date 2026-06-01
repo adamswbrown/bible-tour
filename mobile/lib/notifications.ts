@@ -65,6 +65,47 @@ export async function cancelReminder(): Promise<void> {
   await Notifications.cancelAllScheduledNotificationsAsync();
 }
 
+// ── Memory verse reminder ──────────────────────────────────────────────────
+// Independent of the tour reminder above. Identifier-scoped so toggling it
+// doesn't disturb the per-weekday tour reminders. Caveat: if the user
+// re-schedules the tour reminder, that flow calls cancelAllScheduledNotifications
+// and wipes the memory reminder too — the settings UI re-schedules on toggle,
+// which keeps the two in sync as long as the user revisits settings.
+const MEMORY_REMINDER_ID = 'memory-daily-reminder';
+
+export async function scheduleMemoryReminder(
+  hour: number,
+  minute: number,
+): Promise<boolean> {
+  const granted = await requestPermission();
+  if (!granted) return false;
+
+  await Notifications.cancelScheduledNotificationAsync(MEMORY_REMINDER_ID).catch(
+    () => undefined,
+  );
+
+  await Notifications.scheduleNotificationAsync({
+    identifier: MEMORY_REMINDER_ID,
+    content: {
+      title: 'Memory time',
+      body: 'Open Bible Tour to practise a verse.',
+      data: { type: 'memory-reminder' },
+    },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.DAILY,
+      hour,
+      minute,
+    },
+  });
+  return true;
+}
+
+export async function cancelMemoryReminder(): Promise<void> {
+  await Notifications.cancelScheduledNotificationAsync(MEMORY_REMINDER_ID).catch(
+    () => undefined,
+  );
+}
+
 // Schedules a one-shot notification ~5 s out so the user can verify
 // permissions, banner copy, lock-screen behaviour, etc. without
 // waiting for the 9 am daily reminder.

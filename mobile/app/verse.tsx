@@ -17,6 +17,7 @@ import { hasStudyForRef, getTokensForRef, getEntry } from '../lib/study';
 import StrongsVerse from '../components/StrongsVerse';
 import LexiconDrawer from '../components/LexiconDrawer';
 import AudioPlayer from '../components/AudioPlayer';
+import { loadMemory, isSaved, toggleVerse } from '../lib/memory';
 
 const VERCEL_BASE = 'https://bible-tour.vercel.app';
 
@@ -38,6 +39,21 @@ export default function VerseScreen() {
 
   const [studyMode, setStudyMode] = useState(false);
   const [activeStrong, setActiveStrong] = useState<string | null>(null);
+  const [savedToMemory, setSavedToMemory] = useState(false);
+
+  useEffect(() => {
+    if (!book || !refParam) return;
+    let cancelled = false;
+    loadMemory().then((map) => {
+      if (!cancelled) setSavedToMemory(isSaved(map, book, refParam));
+    });
+    return () => { cancelled = true; };
+  }, [book, refParam]);
+
+  async function onToggleMemory() {
+    const next = await toggleVerse(book, refParam);
+    setSavedToMemory(isSaved(next, book, refParam));
+  }
 
   // Sibling verses within this book, so the reader can step through them
   // without bouncing back to the listing. Same parse the checklist uses.
@@ -114,7 +130,21 @@ export default function VerseScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: `${book} ${refParam}` }} />
+      <Stack.Screen
+        options={{
+          title: `${book} ${refParam}`,
+          headerRight: () => (
+            <TouchableOpacity
+              onPress={onToggleMemory}
+              accessibilityLabel={savedToMemory ? 'Remove from memory' : 'Save to memory'}
+              hitSlop={12}
+              style={styles.memoryBtn}
+            >
+              <Text style={styles.memoryBtnText}>{savedToMemory ? '★' : '☆'}</Text>
+            </TouchableOpacity>
+          ),
+        }}
+      />
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
         <View style={styles.grabberWrap}>
           <View style={styles.grabber} />
@@ -332,4 +362,6 @@ const styles = StyleSheet.create({
   noticeHint:       { fontSize: 12, color: C.textSecondary, marginTop: 12, lineHeight: 18, fontStyle: 'italic' },
   yvBtn:            { backgroundColor: C.yellow, paddingVertical: 14, borderRadius: 8, alignItems: 'center' },
   yvBtnText:        { color: C.tealDark, fontWeight: '700', fontSize: 14 },
+  memoryBtn:        { paddingHorizontal: 12, paddingVertical: 4 },
+  memoryBtnText:    { color: C.yellow, fontSize: 22, fontWeight: '600' },
 });

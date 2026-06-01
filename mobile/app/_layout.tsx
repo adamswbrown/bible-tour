@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import * as Notifications from 'expo-notifications';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { C } from '../constants/colors';
 
 // Configure the iOS audio session up-front so ESV verse audio plays
@@ -34,8 +36,18 @@ export default function RootLayout() {
     configureAudioSession();
   }, []);
 
+  useEffect(() => {
+    const sub = Notifications.addNotificationResponseReceivedListener((resp) => {
+      const data = resp.notification.request.content.data as { type?: string };
+      if (data?.type === 'memory-reminder') {
+        router.push({ pathname: '/(tabs)/memory', params: { autoplay: '1' } });
+      }
+    });
+    return () => sub.remove();
+  }, []);
+
   return (
-    <>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <StatusBar style="light" />
       <Stack
         screenOptions={{
@@ -60,6 +72,6 @@ export default function RootLayout() {
           options={{ title: 'About & Credits' }}
         />
       </Stack>
-    </>
+    </GestureHandlerRootView>
   );
 }
