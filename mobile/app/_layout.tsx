@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as Notifications from 'expo-notifications';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { C } from '../constants/colors';
 
 // Configure the iOS audio session up-front so ESV verse audio plays
@@ -46,7 +47,7 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <StatusBar style="light" />
       <Stack
         screenOptions={{
@@ -71,6 +72,6 @@ export default function RootLayout() {
           options={{ title: 'About & Credits' }}
         />
       </Stack>
-    </>
+    </GestureHandlerRootView>
   );
 }
