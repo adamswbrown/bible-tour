@@ -1,47 +1,36 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { C } from '../constants/colors';
 import { fetchVerse } from '../lib/api';
-import {
-  fadeWord,
-  loadMemory,
-  memoryList,
-  tokenizeVerse,
-  type FadeMode,
-  type MemoryEntry,
-} from '../lib/memory';
+import { fadeWord, tokenizeVerse, type FadeMode } from '../lib/memory';
 
-const MODES: { id: FadeMode; label: string }[] = [
-  { id: 'full', label: 'Full' },
+type Difficulty = Extract<FadeMode, 'initials' | 'blanks'>;
+
+const DIFFICULTIES: { id: Difficulty; label: string }[] = [
   { id: 'initials', label: 'Initials' },
   { id: 'blanks', label: 'Blanks' },
 ];
 
 export default function PracticeScreen() {
-  const router = useRouter();
   const params = useLocalSearchParams<{ book: string; ref: string }>();
   const book = params.book ?? '';
   const refParam = params.ref ?? '';
 
-  const [deck, setDeck] = useState<MemoryEntry[]>([]);
   const [text, setText] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [mode, setMode] = useState<FadeMode>('full');
-  const [peeked, setPeeked] = useState<Set<number>>(new Set());
 
-  useEffect(() => {
-    loadMemory().then((map) => setDeck(memoryList(map)));
-  }, []);
+  const [difficulty, setDifficulty] = useState<Difficulty>('initials');
+  const [revealed, setRevealed] = useState<Set<number>>(new Set());
+  const [gotIt, setGotIt] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     if (!book || !refParam) return;
@@ -49,8 +38,9 @@ export default function PracticeScreen() {
     setLoading(true);
     setError(false);
     setText(null);
-    setMode('full');
-    setPeeked(new Set());
+    setDifficulty('initials');
+    setRevealed(new Set());
+    setGotIt(new Set());
 
     fetchVerse(book, refParam, 'esv')
       .then((res) => {
@@ -70,26 +60,42 @@ export default function PracticeScreen() {
     };
   }, [book, refParam]);
 
-  const currentIndex = deck.findIndex(
-    (e) => e.book === book && e.verseRef === refParam,
+  const tokens = useMemo(() => (text ? tokenizeVerse(text) : []), [text]);
+  const totalTokens = useMemo(
+    () => tokens.reduce((n, line) => n + line.length, 0),
+    [tokens],
   );
-  const hasPrev = currentIndex > 0;
-  const hasNext = currentIndex >= 0 && currentIndex < deck.length - 1;
+  const complete = totalTokens > 0 && gotIt.size === totalTokens;
 
-  const step = useCallback(
-    (delta: number) => {
-      const target = deck[currentIndex + delta];
-      if (!target) return;
-      router.setParams({ book: target.book, ref: target.verseRef });
-    },
-    [deck, currentIndex, router],
-  );
+  const onDifficultyChange = (d: Difficulty) => {
+    setDifficulty(d);
+    setRevealed(new Set());
+  };
 
-  const togglePeek = (index: number) => {
-    setPeeked((prev) => {
+  const toggleRevealed = (i: number) => {
+    if (gotIt.has(i)) return;
+    setRevealed((prev) => {
       const next = new Set(prev);
-      if (next.has(index)) next.delete(index);
-      else next.add(index);
+      if (next.has(i)) next.delete(i);
+      else next.add(i);
+      return next;
+    });
+  };
+
+  const toggleGotIt = (i: number) => {
+    setGotIt((prev) => {
+      const next = new Set(prev);
+      if (next.has(i)) {
+        next.delete(i);
+      } else {
+        next.add(i);
+        setRevealed((rprev) => {
+          if (!rprev.has(i)) return rprev;
+          const r = new Set(rprev);
+          r.delete(i);
+          return r;
+        });
+      }
       return next;
     });
   };
@@ -99,22 +105,17 @@ export default function PracticeScreen() {
       <Stack.Screen options={{ title: `${book} ${refParam}` }} />
       <View style={styles.container}>
         <View style={styles.modeRow}>
-          {MODES.map((m) => (
+          {DIFFICULTIES.map((d) => (
             <TouchableOpacity
-              key={m.id}
-              onPress={() => {
-                setMode(m.id);
-                setPeeked(new Set());
-              }}
-              style={[styles.modePill, mode === m.id && styles.modePillActive]}
+              key={d.id}
+              onPress={() => onDifficultyChange(d.id)}
+              style={[styles.modePill, difficulty === d.id && styles.modePillActive]}
             >
               <Text
-                style={[
-                  styles.modeText,
-                  mode === m.id && styles.modeTextActive,
-                ]}
+                style={[styles.modeText, difficulty === d.id && styles.modeTextActive]}
               >
-                {m.label}
+                {d.label}
+                {difficulty === d.id && complete ? '  ✓' : ''}
               </Text>
             </TouchableOpacity>
           ))}
@@ -130,18 +131,24 @@ export default function PracticeScreen() {
             </Text>
           )}
           {text &&
-            tokenizeVerse(text).map((line, li) => (
+            tokens.map((line, li) => (
               <Text key={li} style={styles.line}>
                 {line.map((tok, i) => {
-                  const shown = mode === 'full' || peeked.has(tok.index);
-                  const rendered = shown ? tok.word : fadeWord(tok.word, mode);
+                  const isGotIt = gotIt.has(tok.index);
+                  const isRevealed = revealed.has(tok.index);
+                  const rendered =
+                    isGotIt || isRevealed ? tok.word : fadeWord(tok.word, difficulty);
+                  const wordStyle = isGotIt
+                    ? styles.gotIt
+                    : isRevealed
+                    ? styles.peeked
+                    : undefined;
                   return (
                     <Text
                       key={tok.index}
-                      onPress={() => togglePeek(tok.index)}
-                      style={
-                        shown && mode !== 'full' ? styles.peeked : undefined
-                      }
+                      onPress={() => toggleRevealed(tok.index)}
+                      onLongPress={() => toggleGotIt(tok.index)}
+                      style={wordStyle}
                     >
                       {i > 0 ? ' ' : ''}
                       {rendered}
@@ -150,42 +157,12 @@ export default function PracticeScreen() {
                 })}
               </Text>
             ))}
+          {text && (
+            <Text style={styles.hint}>
+              Tap a word to peek. Long-press once you know it.
+            </Text>
+          )}
         </ScrollView>
-
-        <View style={styles.navRow}>
-          <TouchableOpacity
-            onPress={() => step(-1)}
-            disabled={!hasPrev}
-            style={[styles.navBtn, !hasPrev && styles.navBtnDisabled]}
-            accessibilityLabel="Previous verse"
-          >
-            <Text style={[styles.navBtnText, !hasPrev && styles.navBtnTextDisabled]}>
-              ‹ Previous
-            </Text>
-          </TouchableOpacity>
-          <Text style={styles.position}>
-            {currentIndex >= 0 ? `${currentIndex + 1} / ${deck.length}` : ''}
-          </Text>
-          <TouchableOpacity
-            onPress={() => step(1)}
-            disabled={!hasNext}
-            style={[styles.navBtn, !hasNext && styles.navBtnDisabled]}
-            accessibilityLabel="Next verse"
-          >
-            <Text style={[styles.navBtnText, !hasNext && styles.navBtnTextDisabled]}>
-              Next ›
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        <Pressable
-          onPress={() => router.back()}
-          style={styles.closeBtn}
-          accessibilityLabel="Close practice"
-          hitSlop={12}
-        >
-          <Text style={styles.closeText}>Done</Text>
-        </Pressable>
       </View>
     </>
   );
@@ -212,35 +189,26 @@ const styles = StyleSheet.create({
   modeTextActive: { color: C.tealDark },
   body: { padding: 20, paddingBottom: 40 },
   loader: { marginTop: 40 },
-  line: { fontSize: 19, lineHeight: 32, color: C.offWhite, fontWeight: '300', marginBottom: 8 },
+  line: {
+    fontSize: 19,
+    lineHeight: 32,
+    color: C.offWhite,
+    fontWeight: '300',
+    marginBottom: 8,
+  },
   peeked: { color: C.yellow, fontWeight: '500' },
-  errorText: { fontSize: 14, color: C.textSecondary, textAlign: 'center', marginTop: 40 },
-  navRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderTopWidth: 1,
-    borderTopColor: C.border,
+  gotIt: { color: C.textSecondary, fontWeight: '300' },
+  errorText: {
+    fontSize: 14,
+    color: C.textSecondary,
+    textAlign: 'center',
+    marginTop: 40,
   },
-  navBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 18,
-    backgroundColor: C.surface,
-    borderWidth: 1,
-    borderColor: C.border,
+  hint: {
+    fontSize: 12,
+    color: C.textSecondary,
+    textAlign: 'center',
+    marginTop: 32,
+    fontStyle: 'italic',
   },
-  navBtnDisabled: { opacity: 0.35 },
-  navBtnText: { fontSize: 13, fontWeight: '700', color: C.yellow },
-  navBtnTextDisabled: { color: C.textSecondary },
-  position: { fontSize: 12, color: C.textSecondary, fontWeight: '600' },
-  closeBtn: {
-    alignSelf: 'center',
-    paddingHorizontal: 32,
-    paddingVertical: 12,
-    marginBottom: 24,
-  },
-  closeText: { color: C.textSecondary, fontSize: 13, fontWeight: '600' },
 });
