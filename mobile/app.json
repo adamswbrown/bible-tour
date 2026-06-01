@@ -38,7 +38,7 @@
         "NSPrivacyCollectedDataTypes": []
       },
       "appleTeamId": "NZ87XY99SR",
-      "buildNumber": "5"
+      "buildNumber": "6"
     },
     "android": {
       "package": "cloud.askadam.bibletour",
@@ -75,6 +75,12 @@
       "eas": {
         "projectId": "ae8878e9-bb5e-4de2-80c6-5a0cfdcf9324"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/ae8878e9-bb5e-4de2-80c6-5a0cfdcf9324"
     }
   }
 }

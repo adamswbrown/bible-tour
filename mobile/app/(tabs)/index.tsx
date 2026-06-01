@@ -14,17 +14,33 @@ import {
   getProgress,
   setBookDone,
   getSavedTranslation,
+  getEarnedMilestones,
+  setEarnedMilestones,
   type Progress,
 } from '../../lib/progress';
+import { TOUR_MILESTONES, earnedFor, type Milestone } from '../../lib/milestones';
+import CelebrationModal from '../../components/CelebrationModal';
 import { DEFAULT_TRANSLATION } from '../../lib/translations';
 
 export default function ChecklistScreen() {
   const [progress, setProgress] = useState<Progress>({});
   const [translation, setTranslation] = useState(DEFAULT_TRANSLATION);
+  const [earnedIds, setEarnedIds] = useState<string[]>([]);
+  const [celebration, setCelebration] = useState<Milestone | null>(null);
 
   useFocusEffect(
     useCallback(() => {
-      getProgress().then(setProgress);
+      getProgress().then((p) => {
+        setProgress(p);
+        // Silent backfill: existing readers who already crossed thresholds get
+        // their badges without a surprise pop-up. New crossings are handled in
+        // toggle(), where done actually changes.
+        getEarnedMilestones().then((stored) => {
+          const merged = Array.from(new Set([...stored, ...earnedFor(Object.keys(p).length)]));
+          setEarnedIds(merged);
+          if (merged.length !== stored.length) setEarnedMilestones(merged);
+        });
+      });
       getSavedTranslation().then(setTranslation);
     }, []),
   );
@@ -32,6 +48,17 @@ export default function ChecklistScreen() {
   async function toggle(book: Book) {
     const updated = await setBookDone(book.id, !progress[book.id]);
     setProgress({ ...updated });
+
+    const newlyEarned = earnedFor(Object.keys(updated).length).filter(
+      (id) => !earnedIds.includes(id),
+    );
+    if (newlyEarned.length > 0) {
+      const merged = [...earnedIds, ...newlyEarned];
+      setEarnedIds(merged);
+      await setEarnedMilestones(merged);
+      const last = TOUR_MILESTONES.filter((m) => newlyEarned.includes(m.id)).pop();
+      if (last) setCelebration(last);
+    }
   }
 
   const done = Object.keys(progress).length;
@@ -51,6 +78,7 @@ export default function ChecklistScreen() {
             ntDone={ntDone}
             pct={pct}
             translation={translation}
+            earnedIds={earnedIds}
           />
         }
         renderSectionHeader={({ section }) => (
@@ -67,6 +95,7 @@ export default function ChecklistScreen() {
         contentContainerStyle={styles.list}
         stickySectionHeadersEnabled={false}
       />
+      <CelebrationModal milestone={celebration} onClose={() => setCelebration(null)} />
     </View>
   );
 }
@@ -77,12 +106,14 @@ function ProgressHeader({
   ntDone,
   pct,
   translation,
+  earnedIds,
 }: {
   done: number;
   otDone: number;
   ntDone: number;
   pct: number;
   translation: string;
+  earnedIds: string[];
 }) {
   return (
     <View style={styles.header}>
@@ -104,10 +135,34 @@ function ProgressHeader({
           <Stat label="New Testament" value={ntDone} total={27} />
         </View>
 
+        <BadgeShelf earnedIds={earnedIds} />
+
         {done === 66 && (
           <Text style={styles.completeText}>You've read every book. Well done. ✦</Text>
         )}
       </View>
+    </View>
+  );
+}
+
+function BadgeShelf({ earnedIds }: { earnedIds: string[] }) {
+  return (
+    <View style={styles.badgeShelf}>
+      {TOUR_MILESTONES.map((m) => {
+        const earned = earnedIds.includes(m.id);
+        return (
+          <View key={m.id} style={styles.badge}>
+            <View style={[styles.badgeDisc, earned ? styles.badgeDiscOn : styles.badgeDiscOff]}>
+              <Text style={[styles.badgePct, earned ? styles.badgePctOn : styles.badgePctOff]}>
+                {m.pct}%
+              </Text>
+            </View>
+            <Text style={[styles.badgeLabel, earned && styles.badgeLabelOn]} numberOfLines={1}>
+              {m.name}
+            </Text>
+          </View>
+        );
+      })}
     </View>
   );
 }
@@ -197,6 +252,29 @@ const styles = StyleSheet.create({
   statTotal:    { fontSize: 13, color: C.textSecondary, fontWeight: '500' },
   statLabel:    { fontSize: 11, color: C.textSecondary, marginTop: 2, letterSpacing: 0.6 },
   completeText: { color: C.done, fontWeight: '600', textAlign: 'center', marginTop: 12, fontSize: 13 },
+
+  badgeShelf: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 8,
+    marginTop: 16,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: C.border,
+  },
+  badge: { flex: 1, alignItems: 'center' },
+  badgeDisc: {
+    width: 44, height: 44, borderRadius: 22,
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1.5,
+  },
+  badgeDiscOn:  { backgroundColor: 'rgba(255,203,33,0.16)', borderColor: C.yellow },
+  badgeDiscOff: { backgroundColor: C.tealDark, borderColor: C.border },
+  badgePct:     { fontSize: 12, fontWeight: '800' },
+  badgePctOn:   { color: C.yellow },
+  badgePctOff:  { color: C.textSecondary },
+  badgeLabel:   { fontSize: 9, color: C.textSecondary, marginTop: 5, letterSpacing: 0.2 },
+  badgeLabelOn: { color: C.offWhite, fontWeight: '600' },
 
   sectionHeader: {
     fontSize: 11, fontWeight: '700', color: C.textSecondary,
