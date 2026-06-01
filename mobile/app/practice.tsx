@@ -15,6 +15,8 @@ import { fetchVerse } from '../lib/api';
 import {
   fadeWord,
   loadMemory,
+  loadPracticeOnboarded,
+  markPracticeOnboarded,
   memoryList,
   tokenizeVerse,
   type FadeMode,
@@ -37,6 +39,17 @@ export default function PracticeScreen() {
   const flatRef = useRef<FlatList<MemoryEntry>>(null);
   const [deck, setDeck] = useState<MemoryEntry[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [showExplainer, setShowExplainer] = useState(true);
+
+  useEffect(() => {
+    loadPracticeOnboarded().then((seen) => setShowExplainer(!seen));
+  }, []);
+
+  const dismissExplainer = () => {
+    if (!showExplainer) return;
+    setShowExplainer(false);
+    markPracticeOnboarded();
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -82,7 +95,14 @@ export default function PracticeScreen() {
             const idx = Math.round(e.nativeEvent.contentOffset.x / width);
             if (idx !== currentIndex) setCurrentIndex(idx);
           }}
-          renderItem={({ item }) => <VerseCard entry={item} width={width} />}
+          renderItem={({ item }) => (
+            <VerseCard
+              entry={item}
+              width={width}
+              showExplainer={showExplainer}
+              onFirstLongPress={dismissExplainer}
+            />
+          )}
         />
       </View>
     </>
@@ -100,7 +120,17 @@ function PageDots({ count, current }: { count: number; current: number }) {
   );
 }
 
-function VerseCard({ entry, width }: { entry: MemoryEntry; width: number }) {
+function VerseCard({
+  entry,
+  width,
+  showExplainer,
+  onFirstLongPress,
+}: {
+  entry: MemoryEntry;
+  width: number;
+  showExplainer: boolean;
+  onFirstLongPress: () => void;
+}) {
   const [text, setText] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -154,6 +184,7 @@ function VerseCard({ entry, width }: { entry: MemoryEntry; width: number }) {
   };
 
   const toggleGotIt = (i: number) => {
+    onFirstLongPress();
     setGotIt((prev) => {
       const next = new Set(prev);
       if (next.has(i)) {
@@ -188,13 +219,15 @@ function VerseCard({ entry, width }: { entry: MemoryEntry; width: number }) {
         ))}
       </View>
 
-      <View style={styles.howRow}>
-        <Text style={styles.howText}>
-          <Text style={styles.howBold}>Tap</Text> a word to peek ·{' '}
-          <Text style={styles.howBold}>Hold</Text> when you know it ·{' '}
-          <Text style={styles.howBold}>Swipe</Text> for the next verse
-        </Text>
-      </View>
+      {showExplainer && (
+        <View style={styles.howRow}>
+          <Text style={styles.howText}>
+            <Text style={styles.howBold}>Tap</Text> a word to peek ·{' '}
+            <Text style={styles.howBold}>Hold</Text> when you know it ·{' '}
+            <Text style={styles.howBold}>Swipe</Text> for the next verse
+          </Text>
+        </View>
+      )}
 
       <ScrollView contentContainerStyle={styles.body}>
         {loading && <ActivityIndicator color={C.yellow} size="large" style={styles.loader} />}

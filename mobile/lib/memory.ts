@@ -8,6 +8,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const MEMORY_STORAGE_KEY = "bt:memory";
 export const REMINDER_STORAGE_KEY = "bt:memory:reminder";
+export const PRACTICE_ONBOARDED_KEY = "bt:memory:practice-onboarded";
 
 export type MemoryEntry = {
   book: string;
@@ -137,6 +138,27 @@ export async function loadReminder(): Promise<ReminderSettings> {
 export async function saveReminder(settings: ReminderSettings): Promise<void> {
   try {
     await AsyncStorage.setItem(REMINDER_STORAGE_KEY, JSON.stringify(settings));
+  } catch {
+    // silent
+  }
+}
+
+// ── Practice onboarding flag ───────────────────────────────────────────────
+// True once the user has long-pressed a word for the first time. Used to
+// hide the "Tap / Hold / Swipe" explainer strip on subsequent practice
+// sessions — once you've done it, you don't need the hint repeating on
+// every verse card.
+export async function loadPracticeOnboarded(): Promise<boolean> {
+  try {
+    return (await AsyncStorage.getItem(PRACTICE_ONBOARDED_KEY)) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export async function markPracticeOnboarded(): Promise<void> {
+  try {
+    await AsyncStorage.setItem(PRACTICE_ONBOARDED_KEY, "1");
   } catch {
     // silent
   }
