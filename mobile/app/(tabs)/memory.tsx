@@ -15,6 +15,17 @@ import {
   type MemoryMap,
 } from '../../lib/memory';
 import { librarySections, LIBRARY_TOTAL } from '../../lib/library';
+import { BOOKS } from '../../lib/readingPlan';
+
+const TESTAMENT_BY_BOOK: Record<string, 'Old Testament' | 'New Testament'> =
+  Object.fromEntries(BOOKS.map((b) => [b.book, b.testament]));
+
+type DeckFilter = 'all' | 'Old Testament' | 'New Testament';
+const FILTERS: { id: DeckFilter; label: string }[] = [
+  { id: 'all', label: 'All' },
+  { id: 'Old Testament', label: 'Old' },
+  { id: 'New Testament', label: 'New' },
+];
 
 type Segment = 'deck' | 'library';
 
@@ -118,6 +129,8 @@ function DeckPanel({
   onOpen: (e: MemoryEntry) => void;
   onDelete: (e: MemoryEntry) => void;
 }) {
+  const [filter, setFilter] = useState<DeckFilter>('all');
+
   if (entries.length === 0) {
     return (
       <View style={[styles.panel, styles.empty]}>
@@ -131,13 +144,47 @@ function DeckPanel({
       </View>
     );
   }
+
+  const filtered =
+    filter === 'all'
+      ? entries
+      : entries.filter((e) => TESTAMENT_BY_BOOK[e.book] === filter);
+
   return (
     <View style={styles.panel}>
+      <View style={styles.filterRow}>
+        {FILTERS.map((f) => {
+          const active = filter === f.id;
+          const count =
+            f.id === 'all'
+              ? entries.length
+              : entries.filter((e) => TESTAMENT_BY_BOOK[e.book] === f.id).length;
+          return (
+            <Pressable
+              key={f.id}
+              onPress={() => setFilter(f.id)}
+              style={[styles.filterPill, active && styles.filterPillActive]}
+            >
+              <Text style={[styles.filterText, active && styles.filterTextActive]}>
+                {f.label} · {count}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
       <Text style={styles.count}>
-        {entries.length} {entries.length === 1 ? 'verse' : 'verses'} saved · tap to practise
+        {filtered.length} {filtered.length === 1 ? 'verse' : 'verses'} · tap to practise
       </Text>
+      {filtered.length === 0 ? (
+        <View style={[styles.panel, styles.empty]}>
+          <Text style={styles.emptyText}>
+            No verses from the {filter === 'Old Testament' ? 'Old' : 'New'} Testament in
+            your deck yet.
+          </Text>
+        </View>
+      ) : (
       <FlatList
-        data={entries}
+        data={filtered}
         keyExtractor={(e) => e.ref}
         renderItem={({ item }) => (
           <Swipeable
@@ -161,6 +208,7 @@ function DeckPanel({
         )}
         ItemSeparatorComponent={() => <View style={styles.sep} />}
       />
+      )}
     </View>
   );
 }
@@ -354,4 +402,22 @@ const styles = StyleSheet.create({
     color: C.textSecondary,
     lineHeight: 19,
   },
+  filterRow: {
+    flexDirection: 'row',
+    gap: 6,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 4,
+  },
+  filterPill: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+    backgroundColor: C.surface,
+    borderWidth: 1,
+    borderColor: C.border,
+  },
+  filterPillActive: { backgroundColor: C.yellow, borderColor: C.yellow },
+  filterText: { fontSize: 12, fontWeight: '600', color: C.textSecondary },
+  filterTextActive: { color: C.tealDark },
 });
