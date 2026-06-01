@@ -11,20 +11,72 @@ import {
   setNotificationsEnabled,
   getProgress,
 } from '../../lib/progress';
-import { scheduleDailyReminder, cancelReminder, sendTestNotification } from '../../lib/notifications';
+import {
+  scheduleDailyReminder,
+  cancelReminder,
+  sendTestNotification,
+  scheduleMemoryReminder,
+  cancelMemoryReminder,
+} from '../../lib/notifications';
+import {
+  loadMemory,
+  loadReminder,
+  saveReminder,
+  memoryCount,
+  DEFAULT_REMINDER,
+  type ReminderSettings,
+} from '../../lib/memory';
+
+const MEMORY_TIME_PRESETS: { label: string; hour: number; minute: number }[] = [
+  { label: '8 am', hour: 8, minute: 0 },
+  { label: '12 pm', hour: 12, minute: 0 },
+  { label: '6 pm', hour: 18, minute: 0 },
+  { label: '9 pm', hour: 21, minute: 0 },
+];
 
 export default function SettingsScreen() {
   const [translation, setTranslationState] = useState(DEFAULT_TRANSLATION);
   const [notifsEnabled, setNotifsState] = useState(false);
   const [doneCount, setDoneCount] = useState(0);
+  const [memoryReminder, setMemoryReminder] = useState<ReminderSettings>(DEFAULT_REMINDER);
+  const [memoryDeckCount, setMemoryDeckCount] = useState(0);
 
   useFocusEffect(
     useCallback(() => {
       getSavedTranslation().then(setTranslationState);
       getNotificationsEnabled().then(setNotifsState);
       getProgress().then((p) => setDoneCount(Object.keys(p).length));
+      loadReminder().then(setMemoryReminder);
+      loadMemory().then((m) => setMemoryDeckCount(memoryCount(m)));
     }, []),
   );
+
+  async function toggleMemoryReminder(value: boolean) {
+    if (value) {
+      const ok = await scheduleMemoryReminder(memoryReminder.hour, memoryReminder.minute);
+      if (!ok) {
+        Alert.alert(
+          'Notifications off',
+          'iOS Settings → Tour of the Bible → Notifications to allow them.',
+        );
+        return;
+      }
+    } else {
+      await cancelMemoryReminder();
+    }
+    const next = { ...memoryReminder, enabled: value };
+    setMemoryReminder(next);
+    await saveReminder(next);
+  }
+
+  async function pickMemoryTime(hour: number, minute: number) {
+    const next = { ...memoryReminder, hour, minute };
+    setMemoryReminder(next);
+    await saveReminder(next);
+    if (next.enabled) {
+      await scheduleMemoryReminder(hour, minute);
+    }
+  }
 
   async function pickTranslation(id: string) {
     await saveTranslation(id);
@@ -128,6 +180,45 @@ export default function SettingsScreen() {
         </TouchableOpacity>
       )}
 
+      {memoryDeckCount > 0 && (
+        <>
+          <Text style={styles.section}>Memory practice</Text>
+          <View style={styles.row}>
+            <View style={styles.rowText}>
+              <Text style={styles.rowTitle}>Daily memory reminder</Text>
+              <Text style={styles.rowSub}>
+                A nudge to recall one of your {memoryDeckCount === 1 ? 'verse' : `${memoryDeckCount} verses`}
+              </Text>
+            </View>
+            <Switch
+              value={memoryReminder.enabled}
+              onValueChange={toggleMemoryReminder}
+              trackColor={{ true: C.done }}
+              thumbColor={C.white}
+            />
+          </View>
+          {memoryReminder.enabled && (
+            <View style={styles.timeRow}>
+              {MEMORY_TIME_PRESETS.map((p) => {
+                const active =
+                  memoryReminder.hour === p.hour && memoryReminder.minute === p.minute;
+                return (
+                  <TouchableOpacity
+                    key={p.label}
+                    onPress={() => pickMemoryTime(p.hour, p.minute)}
+                    style={[styles.timePill, active && styles.timePillActive]}
+                  >
+                    <Text style={[styles.timeText, active && styles.timeTextActive]}>
+                      {p.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          )}
+        </>
+      )}
+
       <Text style={styles.section}>Progress</Text>
       <TouchableOpacity
         style={styles.row}
@@ -194,4 +285,23 @@ const styles = StyleSheet.create({
   destructive:  { fontSize: 13, color: '#f87171', fontWeight: '600' },
   disabled:     { color: C.textSecondary },
   disclaimer:   { fontSize: 12, color: C.textSecondary, textAlign: 'center', padding: 24 },
+  timeRow: {
+    flexDirection: 'row',
+    gap: 8,
+    flexWrap: 'wrap',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: C.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: C.border,
+  },
+  timePill: {
+    paddingHorizontal: 14, paddingVertical: 8,
+    borderRadius: 18,
+    backgroundColor: C.tealDark,
+    borderWidth: 1, borderColor: C.border,
+  },
+  timePillActive: { backgroundColor: C.yellow, borderColor: C.yellow },
+  timeText:   { fontSize: 13, fontWeight: '600', color: C.textSecondary },
+  timeTextActive: { color: C.tealDark },
 });

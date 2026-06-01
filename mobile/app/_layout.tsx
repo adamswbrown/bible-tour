@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import * as Notifications from 'expo-notifications';
 import { C } from '../constants/colors';
 
 // Configure the iOS audio session up-front so ESV verse audio plays
@@ -32,6 +33,16 @@ function configureAudioSession() {
 export default function RootLayout() {
   useEffect(() => {
     configureAudioSession();
+  }, []);
+
+  useEffect(() => {
+    const sub = Notifications.addNotificationResponseReceivedListener((resp) => {
+      const data = resp.notification.request.content.data as { type?: string };
+      if (data?.type === 'memory-reminder') {
+        router.push({ pathname: '/(tabs)/memory', params: { autoplay: '1' } });
+      }
+    });
+    return () => sub.remove();
   }, []);
 
   return (
