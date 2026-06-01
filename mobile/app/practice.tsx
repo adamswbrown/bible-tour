@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -236,30 +237,30 @@ function VerseCard({
         )}
         {text &&
           tokens.map((line, li) => (
-            <Text key={li} style={styles.line}>
-              {line.map((tok, i) => {
+            <View key={li} style={styles.line}>
+              {line.map((tok) => {
                 const isGotIt = gotIt.has(tok.index);
                 const isRevealed = revealed.has(tok.index);
                 const rendered =
                   isGotIt || isRevealed ? tok.word : fadeWord(tok.word, difficulty);
                 const wordStyle = isGotIt
-                  ? styles.gotIt
+                  ? styles.wordTextGotIt
                   : isRevealed
-                  ? styles.peeked
-                  : undefined;
+                  ? styles.wordTextPeeked
+                  : styles.wordText;
                 return (
-                  <Text
+                  <Pressable
                     key={tok.index}
                     onPress={() => toggleRevealed(tok.index)}
                     onLongPress={() => toggleGotIt(tok.index)}
-                    style={wordStyle}
+                    style={styles.wordHit}
+                    hitSlop={4}
                   >
-                    {i > 0 ? ' ' : ''}
-                    {rendered}
-                  </Text>
+                    <Text style={wordStyle}>{rendered}</Text>
+                  </Pressable>
                 );
               })}
-            </Text>
+            </View>
           ))}
       </ScrollView>
     </View>
@@ -296,17 +297,36 @@ const styles = StyleSheet.create({
   modePillActive: { backgroundColor: C.yellow, borderColor: C.yellow },
   modeText: { color: C.textSecondary, fontSize: 13, fontWeight: '600' },
   modeTextActive: { color: C.tealDark },
-  body: { padding: 20, paddingBottom: 40 },
+  body: { padding: 16, paddingBottom: 40 },
   loader: { marginTop: 40 },
   line: {
-    fontSize: 19,
-    lineHeight: 32,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'baseline',
+    marginBottom: 4,
+  },
+  wordHit: {
+    paddingHorizontal: 6,
+    paddingVertical: 6,
+  },
+  wordText: {
+    fontSize: 20,
+    lineHeight: 26,
     color: C.offWhite,
     fontWeight: '300',
-    marginBottom: 8,
   },
-  peeked: { color: C.yellow, fontWeight: '500' },
-  gotIt: { color: C.textSecondary, fontWeight: '300' },
+  wordTextPeeked: {
+    fontSize: 20,
+    lineHeight: 26,
+    color: C.yellow,
+    fontWeight: '500',
+  },
+  wordTextGotIt: {
+    fontSize: 20,
+    lineHeight: 26,
+    color: C.textSecondary,
+    fontWeight: '300',
+  },
   errorText: {
     fontSize: 14,
     color: C.textSecondary,
