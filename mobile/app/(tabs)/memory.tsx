@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { View, Text, FlatList, Pressable, StyleSheet } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { useFocusEffect, useRouter, useLocalSearchParams } from 'expo-router';
@@ -7,25 +7,32 @@ import {
   loadMemory,
   memoryList,
   removeVerse,
+  toggleVerse,
   pickRandomVerse,
   type MemoryEntry,
+  type MemoryMap,
 } from '../../lib/memory';
 
+type Segment = 'deck' | 'library';
+
 export default function MemoryTab() {
-  const [entries, setEntries] = useState<MemoryEntry[]>([]);
+  const [segment, setSegment] = useState<Segment>('deck');
+  const [map, setMap] = useState<MemoryMap>({});
   const router = useRouter();
   const params = useLocalSearchParams<{ autoplay?: string }>();
+
+  const entries = useMemo(() => memoryList(map), [map]);
 
   useFocusEffect(
     useCallback(() => {
       let cancelled = false;
-      loadMemory().then((map) => {
+      loadMemory().then((next) => {
         if (cancelled) return;
-        setEntries(memoryList(map));
+        setMap(next);
 
         if (params.autoplay === '1') {
           router.setParams({ autoplay: undefined });
-          const pick = pickRandomVerse(map);
+          const pick = pickRandomVerse(next);
           if (pick) {
             router.push({
               pathname: '/practice',
@@ -49,22 +56,69 @@ export default function MemoryTab() {
 
   const onDelete = async (entry: MemoryEntry) => {
     const next = await removeVerse(entry.book, entry.verseRef);
-    setEntries(memoryList(next));
+    setMap(next);
   };
 
+  const onToggleLibrary = async (book: string, verseRef: string) => {
+    const next = await toggleVerse(book, verseRef);
+    setMap(next);
+  };
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.segmentRow}>
+        <SegmentButton label="Deck" active={segment === 'deck'} onPress={() => setSegment('deck')} />
+        <SegmentButton label="Library" active={segment === 'library'} onPress={() => setSegment('library')} />
+      </View>
+      {segment === 'deck' ? (
+        <DeckPanel entries={entries} onOpen={onOpen} onDelete={onDelete} />
+      ) : (
+        <LibraryPanel map={map} onToggle={onToggleLibrary} />
+      )}
+    </View>
+  );
+}
+
+function SegmentButton({
+  label,
+  active,
+  onPress,
+}: {
+  label: string;
+  active: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={[styles.segmentBtn, active && styles.segmentBtnActive]}
+    >
+      <Text style={[styles.segmentText, active && styles.segmentTextActive]}>{label}</Text>
+    </Pressable>
+  );
+}
+
+function DeckPanel({
+  entries,
+  onOpen,
+  onDelete,
+}: {
+  entries: MemoryEntry[];
+  onOpen: (e: MemoryEntry) => void;
+  onDelete: (e: MemoryEntry) => void;
+}) {
   if (entries.length === 0) {
     return (
-      <View style={[styles.container, styles.empty]}>
+      <View style={[styles.panel, styles.empty]}>
         <Text style={styles.emptyTitle}>No verses yet</Text>
         <Text style={styles.emptyText}>
-          Tap the ☆ in the verse reader to save verses you want to memorise.
+          Tap the ☆ in the verse reader, or pick from the Library above.
         </Text>
       </View>
     );
   }
-
   return (
-    <View style={styles.container}>
+    <View style={styles.panel}>
       <Text style={styles.count}>
         {entries.length} {entries.length === 1 ? 'verse' : 'verses'} saved
       </Text>
@@ -97,11 +151,39 @@ export default function MemoryTab() {
   );
 }
 
+function LibraryPanel(_props: { map: MemoryMap; onToggle: (b: string, r: string) => void }) {
+  return (
+    <View style={[styles.panel, styles.empty]}>
+      <Text style={styles.emptyText}>Library coming up.</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.teal },
+  panel: { flex: 1 },
   empty: { alignItems: 'center', justifyContent: 'center', padding: 32 },
   emptyTitle: { fontSize: 18, fontWeight: '700', color: C.yellow, marginBottom: 12 },
   emptyText: { fontSize: 14, color: C.textSecondary, textAlign: 'center', lineHeight: 22 },
+  segmentRow: {
+    flexDirection: 'row',
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 12,
+    backgroundColor: C.tealDark,
+  },
+  segmentBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 16,
+    backgroundColor: C.surface,
+    borderWidth: 1,
+    borderColor: C.border,
+  },
+  segmentBtnActive: { backgroundColor: C.yellow, borderColor: C.yellow },
+  segmentText: { fontSize: 13, fontWeight: '600', color: C.textSecondary },
+  segmentTextActive: { color: C.tealDark },
   count: {
     fontSize: 12,
     color: C.textSecondary,
