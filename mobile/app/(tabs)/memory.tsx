@@ -1,17 +1,20 @@
 import { useCallback, useMemo, useState } from 'react';
-import { View, Text, FlatList, Pressable, StyleSheet } from 'react-native';
+import { View, Text, FlatList, Pressable, SectionList, StyleSheet } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { useFocusEffect, useRouter, useLocalSearchParams } from 'expo-router';
 import { C } from '../../constants/colors';
 import {
   loadMemory,
   memoryList,
+  memoryCount,
   removeVerse,
   toggleVerse,
   pickRandomVerse,
+  isSaved,
   type MemoryEntry,
   type MemoryMap,
 } from '../../lib/memory';
+import { librarySections, LIBRARY_TOTAL } from '../../lib/library';
 
 type Segment = 'deck' | 'library';
 
@@ -151,11 +154,64 @@ function DeckPanel({
   );
 }
 
-function LibraryPanel(_props: { map: MemoryMap; onToggle: (b: string, r: string) => void }) {
+type LibraryRowItem = { book: string; ref: string };
+
+function LibraryPanel({
+  map,
+  onToggle,
+}: {
+  map: MemoryMap;
+  onToggle: (b: string, r: string) => void;
+}) {
+  const sections = useMemo(
+    () =>
+      librarySections().map((s) => ({
+        title: s.title,
+        data: s.data.flatMap<LibraryRowItem>((book) =>
+          book.refs.map((ref) => ({ book: book.book, ref })),
+        ),
+      })),
+    [],
+  );
+  const savedCount = memoryCount(map);
+
   return (
-    <View style={[styles.panel, styles.empty]}>
-      <Text style={styles.emptyText}>Library coming up.</Text>
-    </View>
+    <SectionList<LibraryRowItem, { title: string }>
+      sections={sections}
+      keyExtractor={(item) => `${item.book} ${item.ref}`}
+      stickySectionHeadersEnabled
+      style={styles.panel}
+      renderSectionHeader={({ section }) => (
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionHeaderText}>{section.title.toUpperCase()}</Text>
+        </View>
+      )}
+      renderItem={({ item, index, section }) => {
+        const prev = index > 0 ? section.data[index - 1] : null;
+        const showBookHeader = !prev || prev.book !== item.book;
+        const saved = isSaved(map, item.book, item.ref);
+        return (
+          <View>
+            {showBookHeader && <Text style={styles.bookHeader}>{item.book}</Text>}
+            <Pressable
+              onPress={() => onToggle(item.book, item.ref)}
+              style={styles.libraryRow}
+              accessibilityLabel={`${saved ? 'Remove' : 'Save'} ${item.book} ${item.ref}`}
+            >
+              <Text style={styles.libraryRef}>{item.ref}</Text>
+              <Text style={[styles.starGlyph, saved && styles.starGlyphSaved]}>
+                {saved ? '★' : '☆'}
+              </Text>
+            </Pressable>
+          </View>
+        );
+      }}
+      ListFooterComponent={
+        <Text style={styles.libraryFooter}>
+          Saved {savedCount} of {LIBRARY_TOTAL}
+        </Text>
+      }
+    />
   );
 }
 
@@ -211,4 +267,42 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   deleteText: { color: C.white, fontWeight: '700' },
+  sectionHeader: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 8,
+    backgroundColor: C.tealDark,
+  },
+  sectionHeaderText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: C.textSecondary,
+    letterSpacing: 1.2,
+  },
+  bookHeader: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: C.yellow,
+    paddingHorizontal: 20,
+    paddingTop: 14,
+    paddingBottom: 6,
+    backgroundColor: C.teal,
+  },
+  libraryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+    paddingVertical: 12,
+    backgroundColor: C.teal,
+  },
+  libraryRef: { fontSize: 15, color: C.offWhite },
+  starGlyph: { fontSize: 18, color: C.textSecondary },
+  starGlyphSaved: { color: C.yellow },
+  libraryFooter: {
+    fontSize: 12,
+    color: C.textSecondary,
+    textAlign: 'center',
+    padding: 24,
+  },
 });
