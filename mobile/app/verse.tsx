@@ -8,8 +8,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useLocalSearchParams, Stack } from 'expo-router';
+import { useLocalSearchParams, Stack, router } from 'expo-router';
 import { C } from '../constants/colors';
+import { BOOKS } from '../lib/readingPlan';
 import { fetchVerse, type VerseResult } from '../lib/api';
 import { TRANSLATIONS, getTranslation, buildYouVersionUrl, DEFAULT_TRANSLATION } from '../lib/translations';
 import { hasStudyForRef, getTokensForRef, getEntry } from '../lib/study';
@@ -37,6 +38,25 @@ export default function VerseScreen() {
 
   const [studyMode, setStudyMode] = useState(false);
   const [activeStrong, setActiveStrong] = useState<string | null>(null);
+
+  // Sibling verses within this book, so the reader can step through them
+  // without bouncing back to the listing. Same parse the checklist uses.
+  const siblingRefs = useMemo(() => {
+    const entry = BOOKS.find((b) => b.book === book);
+    if (!entry) return [] as string[];
+    return entry.refs
+      .split(/\s+and\s+|,\s*/)
+      .map((r) => r.trim())
+      .filter((r) => /^\d+:\S+$/.test(r));
+  }, [book]);
+  const currentIndex = siblingRefs.indexOf(refParam.trim());
+  const hasPrev = currentIndex > 0;
+  const hasNext = currentIndex >= 0 && currentIndex < siblingRefs.length - 1;
+
+  function goToSibling(offset: number) {
+    const next = siblingRefs[currentIndex + offset];
+    if (next) router.setParams({ ref: next });
+  }
 
   const studyAvailable = useMemo(() => hasStudyForRef(book, refParam), [book, refParam]);
   const studyVerses = useMemo(
@@ -96,6 +116,11 @@ export default function VerseScreen() {
     <>
       <Stack.Screen options={{ title: `${book} ${refParam}` }} />
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        <View style={styles.grabberWrap}>
+          <View style={styles.grabber} />
+          <Text style={styles.grabberHint}>Swipe down to go back</Text>
+        </View>
+
         <View style={styles.translationRow}>
           {TRANSLATIONS.map((tr) => (
             <TouchableOpacity
@@ -173,6 +198,29 @@ export default function VerseScreen() {
             )}
           </View>
         )}
+        {siblingRefs.length > 1 && (
+          <View style={styles.navRow}>
+            <TouchableOpacity
+              style={[styles.navBtn, !hasPrev && styles.navBtnDisabled]}
+              onPress={() => goToSibling(-1)}
+              disabled={!hasPrev}
+            >
+              <Text style={[styles.navBtnText, !hasPrev && styles.navBtnTextDisabled]}>‹ Previous</Text>
+            </TouchableOpacity>
+
+            <Text style={styles.navCount}>
+              {currentIndex + 1} / {siblingRefs.length}
+            </Text>
+
+            <TouchableOpacity
+              style={[styles.navBtn, !hasNext && styles.navBtnDisabled]}
+              onPress={() => goToSibling(1)}
+              disabled={!hasNext}
+            >
+              <Text style={[styles.navBtnText, !hasNext && styles.navBtnTextDisabled]}>Next ›</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
 
       <LexiconDrawer
@@ -235,6 +283,21 @@ function YouVersionButton({
 const styles = StyleSheet.create({
   container:        { flex: 1, backgroundColor: C.teal },
   content:          { padding: 16, paddingBottom: 48 },
+  grabberWrap:      { alignItems: 'center', marginBottom: 14 },
+  grabber:          { width: 40, height: 5, borderRadius: 3, backgroundColor: C.tealLight },
+  grabberHint:      { fontSize: 11, color: C.textSecondary, marginTop: 6, letterSpacing: 0.3 },
+  navRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    marginTop: 28, paddingTop: 16, borderTopWidth: 1, borderTopColor: C.border,
+  },
+  navBtn: {
+    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 18,
+    backgroundColor: C.surface, borderWidth: 1, borderColor: C.border,
+  },
+  navBtnDisabled:    { opacity: 0.35 },
+  navBtnText:        { fontSize: 13, fontWeight: '700', color: C.yellow },
+  navBtnTextDisabled:{ color: C.textSecondary },
+  navCount:          { fontSize: 12, color: C.textSecondary, fontWeight: '600' },
   translationRow:   { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 16 },
   pill: {
     paddingHorizontal: 12, paddingVertical: 6,

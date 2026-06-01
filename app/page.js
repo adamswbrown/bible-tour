@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { READING_PLAN, TOTAL, parsePlanRef, slugifyBookName } from "./lib/bible";
 import {
   TRANSLATIONS,
@@ -115,8 +115,22 @@ function VerseLinks({ book, refs, done, onVerseClick }) {
   );
 }
 
-function VersePanel({ book, verseRef, onClose, mode = "overlay" }) {
+function VersePanel({ book, verseRef, onClose, onNavigate, mode = "overlay" }) {
   const isSidebar = mode === "sidebar";
+
+  // Sibling verses for this book, derived from the reading plan. parseRefs
+  // already keeps only true verse refs (e.g. "12:2-3"), dropping prose notes
+  // like Proverbs' "any five random proverbs…".
+  const siblings = useMemo(() => {
+    const entry = Object.values(READING_PLAN)
+      .flat()
+      .find((b) => b.book === book);
+    if (!entry) return [];
+    return parseRefs(book, entry.refs)
+      .filter((p) => p.ref)
+      .map((p) => p.ref);
+  }, [book]);
+  const idx = siblings.indexOf(verseRef);
   const [text, setText] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -496,6 +510,35 @@ function VersePanel({ book, verseRef, onClose, mode = "overlay" }) {
             </svg>
           </a>
         </div>
+
+        {/* Prev/Next sibling-verse navigation */}
+        {onNavigate && siblings.length > 1 && (
+          <div style={ps.verseNav}>
+            <button
+              type="button"
+              onClick={() => idx > 0 && onNavigate(book, siblings[idx - 1])}
+              disabled={idx <= 0}
+              style={{ ...ps.verseNavBtn, ...(idx <= 0 ? ps.verseNavBtnDisabled : {}) }}
+              aria-label="Previous verse"
+            >
+              ‹ Previous
+            </button>
+            <span style={ps.verseNavCount}>
+              {idx + 1} / {siblings.length}
+            </span>
+            <button
+              type="button"
+              onClick={() =>
+                idx < siblings.length - 1 && onNavigate(book, siblings[idx + 1])
+              }
+              disabled={idx >= siblings.length - 1}
+              style={{ ...ps.verseNavBtn, ...(idx >= siblings.length - 1 ? ps.verseNavBtnDisabled : {}) }}
+              aria-label="Next verse"
+            >
+              Next ›
+            </button>
+          </div>
+        )}
       </div>
     </>
   );
@@ -508,6 +551,45 @@ const MEMORY_BANNER_DISMISSED_KEY = "bt:memoryBannerDismissed";
 const RESUME_KEY = "bt:resume";
 // shape: { book: string, ref: string, youVersionUrl: string|null, ts: number } | null
 const EAGLE_STUDIED_KEY = "bt:eagle";
+const TOUR_MILESTONES_KEY = "bt:tourMilestones";
+
+// Read-progress milestones for the Tour — mirrors mobile/lib/milestones.ts.
+// Tracked against books-read count out of TOTAL (66).
+const TOUR_MILESTONES = [
+  {
+    id: "quarter",
+    name: "Taking Flight",
+    threshold: 17, // 25% of 66, rounded up
+    pct: 25,
+    message: "Great job — a quarter of the way. Keep going!",
+  },
+  {
+    id: "half",
+    name: "Halfway There",
+    threshold: 33, // 50%
+    pct: 50,
+    message: "Halfway there! Don't turn back now.",
+  },
+  {
+    id: "three-quarter",
+    name: "Almost Home",
+    threshold: 50, // 75% of 66, rounded up
+    pct: 75,
+    message: "Three quarters done — the finish line is in sight!",
+  },
+  {
+    id: "complete",
+    name: "Tour Complete",
+    threshold: 66, // 100%
+    pct: 100,
+    message: "Amazing! All 66 books!",
+  },
+];
+
+// Returns the ids a reader with `done` books read has earned.
+function earnedFor(done) {
+  return TOUR_MILESTONES.filter((m) => done >= m.threshold).map((m) => m.id);
+}
 
 // Set of canonical book names — guards against stale resume entries
 const CANONICAL_BOOK_NAMES = new Set(
@@ -535,7 +617,9 @@ function LightningIcon({ size = 24, color = C.yellow }) {
 
 function ChecklistView({ checked, onToggle, onReset }) {
   const [section, setSection] = useState("all");
-  const [showCelebrate, setShowCelebrate] = useState(false);
+  const [earnedMilestones, setEarnedMilestones] = useState([]);
+  const earnedRef = useRef([]);
+  const [milestoneToast, setMilestoneToast] = useState(null); // milestone object | null
   const [versePanel, setVersePanel] = useState(null); // { book, ref, youVersionUrl }
   const [showEagleBanner, setShowEagleBanner] = useState(false);
   const [showOriginalsBanner, setShowOriginalsBanner] = useState(false);
@@ -555,9 +639,24 @@ function ChecklistView({ checked, onToggle, onReset }) {
   const toggle = (book) => {
     const willBeDone = !checked[book];
     onToggle(book);
-    if (willBeDone && (doneCount + 1) === TOTAL) {
-      setShowCelebrate(true);
-      setTimeout(() => setShowCelebrate(false), 4000);
+    // Recompute the books-read count from the post-toggle map so milestone
+    // checks stay correct whether a book was just marked or unmarked.
+    const nextChecked = { ...checked, [book]: willBeDone };
+    const newDone = Object.values(nextChecked).filter(Boolean).length;
+    const newlyEarned = earnedFor(newDone).filter(
+      (id) => !earnedRef.current.includes(id)
+    );
+    if (newlyEarned.length > 0) {
+      const nextIds = [...earnedRef.current, ...newlyEarned];
+      earnedRef.current = nextIds;
+      setEarnedMilestones([...nextIds]);
+      store(TOUR_MILESTONES_KEY, nextIds);
+      // Pop the highest newly-earned milestone (the `complete` milestone
+      // now drives the celebration banner).
+      const highest = TOUR_MILESTONES.filter((m) =>
+        newlyEarned.includes(m.id)
+      ).pop();
+      if (highest) setMilestoneToast(highest);
     }
   };
 
@@ -593,8 +692,32 @@ function ChecklistView({ checked, onToggle, onReset }) {
       setEagleStudied(raw ? JSON.parse(raw) : {});
     } catch {}
     setMemoryCount(countMemory(loadMemory()));
+
+    // Load earned Tour milestones, then silently backfill any thresholds the
+    // reader has already crossed (so existing users get badges without a
+    // pop-up). Derive the done count from freshly-loaded progress rather than
+    // render-time doneCount, which may not be populated on first mount.
+    const storedEarned = load(TOUR_MILESTONES_KEY) || [];
+    const loadedProgress = load(PROGRESS_KEY) || {};
+    const loadedDone = Object.values(loadedProgress).filter(Boolean).length;
+    const merged = Array.from(
+      new Set([...storedEarned, ...earnedFor(loadedDone)])
+    );
+    earnedRef.current = merged;
+    setEarnedMilestones(merged);
+    if (merged.length > storedEarned.length) {
+      store(TOUR_MILESTONES_KEY, merged);
+    }
+
     setBannerReady(true);
   }, []);
+
+  // Auto-dismiss the milestone pop-up.
+  useEffect(() => {
+    if (!milestoneToast) return;
+    const t = setTimeout(() => setMilestoneToast(null), 4000);
+    return () => clearTimeout(t);
+  }, [milestoneToast]);
 
   const dismissOriginalsBanner = useCallback(() => {
     setShowOriginalsBanner(false);
@@ -659,6 +782,30 @@ function ChecklistView({ checked, onToggle, onReset }) {
       </div>
     </div>
   ) : null;
+
+  // Compact badge shelf — gold/filled when earned, muted when locked.
+  const badgeShelf = (
+    <div style={s.badges} role="list" aria-label="Reading milestones">
+      {TOUR_MILESTONES.map((m) => {
+        const earned = earnedMilestones.includes(m.id);
+        return (
+          <div
+            key={m.id}
+            role="listitem"
+            style={{ ...s.badge, ...(earned ? s.badgeEarned : {}) }}
+            title={earned ? `${m.name} — earned` : `${m.name} — locked`}
+          >
+            <span style={{ ...s.badgeDisc, ...(earned ? s.badgeDiscEarned : {}) }}>
+              {m.pct}%
+            </span>
+            <span style={{ ...s.badgeLabel, ...(earned ? s.badgeLabelEarned : {}) }}>
+              {m.name}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
 
   // Shared book list used in both layouts
   const bookList = (
@@ -757,10 +904,14 @@ function ChecklistView({ checked, onToggle, onReset }) {
   if (isIpad) {
     return (
       <div style={s.iPadOuter}>
-        {showCelebrate && (
+        {milestoneToast && (
           <div style={s.celebrate}>
-            <LightningIcon size={36} color={C.yellow} />
-            <p style={s.celebrateText}>Amazing! All 66 books!</p>
+            {milestoneToast.id === "complete" ? (
+              <LightningIcon size={36} color={C.yellow} />
+            ) : (
+              <span style={s.celebrateMark} aria-hidden="true">✦</span>
+            )}
+            <p style={s.celebrateText}>{milestoneToast.message}</p>
           </div>
         )}
 
@@ -860,6 +1011,7 @@ function ChecklistView({ checked, onToggle, onReset }) {
               <span>OT: {otDone}/{READING_PLAN["Old Testament"].length}</span>
               <span>NT: {ntDone}/{READING_PLAN["New Testament"].length}</span>
             </div>
+            {badgeShelf}
           </div>
 
           {resumePill}
@@ -884,6 +1036,7 @@ function ChecklistView({ checked, onToggle, onReset }) {
               book={versePanel.book}
               verseRef={versePanel.ref}
               onClose={closeVerse}
+              onNavigate={openVerse}
             />
           ) : (
             <div style={s.iPadPlaceholder}>
@@ -906,10 +1059,14 @@ function ChecklistView({ checked, onToggle, onReset }) {
   // ── Default (phone / small screen) layout ──────────────────────────────
   return (
     <div style={s.outer}>
-      {showCelebrate && (
+      {milestoneToast && (
         <div style={s.celebrate}>
-          <LightningIcon size={36} color={C.yellow} />
-          <p style={s.celebrateText}>Amazing! All 66 books!</p>
+          {milestoneToast.id === "complete" ? (
+            <LightningIcon size={36} color={C.yellow} />
+          ) : (
+            <span style={s.celebrateMark} aria-hidden="true">✦</span>
+          )}
+          <p style={s.celebrateText}>{milestoneToast.message}</p>
         </div>
       )}
 
@@ -1036,6 +1193,7 @@ function ChecklistView({ checked, onToggle, onReset }) {
           <span>OT: {otDone}/{READING_PLAN["Old Testament"].length}</span>
           <span>NT: {ntDone}/{READING_PLAN["New Testament"].length}</span>
         </div>
+        {badgeShelf}
       </div>
 
       {resumePill}
@@ -1056,6 +1214,7 @@ function ChecklistView({ checked, onToggle, onReset }) {
           book={versePanel.book}
           verseRef={versePanel.ref}
           onClose={closeVerse}
+          onNavigate={openVerse}
         />
       )}
       <EagleLinkButton visible={bannerReady && !showEagleBanner} />

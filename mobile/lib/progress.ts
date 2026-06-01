@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DEFAULT_TRANSLATION } from './translations';
 
 const PROGRESS_KEY = 'bt:progress';
+const MILESTONES_KEY = 'bt:tourMilestones';
 const TRANSLATION_KEY = 'bt:translation';
 const TRANSLATION_MIGRATED_KEY = 'bt:translation_migrated_v1';
 const NOTIFS_KEY = 'bt:notifs';
@@ -26,6 +27,19 @@ export async function setBookDone(bookId: number, done: boolean): Promise<Progre
   }
   await AsyncStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
   return progress;
+}
+
+export async function getEarnedMilestones(): Promise<string[]> {
+  try {
+    const raw = await AsyncStorage.getItem(MILESTONES_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export async function setEarnedMilestones(ids: string[]): Promise<void> {
+  await AsyncStorage.setItem(MILESTONES_KEY, JSON.stringify(ids));
 }
 
 export async function getSavedTranslation(): Promise<string> {
@@ -71,4 +85,5 @@ export async function setNotificationsEnabled(enabled: boolean): Promise<void> {
 
 export async function clearProgress(): Promise<void> {
   await AsyncStorage.removeItem(PROGRESS_KEY);
+  await AsyncStorage.removeItem(MILESTONES_KEY);
 }
