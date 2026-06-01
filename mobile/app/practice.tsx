@@ -10,13 +10,16 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { C } from '../constants/colors';
 import { fetchVerse } from '../lib/api';
 import {
   fadeWord,
+  isLearned,
   loadMemory,
   loadPracticeOnboarded,
+  markLearned,
+  markActive,
   markPracticeOnboarded,
   memoryList,
   tokenizeVerse,
@@ -36,6 +39,7 @@ export default function PracticeScreen() {
   const initialBook = params.book ?? '';
   const initialRef = params.ref ?? '';
 
+  const router = useRouter();
   const { width } = useWindowDimensions();
   const flatRef = useRef<FlatList<MemoryEntry>>(null);
   const [deck, setDeck] = useState<MemoryEntry[]>([]);
@@ -50,6 +54,36 @@ export default function PracticeScreen() {
     if (!showExplainer) return;
     setShowExplainer(false);
     markPracticeOnboarded();
+  };
+
+  const advanceOrExit = (idx: number) => {
+    // Try to move to the next still-in-deck verse; if we're at the end,
+    // fall back to the previous; if the deck is empty after the change,
+    // close the screen.
+    const nextIdx = idx + 1 < deck.length ? idx + 1 : idx > 0 ? idx - 1 : -1;
+    if (nextIdx < 0) {
+      router.back();
+      return;
+    }
+    setCurrentIndex(nextIdx);
+    requestAnimationFrame(() => {
+      flatRef.current?.scrollToIndex({ index: nextIdx, animated: true });
+    });
+  };
+
+  const onMarkLearned = async (entry: MemoryEntry) => {
+    const next = await markLearned(entry.book, entry.verseRef);
+    const list = memoryList(next);
+    setDeck(list);
+    // The just-learned verse stays in the deck array (we still show learned
+    // entries when Library tab brings them up), but practice screen only
+    // shows whatever was loaded — for v1 of this feature we just advance.
+    advanceOrExit(currentIndex);
+  };
+
+  const onMarkActive = async (entry: MemoryEntry) => {
+    const next = await markActive(entry.book, entry.verseRef);
+    setDeck(memoryList(next));
   };
 
   useEffect(() => {
@@ -102,6 +136,8 @@ export default function PracticeScreen() {
               width={width}
               showExplainer={showExplainer}
               onFirstLongPress={dismissExplainer}
+              onMarkLearned={() => onMarkLearned(item)}
+              onMarkActive={() => onMarkActive(item)}
             />
           )}
         />
@@ -126,11 +162,15 @@ function VerseCard({
   width,
   showExplainer,
   onFirstLongPress,
+  onMarkLearned,
+  onMarkActive,
 }: {
   entry: MemoryEntry;
   width: number;
   showExplainer: boolean;
   onFirstLongPress: () => void;
+  onMarkLearned: () => void;
+  onMarkActive: () => void;
 }) {
   const [text, setText] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -262,6 +302,21 @@ function VerseCard({
               })}
             </View>
           ))}
+        {text && (
+          <View style={styles.actionsRow}>
+            {isLearned(entry) ? (
+              <Pressable onPress={onMarkActive} style={styles.actionBtnSecondary}>
+                <Text style={styles.actionBtnSecondaryText}>
+                  ↺ Practise this one again
+                </Text>
+              </Pressable>
+            ) : (
+              <Pressable onPress={onMarkLearned} style={styles.actionBtn}>
+                <Text style={styles.actionBtnText}>✓ Know by heart</Text>
+              </Pressable>
+            )}
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -344,4 +399,33 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   howBold: { color: C.offWhite, fontWeight: '700' },
+  actionsRow: {
+    marginTop: 32,
+    alignItems: 'center',
+  },
+  actionBtn: {
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 22,
+    backgroundColor: C.done,
+  },
+  actionBtnText: {
+    color: C.white,
+    fontSize: 14,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+  actionBtnSecondary: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: C.border,
+    backgroundColor: C.surface,
+  },
+  actionBtnSecondaryText: {
+    color: C.textSecondary,
+    fontSize: 13,
+    fontWeight: '600',
+  },
 });

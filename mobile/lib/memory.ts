@@ -15,6 +15,12 @@ export type MemoryEntry = {
   verseRef: string;
   ref: string;
   added: number;
+  // Timestamp when the user marked this verse as "known by heart". When
+  // present, the verse is archived: still in the deck, but excluded from
+  // the daily reminder pick and visually segregated in the UI. Missing /
+  // 0 means active. Back-compat: pre-v3 entries lack this field — they
+  // are treated as active by isLearned().
+  learned?: number;
 };
 
 export type MemoryMap = Record<string, MemoryEntry>;
@@ -96,6 +102,39 @@ export function memoryCount(map: MemoryMap): number {
   return Object.keys(map).length;
 }
 
+export function isLearned(entry: MemoryEntry): boolean {
+  return !!entry.learned;
+}
+
+export function activeList(map: MemoryMap): MemoryEntry[] {
+  return memoryList(map).filter((e) => !isLearned(e));
+}
+
+export function learnedList(map: MemoryMap): MemoryEntry[] {
+  return memoryList(map).filter(isLearned);
+}
+
+export async function markLearned(book: string, verseRef: string): Promise<MemoryMap> {
+  const map = await loadMemory();
+  const id = memId(book, verseRef);
+  if (map[id]) {
+    map[id] = { ...map[id], learned: Date.now() };
+    await saveMemory(map);
+  }
+  return map;
+}
+
+export async function markActive(book: string, verseRef: string): Promise<MemoryMap> {
+  const map = await loadMemory();
+  const id = memId(book, verseRef);
+  if (map[id] && map[id].learned) {
+    const { learned: _drop, ...rest } = map[id];
+    map[id] = rest;
+    await saveMemory(map);
+  }
+  return map;
+}
+
 // ── Fade ladder ────────────────────────────────────────────────────────────
 const WORD_CORE = /^([^A-Za-z0-9]*)([A-Za-z0-9](?:.*[A-Za-z0-9])?)([^A-Za-z0-9]*)$/;
 
@@ -165,7 +204,9 @@ export async function markPracticeOnboarded(): Promise<void> {
 }
 
 export function pickRandomVerse(map: MemoryMap): MemoryEntry | null {
-  const list = memoryList(map);
+  // Reminder picker only surfaces active verses — once you've marked one
+  // "known by heart" it falls out of the daily nudge rotation.
+  const list = activeList(map);
   if (list.length === 0) return null;
   return list[Math.floor(Math.random() * list.length)];
 }

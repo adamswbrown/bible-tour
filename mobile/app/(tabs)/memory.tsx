@@ -11,6 +11,7 @@ import {
   toggleVerse,
   pickRandomVerse,
   isSaved,
+  isLearned,
   type MemoryEntry,
   type MemoryMap,
 } from '../../lib/memory';
@@ -25,6 +26,12 @@ const FILTERS: { id: DeckFilter; label: string }[] = [
   { id: 'all', label: 'All' },
   { id: 'Old Testament', label: 'Old' },
   { id: 'New Testament', label: 'New' },
+];
+
+type LearnedFilter = 'active' | 'learned';
+const LEARNED_FILTERS: { id: LearnedFilter; label: string }[] = [
+  { id: 'active', label: 'Active' },
+  { id: 'learned', label: 'Learned' },
 ];
 
 type Segment = 'deck' | 'library';
@@ -129,7 +136,11 @@ function DeckPanel({
   onOpen: (e: MemoryEntry) => void;
   onDelete: (e: MemoryEntry) => void;
 }) {
+  const [learnedFilter, setLearnedFilter] = useState<LearnedFilter>('active');
   const [filter, setFilter] = useState<DeckFilter>('all');
+
+  const activeEntries = entries.filter((e) => !isLearned(e));
+  const learnedEntries = entries.filter((e) => isLearned(e));
 
   if (entries.length === 0) {
     return (
@@ -145,27 +156,55 @@ function DeckPanel({
     );
   }
 
+  const learnedPool = learnedFilter === 'active' ? activeEntries : learnedEntries;
   const filtered =
     filter === 'all'
-      ? entries
-      : entries.filter((e) => TESTAMENT_BY_BOOK[e.book] === filter);
+      ? learnedPool
+      : learnedPool.filter((e) => TESTAMENT_BY_BOOK[e.book] === filter);
+
+  const emptyMessage = (() => {
+    if (learnedFilter === 'learned' && learnedEntries.length === 0) {
+      return "You haven't marked any verses as known by heart yet. Open a verse, practise, then tap “Know by heart” at the bottom.";
+    }
+    if (learnedFilter === 'active' && activeEntries.length === 0) {
+      return 'Every verse in your deck is marked as learned. Tap Learned above to revisit them.';
+    }
+    return `No verses from the ${filter === 'Old Testament' ? 'Old' : 'New'} Testament in this view yet.`;
+  })();
 
   return (
     <View style={styles.panel}>
+      <View style={styles.filterRow}>
+        {LEARNED_FILTERS.map((f) => {
+          const active = learnedFilter === f.id;
+          const count = f.id === 'active' ? activeEntries.length : learnedEntries.length;
+          return (
+            <Pressable
+              key={f.id}
+              onPress={() => setLearnedFilter(f.id)}
+              style={[styles.filterPill, active && styles.filterPillActive]}
+            >
+              <Text style={[styles.filterText, active && styles.filterTextActive]}>
+                {f.label} · {count}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
       <View style={styles.filterRow}>
         {FILTERS.map((f) => {
           const active = filter === f.id;
           const count =
             f.id === 'all'
-              ? entries.length
-              : entries.filter((e) => TESTAMENT_BY_BOOK[e.book] === f.id).length;
+              ? learnedPool.length
+              : learnedPool.filter((e) => TESTAMENT_BY_BOOK[e.book] === f.id).length;
           return (
             <Pressable
               key={f.id}
               onPress={() => setFilter(f.id)}
-              style={[styles.filterPill, active && styles.filterPillActive]}
+              style={[styles.filterPillSmall, active && styles.filterPillActive]}
             >
-              <Text style={[styles.filterText, active && styles.filterTextActive]}>
+              <Text style={[styles.filterTextSmall, active && styles.filterTextActive]}>
                 {f.label} · {count}
               </Text>
             </Pressable>
@@ -177,10 +216,7 @@ function DeckPanel({
       </Text>
       {filtered.length === 0 ? (
         <View style={[styles.panel, styles.empty]}>
-          <Text style={styles.emptyText}>
-            No verses from the {filter === 'Old Testament' ? 'Old' : 'New'} Testament in
-            your deck yet.
-          </Text>
+          <Text style={styles.emptyText}>{emptyMessage}</Text>
         </View>
       ) : (
       <FlatList
@@ -199,7 +235,10 @@ function DeckPanel({
             )}
           >
             <Pressable onPress={() => onOpen(item)} style={styles.row}>
-              <Text style={styles.ref}>{item.ref}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                {isLearned(item) && <Text style={styles.learnedMark}>✓ </Text>}
+                <Text style={styles.ref}>{item.ref}</Text>
+              </View>
               <Text style={styles.added}>
                 {new Date(item.added).toLocaleDateString()}
               </Text>
@@ -420,4 +459,14 @@ const styles = StyleSheet.create({
   filterPillActive: { backgroundColor: C.yellow, borderColor: C.yellow },
   filterText: { fontSize: 12, fontWeight: '600', color: C.textSecondary },
   filterTextActive: { color: C.tealDark },
+  filterPillSmall: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    backgroundColor: C.surface,
+    borderWidth: 1,
+    borderColor: C.border,
+  },
+  filterTextSmall: { fontSize: 11, fontWeight: '600', color: C.textSecondary },
+  learnedMark: { color: C.done, fontWeight: '700', fontSize: 14 },
 });
