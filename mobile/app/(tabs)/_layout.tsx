@@ -27,6 +27,14 @@ export default function TabLayout() {
         options={{ href: null }}
       />
       <Tabs.Screen
+        name="memory"
+        options={{
+          title: 'Memory',
+          tabBarLabel: 'Memory',
+          tabBarIcon: ({ color }) => <TabIcon label="★" color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="settings"
         options={{
           title: 'Settings',
