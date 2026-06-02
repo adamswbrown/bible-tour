@@ -48,8 +48,8 @@
       },
       "android": {
         "serviceAccountKeyPath": "/Users/adambrown/.config/bible-tour/play-service-account.json",
-        "track": "internal",
-        "releaseStatus": "draft",
+        "track": "alpha",
+        "releaseStatus": "completed",
         "changesNotSentForReview": false
       }
     }
