@@ -28,64 +28,87 @@ export default function Beta() {
         <h1 style={s.h1}>Want to help test the app?</h1>
 
         <p style={s.lede}>
-          The Tour of the Bible mobile app is live on the iOS App Store and
-          available on Android via Google Play closed testing. Pick your
-          platform below — the iOS path is one tap, the Android path is a
-          quick two-step until Google unlocks the public store later this
-          month.
+          Live on the iOS App Store, and on Android via Google Play closed
+          testing. iOS is one tap. Android is two — both required, in order,
+          because of Google&rsquo;s new-developer rules. The steps below walk
+          you through it.
         </p>
 
-        <p style={s.p}>
-          If you give it a try, I&rsquo;d love your feedback — anything from
-          &ldquo;this verse looks wrong&rdquo; to &ldquo;the icon is ugly&rdquo;.
+        <h2 style={s.h2}>iOS — one tap</h2>
+        <a href={APP_STORE_URL} style={s.btnPrimaryFull}>
+          <span style={s.btnLabel}>Install on the App Store</span>
+          <span style={s.btnSub}>iPhone or iPad</span>
+        </a>
+
+        <h2 style={s.h2}>Android — two taps, in order</h2>
+        <p style={s.warn}>
+          <strong>Both steps are required.</strong> Joining the group does{" "}
+          <em>not</em> install the app — it only puts you on Google&rsquo;s
+          tester allowlist. You then tap a separate Play Store link to install.
+          If you stop after Step 1, the app will not appear on your phone.
         </p>
 
-        <div style={s.buttonRow}>
-          <a href={APP_STORE_URL} style={s.btnPrimary}>
-            <span style={s.btnLabel}>iOS on the App Store</span>
-            <span style={s.btnSub}>iPhone or iPad</span>
-          </a>
+        <div style={s.stepCard}>
+          <div style={s.stepHeader}>
+            <span style={s.stepNum}>Step 1 of 2</span>
+            <span style={s.stepTitle}>Join the testers group</span>
+          </div>
+          <p style={s.stepBody}>
+            On your Android phone, tap the button below and sign in with the
+            same Google account you use on the Play Store. Tap{" "}
+            <em>Join group</em>. You won&rsquo;t get any emails — the group
+            exists purely so Google knows you&rsquo;re allowed to install.
+          </p>
           <a href={PLAY_GROUP_JOIN_URL} style={s.btnPrimary}>
-            <span style={s.btnLabel}>Android via Play Store</span>
-            <span style={s.btnSub}>Two-step — join group, then install</span>
+            <span style={s.btnLabel}>Open the testers group →</span>
+            <span style={s.btnSub}>Step 1 · won&rsquo;t install the app on its own</span>
           </a>
         </div>
 
-        <h2 style={s.h2}>What happens when I tap the link?</h2>
+        <div style={s.stepCard}>
+          <div style={s.stepHeader}>
+            <span style={s.stepNum}>Step 2 of 2</span>
+            <span style={s.stepTitle}>Install from Play Store</span>
+          </div>
+          <p style={s.stepBody}>
+            After Step 1, tap the button below on the <em>same</em> phone,
+            signed in to the <em>same</em> Google account. Tap{" "}
+            <em>Become a tester</em>, then tap{" "}
+            <em>Download the app on Google Play</em> and install normally. From
+            then on the app updates through the Play Store like any other app.
+          </p>
+          <a href={PLAY_OPT_IN_URL} style={s.btnPrimary}>
+            <span style={s.btnLabel}>Open the Play Store install page →</span>
+            <span style={s.btnSub}>Step 2 · this is what installs the app</span>
+          </a>
+        </div>
 
-        <h3 style={s.h3}>iOS (App Store)</h3>
-        <p style={s.p}>
-          Tap the iOS button above on your iPhone or iPad — it opens the App
-          Store listing for Tour of the Bible. Tap <em>Get</em> and the app
-          installs like any other. No TestFlight, no invite codes, no account
-          required.
-        </p>
+        <details style={s.details}>
+          <summary style={s.summary}>Step 2 says I&rsquo;m not a tester</summary>
+          <p style={s.stepBody}>
+            Google&rsquo;s tester allowlist can take a minute or two to update
+            after you join the group. Wait 60 seconds, then reopen the Step 2
+            link. If it still says you&rsquo;re not a tester after a couple of
+            minutes, email{" "}
+            <a href="mailto:bibletour@askadam.cloud?subject=%5BBible%20Tour%5D%20Android%20tester%20access" style={s.link}>
+              bibletour@askadam.cloud
+            </a>{" "}
+            with the Gmail address you used to join the group and I&rsquo;ll add
+            you to the allowlist directly.
+          </p>
+        </details>
 
-        <h3 style={s.h3}>Android (Play Store)</h3>
-        <p style={s.p}>
-          Google&rsquo;s policy for new developer accounts means I can&rsquo;t
-          offer a single magic link until production unlocks (in about two
-          weeks). Until then it&rsquo;s a two-step:
-        </p>
-        <ol style={s.ul}>
-          <li>
-            Tap the Android button above. It opens a public Google Group called{" "}
-            <em>bible-tour-android-testers</em>. Tap <em>Join group</em> with
-            whatever Gmail you use on your phone.
-          </li>
-          <li>
-            Once you&rsquo;re in the group, open{" "}
-            <a href={PLAY_OPT_IN_URL} style={s.link}>this Play Store link</a> on
-            your phone, tap <em>Become a tester</em>, then tap{" "}
-            <em>Download the app on Google Play</em> and install as normal.
-          </li>
-        </ol>
-        <p style={s.p}>
-          From then on the app updates automatically through the Play Store like
-          any other app. You won&rsquo;t get any emails from the group — it
-          exists purely so Google&rsquo;s testing pipeline knows you&rsquo;re
-          allowed in.
-        </p>
+        <details style={s.details}>
+          <summary style={s.summary}>Why two steps?</summary>
+          <p style={s.stepBody}>
+            Google requires new developer accounts to run a closed test for a
+            while before the app can be published openly. Closed testing only
+            lets allowlisted Google accounts install — and the group is how
+            that allowlist is maintained. As soon as Google flips the app to
+            production, the two-step disappears and Android will be one tap
+            like iOS.
+          </p>
+        </details>
 
         <h2 style={s.h2}>What am I actually testing?</h2>
         <p style={s.p}>
@@ -197,6 +220,78 @@ const s = {
     textDecoration: "none",
     border: `1px solid ${C.yellow}`,
     transition: "transform 0.1s ease",
+  },
+  btnPrimaryFull: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-start",
+    background: C.yellow,
+    color: C.tealDark,
+    padding: "16px 18px",
+    borderRadius: 10,
+    textDecoration: "none",
+    border: `1px solid ${C.yellow}`,
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  warn: {
+    color: C.offWhite,
+    background: "rgba(255, 203, 33, 0.10)",
+    border: `1px solid rgba(255, 203, 33, 0.45)`,
+    padding: "14px 16px",
+    borderRadius: 8,
+    fontSize: 15,
+    lineHeight: 1.55,
+    marginBottom: 20,
+  },
+  stepCard: {
+    background: C.teal,
+    border: `1px solid ${C.border}`,
+    borderRadius: 10,
+    padding: 18,
+    marginBottom: 14,
+  },
+  stepHeader: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-start",
+    marginBottom: 8,
+  },
+  stepNum: {
+    fontSize: 11,
+    fontWeight: 800,
+    color: C.yellow,
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
+  },
+  stepTitle: {
+    fontSize: 18,
+    fontWeight: 700,
+    color: C.offWhite,
+    marginTop: 4,
+  },
+  stepBody: {
+    color: C.offWhite,
+    fontSize: 15,
+    lineHeight: 1.6,
+    marginTop: 6,
+    marginBottom: 14,
+  },
+  details: {
+    background: "transparent",
+    border: `1px solid ${C.border}`,
+    borderRadius: 8,
+    padding: "10px 14px",
+    marginTop: 10,
+    color: C.offWhite,
+  },
+  summary: {
+    cursor: "pointer",
+    fontWeight: 700,
+    color: C.yellow,
+    fontSize: 14,
+    paddingTop: 2,
+    paddingBottom: 2,
   },
   btnDisabled: {
     display: "flex",
