@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Dimensions,
   Linking,
   ScrollView,
   StyleSheet,
@@ -8,6 +9,14 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
 import { useLocalSearchParams, Stack, router } from 'expo-router';
 import { C } from '../constants/colors';
 import { BOOKS } from '../lib/readingPlan';
@@ -20,6 +29,12 @@ import AudioPlayer from '../components/AudioPlayer';
 import { loadMemory, isSaved, toggleVerse } from '../lib/memory';
 
 const VERCEL_BASE = 'https://bible-tour.vercel.app';
+
+// Swipe-down-to-dismiss tuning, matched to LexiconDrawer so the gesture
+// feels the same everywhere in the app.
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const DISMISS_THRESHOLD_PX = 110;
+const DISMISS_VELOCITY = 800;
 
 export default function VerseScreen() {
   const params = useLocalSearchParams<{
@@ -128,6 +143,44 @@ export default function VerseScreen() {
 
   const entry = activeStrong ? getEntry(activeStrong) : null;
 
+  // The header advertises "Swipe down to go back", but `presentation:
+  // 'modal'` only gives a swipe-to-dismiss sheet on iOS — on Android the
+  // modal is a plain full-screen route, so the gesture did nothing (the
+  // bug a tester reported). Drive the dismiss ourselves so it works on
+  // both platforms. The drag target is the grabber/hint area, kept
+  // outside the ScrollView so it never fights the vertical scroll.
+  const translateY = useSharedValue(0);
+
+  function dismiss() {
+    if (router.canGoBack()) router.back();
+  }
+
+  const swipeDown = Gesture.Pan()
+    .activeOffsetY(10)
+    .failOffsetY(-10)
+    .onUpdate((e) => {
+      translateY.value = Math.max(0, e.translationY);
+    })
+    .onEnd((e) => {
+      const shouldDismiss =
+        e.translationY > DISMISS_THRESHOLD_PX || e.velocityY > DISMISS_VELOCITY;
+      if (shouldDismiss) {
+        translateY.value = withTiming(
+          SCREEN_HEIGHT,
+          { duration: 200 },
+          (finished) => {
+            if (finished) runOnJS(dismiss)();
+          },
+        );
+      } else {
+        translateY.value = withSpring(0, { damping: 22, stiffness: 200 });
+      }
+    });
+
+  const sheetStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
+
   return (
     <>
       <Stack.Screen
@@ -145,12 +198,15 @@ export default function VerseScreen() {
           ),
         }}
       />
-      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-        <View style={styles.grabberWrap}>
-          <View style={styles.grabber} />
-          <Text style={styles.grabberHint}>Swipe down to go back</Text>
-        </View>
+      <Animated.View style={[styles.sheet, sheetStyle]}>
+        <GestureDetector gesture={swipeDown}>
+          <View style={styles.grabberWrap}>
+            <View style={styles.grabber} />
+            <Text style={styles.grabberHint}>Swipe down to go back</Text>
+          </View>
+        </GestureDetector>
 
+        <ScrollView style={styles.container} contentContainerStyle={styles.content}>
         <View style={styles.translationRow}>
           {TRANSLATIONS.map((tr) => (
             <TouchableOpacity
@@ -251,7 +307,8 @@ export default function VerseScreen() {
             </TouchableOpacity>
           </View>
         )}
-      </ScrollView>
+        </ScrollView>
+      </Animated.View>
 
       <LexiconDrawer
         visible={!!activeStrong}
@@ -311,9 +368,12 @@ function YouVersionButton({
 }
 
 const styles = StyleSheet.create({
+  sheet:            { flex: 1, backgroundColor: C.teal },
   container:        { flex: 1, backgroundColor: C.teal },
   content:          { padding: 16, paddingBottom: 48 },
-  grabberWrap:      { alignItems: 'center', marginBottom: 14 },
+  // Grabber sits above the ScrollView and is the swipe-down drag target,
+  // so it needs generous padding to be easy to grab.
+  grabberWrap:      { alignItems: 'center', paddingTop: 10, paddingBottom: 12, backgroundColor: C.teal },
   grabber:          { width: 40, height: 5, borderRadius: 3, backgroundColor: C.tealLight },
   grabberHint:      { fontSize: 11, color: C.textSecondary, marginTop: 6, letterSpacing: 0.3 },
   navRow: {

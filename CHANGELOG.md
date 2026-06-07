@@ -6,6 +6,15 @@ This project ships continuously to [bible-tour.vercel.app](https://bible-tour.ve
 and doesn't follow semver — entries are grouped under the date they shipped
 to production. Format loosely follows [Keep a Changelog](https://keepachangelog.com).
 
+## 2026-06-07 — Swipe down to go back (Android)
+
+### Fixed
+- On the Android app, the verse screen showed a **"Swipe down to go back"**
+  hint but the gesture did nothing — `presentation: 'modal'` only provides a
+  swipe-to-dismiss sheet on iOS. The verse screen now drives the dismiss
+  itself with a pan gesture on the grabber handle, so swiping down closes the
+  passage on both Android and iOS.
+
 ## 2026-05-31 — Modern default translation
 
 ### Changed
