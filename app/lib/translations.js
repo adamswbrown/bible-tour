@@ -16,6 +16,8 @@ export const TRANSLATIONS = [
   { id: "msg", name: "The Message", abbr: "MSG", apiCode: null, youVersionId: 97, yvLicensed: false },
   { id: "web", name: "World English Bible", abbr: "WEB", apiCode: "web", youVersionId: 206, yvLicensed: false },
   { id: "asv", name: "American Standard Version", abbr: "ASV", apiCode: "asv", youVersionId: 12, yvLicensed: false },
+  { id: "original", name: "Original (Hebrew / Greek)", abbr: "ORIG", apiCode: null, youVersionId: 1, yvLicensed: false, original: true,
+    copyright: "Hebrew text from the Westminster Leningrad Codex via Open Scriptures (CC BY 4.0). Greek text from the SBLGNT, edited by Michael W. Holmes, with MorphGNT morphology (CC BY-SA 4.0)." },
 ];
 
 export const MAIN_DEFAULT_TRANSLATION = "niv";

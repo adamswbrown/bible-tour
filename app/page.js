@@ -10,6 +10,7 @@ import {
   buildYouVersionUrl,
 } from "./lib/translations";
 import { hasStudy, getTokens, getEntry, toVerseId } from "./lib/study";
+import { getOriginalVerses } from "./lib/originals";
 import { loadMemory, memoryCount as countMemory, isSaved as memIsSaved, toggleVerse as memToggle } from "./lib/memory";
 import StudyVerse from "./components/StudyVerse";
 import WordPopover from "./components/WordPopover";
@@ -177,7 +178,17 @@ function VersePanel({ book, verseRef, onClose, onNavigate, mode = "overlay" }) {
     setText(null);
     setCopyright(null);
 
-    if (tx.yvLicensed) {
+    if (tx.original) {
+      // Original (Hebrew/Greek) — loaded from local bundled data, no API.
+      const verses = getOriginalVerses(book, verseRef);
+      if (verses.length > 0) {
+        setText(verses);
+        if (tx.copyright) setCopyright(tx.copyright);
+      } else {
+        setError("original-unavailable");
+      }
+      setLoading(false);
+    } else if (tx.yvLicensed) {
       // Fetch from YouVersion API via our server proxy
       const parts = buildUsfmParts(book, verseRef);
       if (!parts) { setError("api"); setLoading(false); return; }
@@ -259,7 +270,7 @@ function VersePanel({ book, verseRef, onClose, onNavigate, mode = "overlay" }) {
     }
 
     return () => { cancelled = true; };
-  }, [book, verseRef, tx.apiCode, tx.yvLicensed, tx.esvLicensed, tx.youVersionId, tx.copyright]);
+  }, [book, verseRef, tx.apiCode, tx.yvLicensed, tx.esvLicensed, tx.original, tx.youVersionId, tx.copyright]);
 
   const changeTranslation = (newId) => {
     setTranslationId(newId);
@@ -272,8 +283,11 @@ function VersePanel({ book, verseRef, onClose, onNavigate, mode = "overlay" }) {
       try { localStorage.setItem(STUDY_MODE_STORAGE_KEY, next ? "1" : "0"); } catch {}
       if (next) {
         // Originals tagging only exists for KJV — auto-switch so the user
-        // sees the tagged tokens inline instead of below their reading text.
-        if (translationId !== "kjv") changeTranslation("kjv");
+        // sees the tagged tokens inline instead of below their reading
+        // text. The "original" translation already shows Hebrew/Greek,
+        // so the tagged KJV renders below it (non-isKjv branch); no
+        // need to switch the reading text away from it.
+        if (translationId !== "kjv" && translationId !== "original") changeTranslation("kjv");
       } else {
         setStudyPopover(null);
         setStudyDrawer(null);
@@ -442,15 +456,30 @@ function VersePanel({ book, verseRef, onClose, onNavigate, mode = "overlay" }) {
             </div>
           )}
 
+          {error === "original-unavailable" && (
+            <div style={ps.errorWrap}>
+              <p style={ps.copyrightNote}>
+                The Original (Hebrew / Greek) text isn’t bundled for this
+                verse. Pick a different translation to read it inline.
+              </p>
+            </div>
+          )}
+
           {text && (
             <div style={isSidebar ? ps.verseContentSidebar : ps.verseContent}>
               {text.map((v, i) => {
-                // On KJV we tokenize the first verse in-place. On other
-                // translations the tagged KJV renders as a separate
-                // Originals section below (see next block).
-                const useStudyInline = isKjv && i === 0 && studyTokens && studyTokens.length > 0;
+                // On KJV we tokenize the first verse in-place (Originals
+                // inline). Skip for original-language text — StudyVerse
+                // is keyed off the KJV token stream and doesn't apply.
+                const useStudyInline = isKjv && !v.lang && i === 0 && studyTokens && studyTokens.length > 0;
+                const isRtl = v.lang === "hbo";
+                const lineStyle = {
+                  ...(isSidebar ? ps.verseLineSidebar : ps.verseLine),
+                  ...(v.lang ? ps.verseLineOriginal : {}),
+                  ...(isRtl ? ps.verseLineRtl : {}),
+                };
                 return (
-                  <p key={i} style={isSidebar ? ps.verseLineSidebar : ps.verseLine}>
+                  <p key={i} style={lineStyle} dir={isRtl ? "rtl" : undefined} lang={v.lang || undefined}>
                     {v.verse && <sup style={ps.verseNum}>{v.verse}</sup>}
                     {useStudyInline ? (
                       <StudyVerse
@@ -1654,6 +1683,13 @@ const ps = {
   },
   verseLine: {
     fontSize: 16, margin: "0 0 12px", lineHeight: 1.8,
+  },
+  verseLineOriginal: {
+    fontSize: 20, lineHeight: 2.0,
+    fontFamily: '"SBL Hebrew", "SBL Greek", "Times New Roman", "Cardo", serif',
+  },
+  verseLineRtl: {
+    textAlign: "right",
   },
   verseNum: {
     fontSize: 11, fontWeight: 700, color: C.tealLight, marginRight: 4,
