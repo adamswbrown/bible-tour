@@ -37,6 +37,12 @@ export default function Support() {
           YouVersion when tapped, because their licences don&rsquo;t allow inline
           rendering in third-party apps.
         </p>
+        <p style={s.p}>
+          The web app additionally offers an <strong>Original (Hebrew / Greek)</strong>{" "}
+          option in the translation picker — Hebrew for Old Testament verses, Greek for
+          New Testament verses, drawn from the Westminster Leningrad Codex and the
+          SBLGNT respectively.
+        </p>
 
         <h3 style={s.h3}>Why doesn&rsquo;t the audio play?</h3>
         <p style={s.p}>
