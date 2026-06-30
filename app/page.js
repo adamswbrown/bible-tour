@@ -823,9 +823,16 @@ function ChecklistView({ checked, onToggle, onReset }) {
             role="listitem"
             style={{ ...s.badge, ...(earned ? s.badgeEarned : {}) }}
             title={earned ? `${m.name} — earned` : `${m.name} — locked`}
+            aria-label={`${m.pct}% milestone — ${m.name} — ${earned ? "earned" : "locked"}`}
           >
-            <span style={{ ...s.badgeDisc, ...(earned ? s.badgeDiscEarned : {}) }}>
-              {m.pct}%
+            <span style={{ ...s.badgeDisc, ...(earned ? s.badgeDiscEarned : {}) }} aria-hidden="true">
+              {earned ? (
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M2.8 7.4L5.7 10.3L11.2 3.8" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              ) : (
+                <span>{m.pct}%</span>
+              )}
             </span>
             <span style={{ ...s.badgeLabel, ...(earned ? s.badgeLabelEarned : {}) }}>
               {m.name}
@@ -1551,6 +1558,58 @@ const s = {
     color: "rgba(255,255,255,0.82)",
     display: "flex", alignItems: "center", justifyContent: "center",
     cursor: "pointer", padding: 0,
+  },
+
+  // ── Reading milestone shelf ────────────────────────────────────────────────
+  badges: {
+    display: "grid",
+    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+    gap: 8,
+    margin: "16px 0 4px",
+  },
+  badge: {
+    display: "flex", alignItems: "center", gap: 10,
+    padding: "8px 12px 8px 8px",
+    borderRadius: 999,
+    background: "rgba(27,58,75,0.05)",
+    border: `1px dashed rgba(27,58,75,0.22)`,
+    color: C.teal,
+    opacity: 0.55,
+    transition: "opacity .15s, background-color .15s, border-color .15s",
+    minWidth: 0,
+  },
+  badgeEarned: {
+    background: "rgba(255,203,33,0.22)",
+    border: `1px solid ${C.yellow}`,
+    opacity: 1,
+    boxShadow: "0 1px 6px rgba(0,0,0,0.06)",
+  },
+  badgeDisc: {
+    width: 30, height: 30,
+    borderRadius: "50%",
+    flexShrink: 0,
+    display: "inline-flex", alignItems: "center", justifyContent: "center",
+    background: "rgba(27,58,75,0.12)",
+    color: C.teal,
+    fontSize: 11, fontWeight: 800, letterSpacing: 0,
+    fontFamily: "'DM Sans',sans-serif",
+  },
+  badgeDiscEarned: {
+    background: C.yellow,
+    color: C.teal,
+  },
+  badgeLabel: {
+    fontSize: 13, fontWeight: 600,
+    fontFamily: "'DM Sans',sans-serif",
+    color: C.tealLight,
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    minWidth: 0,
+  },
+  badgeLabelEarned: {
+    color: C.teal,
+    fontWeight: 700,
   },
 
   // ── Studied (Eagle cross-pollination) badge ────────────────────────────────
