@@ -2,7 +2,7 @@
 import { useRef } from "react";
 
 // Renders a tokenized verse as tappable word spans.
-// Tagged words (with Strong's number `s`) get a dotted underline and fire `onWordClick`.
+// Tagged words (with Strong's number `s`) get a yellow highlight + underline and fire `onWordClick`.
 // Untagged words render as plain text. Punctuation is already attached to words by the data pipeline.
 export default function StudyVerse({ verseId, tokens, onWordClick, activeStrong }) {
   if (!tokens || tokens.length === 0) return null;
@@ -63,10 +63,14 @@ function WordSpan({ sep, token, active, onWordClick }) {
           if (e.key === "Enter" || e.key === " ") handleClick(e);
         }}
         onMouseEnter={(e) => {
-          if (!active) e.currentTarget.style.borderBottomColor = "#4a6a82";
+          if (!active) {
+            e.currentTarget.style.background = "rgba(255,203,33,0.45)";
+          }
         }}
         onMouseLeave={(e) => {
-          if (!active) e.currentTarget.style.borderBottomColor = "#8ab";
+          if (!active) {
+            e.currentTarget.style.background = "rgba(255,203,33,0.28)";
+          }
         }}
         data-strong={token.s}
         style={style}
@@ -91,12 +95,17 @@ const styles = {
     display: "inline",
     color: "inherit",
     cursor: "pointer",
-    borderBottom: "1px dotted #8ab",
-    transition: "border-bottom-color .15s",
+    background: "rgba(255,203,33,0.28)",
+    borderBottom: "2px solid #FFCB21",
+    borderRadius: 2,
+    padding: "0 1px",
+    fontWeight: 600,
+    transition: "background-color .15s",
     WebkitTapHighlightColor: "transparent",
   },
   taggedActive: {
-    borderBottom: "1px solid #d97706",
+    background: "rgba(255,203,33,0.65)",
+    borderBottom: "2px solid #d97706",
     color: "inherit",
   },
 };
