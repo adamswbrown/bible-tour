@@ -63,7 +63,7 @@ export default function Privacy() {
         </p>
         <ul style={s.ul}>
           <li>
-            <strong>YouVersion Developer API</strong> — for NIV, NIrV, and NIVUK passages.
+            <strong>YouVersion Developer API</strong> — for NIV, NIrV, NIVUK, and BSB passages.
             We request the verse you&rsquo;ve tapped and pass the text back to your device.
             See YouVersion&rsquo;s <a href="https://platform.youversion.com/terms" style={s.link}>terms</a>.
           </li>
@@ -72,7 +72,7 @@ export default function Privacy() {
             See Crossway&rsquo;s <a href="https://api.esv.org/docs/" style={s.link}>API conditions</a>.
           </li>
           <li>
-            <strong>bible-api.com</strong> — for public-domain translations (KJV, BSB, WEB, ASV).
+            <strong>bible-api.com</strong> — for public-domain translations (KJV, WEB, ASV).
           </li>
         </ul>
         <p style={s.p}>

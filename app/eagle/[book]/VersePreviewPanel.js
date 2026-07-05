@@ -237,7 +237,7 @@ export default function VersePreviewPanel({ book, refs }) {
             {TRANSLATIONS.map((option) => (
               <option key={option.id} value={option.id}>
                 {option.abbr} — {option.name}
-                {!option.apiCode && !option.yvLicensed && !option.esvLicensed ? " (YouVersion)" : ""}
+                {!option.apiCode && !option.yvLicensed && !option.esvLicensed && !option.original ? " (YouVersion)" : ""}
               </option>
             ))}
           </select>

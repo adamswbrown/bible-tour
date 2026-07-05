@@ -22,13 +22,18 @@ export default function AboutScreen() {
           url="https://api.esv.org"
         />
         <Credit
+          name="Berean Standard Bible (BSB)"
+          detail="The Holy Bible, Berean Standard Bible, BSB is produced in cooperation with Bible Hub, Discovery Bible, OpenBible.com, and the Berean Bible Translation Committee. This text of God's Word has been dedicated to the public domain. Accessed via the YouVersion Developer API."
+          url="https://berean.bible"
+        />
+        <Credit
           name="Original (Hebrew / Greek)"
           detail="Hebrew text from the Westminster Leningrad Codex via Open Scriptures (CC BY 4.0). Greek text from the SBLGNT, edited by Michael W. Holmes, with MorphGNT morphology (CC BY-SA 4.0)."
           url="https://github.com/openscriptures/morphhb"
         />
         <Credit
-          name="KJV, BSB, WEB, ASV"
-          detail="Public domain translations via bible-api.com. The Berean Standard Bible is produced in cooperation with Bible Hub, Discovery Bible, OpenBible.com, and the Berean Bible Translation Committee, and has been dedicated to the public domain."
+          name="KJV, WEB, ASV"
+          detail="Public domain translations via bible-api.com."
           url="https://bible-api.com"
         />
       </Section>

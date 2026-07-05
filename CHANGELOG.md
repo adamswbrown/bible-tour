@@ -23,8 +23,8 @@ to production. Format loosely follows [Keep a Changelog](https://keepachangelog.
   progress in Settings).
 - **Berean Standard Bible (BSB)** — new reading translation on both the
   web Tour and the mobile app. The BSB is a modern English translation
-  dedicated to the public domain, so it renders inline via bible-api.com
-  alongside KJV, WEB, and ASV — no licence gate, no YouVersion detour.
+  dedicated to the public domain; it renders inline via the YouVersion
+  Developer API (Bible ID 3034), the same pipeline as the NIV family.
 
 ## 2026-06-07 — Swipe down to go back (Android)
 

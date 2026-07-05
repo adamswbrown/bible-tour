@@ -39,7 +39,8 @@ export const TRANSLATIONS: Translation[] = [
   },
   {
     id: 'bsb', name: 'Berean Standard Bible', abbr: 'BSB',
-    youVersionId: 3034, yvLicensed: false,
+    youVersionId: 3034, yvLicensed: true,
+    copyright: 'The Holy Bible, Berean Standard Bible, BSB is produced in cooperation with Bible Hub, Discovery Bible, OpenBible.com, and the Berean Bible Translation Committee. This text of God’s Word has been dedicated to the public domain.',
   },
   {
     id: 'nkjv', name: 'New King James Version', abbr: 'NKJV',
