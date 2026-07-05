@@ -339,7 +339,7 @@ function CopyrightedNotice({
       <YouVersionButton book={book} refStr={refStr} translation={translation} />
       {translation.copyrighted && (
         <Text style={styles.noticeHint}>
-          Read inline in KJV, WEB, or ASV.
+          Read inline in KJV, BSB, WEB, or ASV.
         </Text>
       )}
     </View>

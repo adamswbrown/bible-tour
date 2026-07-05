@@ -22,8 +22,8 @@ export default function AboutScreen() {
           url="https://api.esv.org"
         />
         <Credit
-          name="KJV, WEB, ASV"
-          detail="Public domain translations via bible-api.com."
+          name="KJV, BSB, WEB, ASV"
+          detail="Public domain translations via bible-api.com. The Berean Standard Bible is produced in cooperation with Bible Hub, Discovery Bible, OpenBible.com, and the Berean Bible Translation Committee, and has been dedicated to the public domain."
           url="https://bible-api.com"
         />
       </Section>

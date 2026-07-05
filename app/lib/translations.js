@@ -10,6 +10,7 @@ export const TRANSLATIONS = [
     copyright: "Holy Bible, New International Version\u00ae Anglicised, NIV\u00ae Copyright \u00a91979, 1984, 2011 by Biblica, Inc.\u00ae Used by permission. All rights reserved worldwide." },
   { id: "esv", name: "English Standard Version", abbr: "ESV", apiCode: null, youVersionId: 59, yvLicensed: false, esvLicensed: true,
     copyright: "Scripture quotations are from the ESV\u00ae Bible (The Holy Bible, English Standard Version\u00ae), copyright \u00a9 2001 by Crossway, a publishing ministry of Good News Publishers. Used by permission. All rights reserved." },
+  { id: "bsb", name: "Berean Standard Bible", abbr: "BSB", apiCode: "bsb", youVersionId: 3034, yvLicensed: false },
   { id: "nkjv", name: "New King James Version", abbr: "NKJV", apiCode: null, youVersionId: 114, yvLicensed: false },
   { id: "nlt", name: "New Living Translation", abbr: "NLT", apiCode: null, youVersionId: 116, yvLicensed: false },
   { id: "csb", name: "Christian Standard Bible", abbr: "CSB", apiCode: null, youVersionId: 1713, yvLicensed: false },

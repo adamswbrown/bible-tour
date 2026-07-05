@@ -10,7 +10,7 @@ Live at [bible-tour.vercel.app](https://bible-tour.vercel.app)
 
 - Reading checklist covering all 66 books with curated verse references
 - Inline verse reader — tap any reference to read the passage without leaving the app
-- Multiple translations: NIV, NIrV, NIVUK (via YouVersion API), KJV, WEB, ASV (via bible-api.com), ESV (via Crossway API)
+- Multiple translations: NIV, NIrV, NIVUK (via YouVersion API), KJV, BSB, WEB, ASV (via bible-api.com), ESV (via Crossway API)
 - Per-verse audio (ESV) via the Crossway API
 - Resume bar — re-entering the Tour offers one-tap resume of the last verse you opened
 - Memory — star any verse to save it, then practice with a Full → Initials → Blanks fade ladder, tap-to-peek, and ESV audio (no schedule, no streaks)
@@ -21,7 +21,7 @@ Live at [bible-tour.vercel.app](https://bible-tour.vercel.app)
 - **Next.js 16** (App Router) on **Vercel**
 - Single-page app — one `page.js`, no external UI libraries
 - **YouVersion Developer API** for licensed translations (NIV family)
-- **bible-api.com** for public domain translations (KJV, WEB, ASV)
+- **bible-api.com** for public domain translations (KJV, BSB, WEB, ASV)
 - **Crossway ESV API** for ESV reading text and per-verse audio narration
 - All user data in `localStorage` — no database
 
@@ -115,7 +115,7 @@ Currently licensed English translations available inline:
 - **NIVUK** (YouVersion id 113) — New International Version Anglicised 2011
 - **ESV** — English Standard Version, served via the Crossway API (text + per-verse audio)
 
-Public-domain translations served inline: **KJV**, **WEB**, **ASV** (via bible-api.com).
+Public-domain translations served inline: **KJV**, **BSB**, **WEB**, **ASV** (via bible-api.com). The Berean Standard Bible was dedicated to the public domain in 2023 — the only modern English translation that is truly free to use.
 
 Unlicensed copyrighted translations (NKJV, NLT, CSB, MSG) link out to YouVersion instead of displaying inline.
 

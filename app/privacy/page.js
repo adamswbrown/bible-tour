@@ -72,7 +72,7 @@ export default function Privacy() {
             See Crossway&rsquo;s <a href="https://api.esv.org/docs/" style={s.link}>API conditions</a>.
           </li>
           <li>
-            <strong>bible-api.com</strong> — for public-domain translations (KJV, WEB, ASV).
+            <strong>bible-api.com</strong> — for public-domain translations (KJV, BSB, WEB, ASV).
           </li>
         </ul>
         <p style={s.p}>

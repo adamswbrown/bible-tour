@@ -37,6 +37,10 @@ export const TRANSLATIONS: Translation[] = [
     copyright: 'Scripture quotations are from the ESV® Bible (The Holy Bible, English Standard Version®), copyright © 2001 by Crossway, a publishing ministry of Good News Publishers. Used by permission. All rights reserved.',
   },
   {
+    id: 'bsb', name: 'Berean Standard Bible', abbr: 'BSB',
+    youVersionId: 3034, yvLicensed: false,
+  },
+  {
     id: 'nkjv', name: 'New King James Version', abbr: 'NKJV',
     youVersionId: 114, yvLicensed: false, copyrighted: true,
   },

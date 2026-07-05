@@ -31,9 +31,9 @@ export default function Support() {
 
         <h3 style={s.h3}>What translations does the app include?</h3>
         <p style={s.p}>
-          The mobile app supports KJV, NIV, NIrV, NIVUK, ESV, NKJV, NLT, CSB, MSG, WEB,
-          and ASV. KJV / WEB / ASV / ESV / NIV / NIrV / NIVUK render passage text
-          inline. The other translations (NKJV, NLT, CSB, MSG) open the passage in
+          The mobile app supports KJV, NIV, NIrV, NIVUK, ESV, BSB, NKJV, NLT, CSB, MSG,
+          WEB, and ASV. KJV / BSB / WEB / ASV / ESV / NIV / NIrV / NIVUK render passage
+          text inline. The other translations (NKJV, NLT, CSB, MSG) open the passage in
           YouVersion when tapped, because their licences don&rsquo;t allow inline
           rendering in third-party apps.
         </p>
