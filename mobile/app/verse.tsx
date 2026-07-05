@@ -27,6 +27,7 @@ import StrongsVerse from '../components/StrongsVerse';
 import LexiconDrawer from '../components/LexiconDrawer';
 import AudioPlayer from '../components/AudioPlayer';
 import { loadMemory, isSaved, toggleVerse } from '../lib/memory';
+import { saveResume } from '../lib/progress';
 
 const VERCEL_BASE = 'https://bible-tour.vercel.app';
 
@@ -104,6 +105,14 @@ export default function VerseScreen() {
     book && refParam
       ? `${VERCEL_BASE}/api/verse-audio?book=${encodeURIComponent(book)}&ref=${encodeURIComponent(refParam)}`
       : null;
+
+  // Remember the last verse opened so the Tour tab can offer one-tap
+  // resume — fires again on sibling navigation, so it always tracks the
+  // passage currently on screen.
+  useEffect(() => {
+    if (!book || !refParam) return;
+    saveResume(book, refParam);
+  }, [book, refParam]);
 
   useEffect(() => {
     if (!book || !refParam) return;
