@@ -109,8 +109,7 @@ export async function fetchVerse(
   } else if (t.yvLicensed) {
     text = await fetchYouVersion(book, ref, t.youVersionId);
   } else {
-    const apiCode =
-      t.id === 'kjv' ? 'kjv' : t.id === 'web' ? 'web' : t.id === 'asv' ? 'asv' : null;
+    const apiCode = ['kjv', 'web', 'asv'].includes(t.id) ? t.id : null;
     if (apiCode) {
       text = await fetchBibleApi(book, ref, apiCode);
     } else {

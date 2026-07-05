@@ -362,7 +362,7 @@ function VersePanel({ book, verseRef, onClose, onNavigate, mode = "overlay" }) {
           >
             {TRANSLATIONS.map(t => (
               <option key={t.id} value={t.id}>
-                {t.abbr} — {t.name}{!t.apiCode && !t.yvLicensed && !t.esvLicensed ? " (YouVersion)" : ""}
+                {t.abbr} — {t.name}{!t.apiCode && !t.yvLicensed && !t.esvLicensed && !t.original ? " (YouVersion)" : ""}
               </option>
             ))}
           </select>
@@ -442,7 +442,7 @@ function VersePanel({ book, verseRef, onClose, onNavigate, mode = "overlay" }) {
                 </svg>
               </a>
               <p style={ps.copyrightHint}>
-                Or pick a public domain translation (KJV, WEB, ASV) to read inline.
+                Or pick a public domain translation (KJV, BSB, WEB, ASV) to read inline.
               </p>
             </div>
           )}

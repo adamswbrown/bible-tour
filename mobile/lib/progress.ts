@@ -6,8 +6,35 @@ const MILESTONES_KEY = 'bt:tourMilestones';
 const TRANSLATION_KEY = 'bt:translation';
 const TRANSLATION_MIGRATED_KEY = 'bt:translation_migrated_v1';
 const NOTIFS_KEY = 'bt:notifs';
+const RESUME_KEY = 'bt:resume';
 
 export type Progress = Record<number, boolean>;
+
+// Last verse opened in the reader — mirrors the web app's bt:resume entry.
+export type ResumeEntry = { book: string; ref: string; ts: number };
+
+export async function getResume(): Promise<ResumeEntry | null> {
+  try {
+    const raw = await AsyncStorage.getItem(RESUME_KEY);
+    const entry = raw ? JSON.parse(raw) : null;
+    return entry && entry.book && entry.ref ? entry : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function saveResume(book: string, ref: string): Promise<void> {
+  try {
+    const entry: ResumeEntry = { book, ref, ts: Date.now() };
+    await AsyncStorage.setItem(RESUME_KEY, JSON.stringify(entry));
+  } catch {}
+}
+
+export async function clearResume(): Promise<void> {
+  try {
+    await AsyncStorage.removeItem(RESUME_KEY);
+  } catch {}
+}
 
 export async function getProgress(): Promise<Progress> {
   try {
@@ -86,4 +113,5 @@ export async function setNotificationsEnabled(enabled: boolean): Promise<void> {
 export async function clearProgress(): Promise<void> {
   await AsyncStorage.removeItem(PROGRESS_KEY);
   await AsyncStorage.removeItem(MILESTONES_KEY);
+  await AsyncStorage.removeItem(RESUME_KEY);
 }

@@ -8,6 +8,7 @@ export type Translation = {
   yvLicensed: boolean;
   esvLicensed?: boolean;
   copyrighted?: boolean; // true → no inline render, deep-link to YouVersion only
+  original?: boolean; // true → render bundled Hebrew/Greek text, no network fetch
   copyright?: string;
 };
 
@@ -37,6 +38,11 @@ export const TRANSLATIONS: Translation[] = [
     copyright: 'Scripture quotations are from the ESV® Bible (The Holy Bible, English Standard Version®), copyright © 2001 by Crossway, a publishing ministry of Good News Publishers. Used by permission. All rights reserved.',
   },
   {
+    id: 'bsb', name: 'Berean Standard Bible', abbr: 'BSB',
+    youVersionId: 3034, yvLicensed: true,
+    copyright: 'The Holy Bible, Berean Standard Bible, BSB is produced in cooperation with Bible Hub, Discovery Bible, OpenBible.com, and the Berean Bible Translation Committee. This text of God’s Word has been dedicated to the public domain.',
+  },
+  {
     id: 'nkjv', name: 'New King James Version', abbr: 'NKJV',
     youVersionId: 114, yvLicensed: false, copyrighted: true,
   },
@@ -59,6 +65,11 @@ export const TRANSLATIONS: Translation[] = [
   {
     id: 'asv', name: 'American Standard Version', abbr: 'ASV',
     youVersionId: 12, yvLicensed: false,
+  },
+  {
+    id: 'original', name: 'Original (Hebrew / Greek)', abbr: 'ORIG',
+    youVersionId: 1, yvLicensed: false, original: true,
+    copyright: 'Hebrew text from the Westminster Leningrad Codex via Open Scriptures (CC BY 4.0). Greek text from the SBLGNT, edited by Michael W. Holmes, with MorphGNT morphology (CC BY-SA 4.0).',
   },
 ];
 

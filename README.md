@@ -10,7 +10,7 @@ Live at [bible-tour.vercel.app](https://bible-tour.vercel.app)
 
 - Reading checklist covering all 66 books with curated verse references
 - Inline verse reader — tap any reference to read the passage without leaving the app
-- Multiple translations: NIV, NIrV, NIVUK (via YouVersion API), KJV, WEB, ASV (via bible-api.com), ESV (via Crossway API)
+- Multiple translations: NIV, NIrV, NIVUK, BSB (via YouVersion API), KJV, WEB, ASV (via bible-api.com), ESV (via Crossway API)
 - Per-verse audio (ESV) via the Crossway API
 - Resume bar — re-entering the Tour offers one-tap resume of the last verse you opened
 - Memory — star any verse to save it, then practice with a Full → Initials → Blanks fade ladder, tap-to-peek, and ESV audio (no schedule, no streaks)
@@ -113,6 +113,7 @@ Currently licensed English translations available inline:
 - **NIV** (YouVersion id 111) — New International Version 2011
 - **NIrV** (YouVersion id 110) — New International Reader's Version 2014
 - **NIVUK** (YouVersion id 113) — New International Version Anglicised 2011
+- **BSB** (YouVersion id 3034) — Berean Standard Bible, public domain (dedicated 2023 — the only modern English translation that is truly free to use)
 - **ESV** — English Standard Version, served via the Crossway API (text + per-verse audio)
 
 Public-domain translations served inline: **KJV**, **WEB**, **ASV** (via bible-api.com).

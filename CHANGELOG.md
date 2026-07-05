@@ -6,6 +6,26 @@ This project ships continuously to [bible-tour.vercel.app](https://bible-tour.ve
 and doesn't follow semver — entries are grouped under the date they shipped
 to production. Format loosely follows [Keep a Changelog](https://keepachangelog.com).
 
+## Unreleased — Resume on mobile & Berean Standard Bible
+
+### Added
+- **Original (Hebrew / Greek) on mobile** — the ORIG translation option
+  from the web Tour is now in the mobile app too. The same 234 curated
+  verses ship inside the app bundle (Westminster Leningrad Codex Hebrew,
+  SBLGNT Greek), render offline with right-to-left layout for Hebrew,
+  and fall back to a gentle notice for references the bundle doesn't
+  cover.
+- **Pick up where you left off (mobile)** — the Tour tab now shows a
+  one-tap **Resume** card for the last verse you opened in the reader,
+  matching the resume pill the web Tour has had. The entry is stored
+  on-device under `bt:resume`, refreshes as you step through a book's
+  passages, and can be dismissed with ✕ (it also clears when you reset
+  progress in Settings).
+- **Berean Standard Bible (BSB)** — new reading translation on both the
+  web Tour and the mobile app. The BSB is a modern English translation
+  dedicated to the public domain; it renders inline via the YouVersion
+  Developer API (Bible ID 3034), the same pipeline as the NIV family.
+
 ## 2026-06-07 — Swipe down to go back (Android)
 
 ### Fixed

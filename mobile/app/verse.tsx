@@ -23,10 +23,12 @@ import { BOOKS } from '../lib/readingPlan';
 import { fetchVerse, type VerseResult } from '../lib/api';
 import { TRANSLATIONS, getTranslation, buildYouVersionUrl, DEFAULT_TRANSLATION } from '../lib/translations';
 import { hasStudyForRef, getTokensForRef, getEntry } from '../lib/study';
+import { getOriginalVerses } from '../lib/originals';
 import StrongsVerse from '../components/StrongsVerse';
 import LexiconDrawer from '../components/LexiconDrawer';
 import AudioPlayer from '../components/AudioPlayer';
 import { loadMemory, isSaved, toggleVerse } from '../lib/memory';
+import { saveResume } from '../lib/progress';
 
 const VERCEL_BASE = 'https://bible-tour.vercel.app';
 
@@ -97,6 +99,12 @@ export default function VerseScreen() {
 
   const t = getTranslation(translation);
   const isKjv = t.id === 'kjv';
+  const isOriginal = !!t.original;
+
+  const originalVerses = useMemo(
+    () => (isOriginal ? getOriginalVerses(book, refParam) : []),
+    [isOriginal, book, refParam],
+  );
 
   // The audio proxy returns a 302 redirect to Crossway's MP3 — pass the
   // proxy URL straight to expo-audio. No pre-fetch needed.
@@ -105,12 +113,26 @@ export default function VerseScreen() {
       ? `${VERCEL_BASE}/api/verse-audio?book=${encodeURIComponent(book)}&ref=${encodeURIComponent(refParam)}`
       : null;
 
+  // Remember the last verse opened so the Tour tab can offer one-tap
+  // resume — fires again on sibling navigation, so it always tracks the
+  // passage currently on screen.
   useEffect(() => {
     if (!book || !refParam) return;
-    setLoading(true);
+    saveResume(book, refParam);
+  }, [book, refParam]);
+
+  useEffect(() => {
+    if (!book || !refParam) return;
     setError(null);
     setResult(null);
 
+    // Original (Hebrew/Greek) renders from bundled data — no fetch.
+    if (getTranslation(translation).original) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
     fetchVerse(book, refParam, translation)
       .then(setResult)
       .catch((e) => setError(e.message ?? 'unknown'))
@@ -236,6 +258,33 @@ export default function VerseScreen() {
 
         {loading && <ActivityIndicator color={C.yellow} size="large" style={styles.loader} />}
 
+        {isOriginal && !loading && (
+          <View style={styles.body}>
+            <Text style={styles.reference}>
+              {book} {refParam} · {t.abbr}
+            </Text>
+            {originalVerses.length > 0 ? (
+              <>
+                {originalVerses.map((v, i) => (
+                  <Text
+                    key={`${v.verse}-${i}`}
+                    style={[styles.originalVerse, v.lang === 'hbo' && styles.originalVerseRtl]}
+                  >
+                    <Text style={styles.originalVerseNum}>{v.verse}{'  '}</Text>
+                    {v.text}
+                  </Text>
+                ))}
+                {t.copyright && <Text style={styles.copyright}>{t.copyright}</Text>}
+              </>
+            ) : (
+              <Text style={styles.notice}>
+                The Original (Hebrew / Greek) text isn't bundled for this verse. Pick a
+                different translation to read it inline.
+              </Text>
+            )}
+          </View>
+        )}
+
         {error && !loading && (
           <View style={styles.body}>
             <Text style={styles.errorTitle}>Could not load passage.</Text>
@@ -339,7 +388,7 @@ function CopyrightedNotice({
       <YouVersionButton book={book} refStr={refStr} translation={translation} />
       {translation.copyrighted && (
         <Text style={styles.noticeHint}>
-          Read inline in KJV, WEB, or ASV.
+          Read inline in KJV, BSB, WEB, or ASV.
         </Text>
       )}
     </View>
@@ -415,6 +464,11 @@ const styles = StyleSheet.create({
   body:             { paddingTop: 8 },
   reference:        { fontSize: 12, fontWeight: '700', color: C.yellow, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.8 },
   verse:            { fontSize: 18, lineHeight: 32, color: C.offWhite, fontWeight: '300' },
+  // Larger size + looser leading so Hebrew pointing/cantillation and Greek
+  // diacritics stay legible — mirrors the web's original-language styles.
+  originalVerse:    { fontSize: 20, lineHeight: 40, color: C.offWhite, fontWeight: '300', marginBottom: 14 },
+  originalVerseRtl: { writingDirection: 'rtl', textAlign: 'right' },
+  originalVerseNum: { fontSize: 12, color: C.yellow, fontWeight: '700' },
   studyVerseSpacer: { marginTop: 18 },
   studyVerseNum:    { fontSize: 11, fontWeight: '700', color: C.yellow, marginBottom: 4, letterSpacing: 0.5 },
   copyright:        { fontSize: 11, color: C.textSecondary, marginTop: 24, lineHeight: 18 },

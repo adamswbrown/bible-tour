@@ -63,7 +63,7 @@ export default function Privacy() {
         </p>
         <ul style={s.ul}>
           <li>
-            <strong>YouVersion Developer API</strong> — for NIV, NIrV, and NIVUK passages.
+            <strong>YouVersion Developer API</strong> — for NIV, NIrV, NIVUK, and BSB passages.
             We request the verse you&rsquo;ve tapped and pass the text back to your device.
             See YouVersion&rsquo;s <a href="https://platform.youversion.com/terms" style={s.link}>terms</a>.
           </li>

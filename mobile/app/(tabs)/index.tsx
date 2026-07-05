@@ -16,17 +16,26 @@ import {
   getSavedTranslation,
   getEarnedMilestones,
   setEarnedMilestones,
+  getResume,
+  clearResume,
   type Progress,
+  type ResumeEntry,
 } from '../../lib/progress';
 import { TOUR_MILESTONES, earnedFor, type Milestone } from '../../lib/milestones';
 import CelebrationModal from '../../components/CelebrationModal';
 import { DEFAULT_TRANSLATION } from '../../lib/translations';
+
+// Guards against stale resume entries if the reading plan ever changes.
+const CANONICAL_BOOK_NAMES = new Set(
+  [...OT_BOOKS, ...NT_BOOKS].map((b) => b.book),
+);
 
 export default function ChecklistScreen() {
   const [progress, setProgress] = useState<Progress>({});
   const [translation, setTranslation] = useState(DEFAULT_TRANSLATION);
   const [earnedIds, setEarnedIds] = useState<string[]>([]);
   const [celebration, setCelebration] = useState<Milestone | null>(null);
+  const [resume, setResume] = useState<ResumeEntry | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -42,8 +51,24 @@ export default function ChecklistScreen() {
         });
       });
       getSavedTranslation().then(setTranslation);
+      getResume().then((entry) => {
+        setResume(entry && CANONICAL_BOOK_NAMES.has(entry.book) ? entry : null);
+      });
     }, []),
   );
+
+  function openResume() {
+    if (!resume) return;
+    router.push({
+      pathname: '/verse',
+      params: { book: resume.book, ref: resume.ref, translation },
+    });
+  }
+
+  function dismissResume() {
+    setResume(null);
+    clearResume();
+  }
 
   async function toggle(book: Book) {
     const updated = await setBookDone(book.id, !progress[book.id]);
@@ -79,6 +104,9 @@ export default function ChecklistScreen() {
             pct={pct}
             translation={translation}
             earnedIds={earnedIds}
+            resume={resume}
+            onResume={openResume}
+            onDismissResume={dismissResume}
           />
         }
         renderSectionHeader={({ section }) => (
@@ -107,6 +135,9 @@ function ProgressHeader({
   pct,
   translation,
   earnedIds,
+  resume,
+  onResume,
+  onDismissResume,
 }: {
   done: number;
   otDone: number;
@@ -114,11 +145,41 @@ function ProgressHeader({
   pct: number;
   translation: string;
   earnedIds: string[];
+  resume: ResumeEntry | null;
+  onResume: () => void;
+  onDismissResume: () => void;
 }) {
   return (
     <View style={styles.header}>
       <Text style={styles.headerTitle}>Tour of the Bible</Text>
       <Text style={styles.headerSub}>{translation.toUpperCase()}</Text>
+
+      {resume && (
+        <View style={styles.resumeCard}>
+          <TouchableOpacity
+            style={styles.resumeBody}
+            onPress={onResume}
+            accessibilityLabel={`Resume reading ${resume.book} ${resume.ref}`}
+          >
+            <Text style={styles.resumeBadge}>Resume</Text>
+            <View style={styles.resumeTextWrap}>
+              <Text style={styles.resumeText}>Pick up where you left off</Text>
+              <Text style={styles.resumeRef}>
+                {resume.book} {resume.ref}
+              </Text>
+            </View>
+            <Text style={styles.resumeArrow}>→</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={onDismissResume}
+            hitSlop={10}
+            accessibilityLabel="Dismiss resume suggestion"
+            style={styles.resumeClose}
+          >
+            <Text style={styles.resumeCloseText}>✕</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       <View style={styles.progressCard}>
         <View style={styles.progressTopRow}>
@@ -241,6 +302,34 @@ const styles = StyleSheet.create({
     marginTop: 14,
     borderWidth: 1, borderColor: C.border,
   },
+
+  resumeCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: C.surface,
+    borderRadius: 14,
+    marginTop: 14,
+    borderWidth: 1, borderColor: C.yellow,
+  },
+  resumeBody: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    gap: 10,
+  },
+  resumeBadge: {
+    fontSize: 11, fontWeight: '800', color: C.tealDark,
+    backgroundColor: C.yellow,
+    paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10,
+    overflow: 'hidden', letterSpacing: 0.5, textTransform: 'uppercase',
+  },
+  resumeTextWrap: { flex: 1 },
+  resumeText:     { fontSize: 13, fontWeight: '600', color: C.offWhite },
+  resumeRef:      { fontSize: 12, color: C.textSecondary, marginTop: 1 },
+  resumeArrow:    { fontSize: 16, color: C.yellow, fontWeight: '700' },
+  resumeClose:    { paddingHorizontal: 12, paddingVertical: 12 },
+  resumeCloseText:{ fontSize: 13, color: C.textSecondary, fontWeight: '600' },
   progressTopRow: { flexDirection: 'row', alignItems: 'baseline', marginBottom: 10 },
   bigNumber:    { fontSize: 36, fontWeight: '800', color: C.offWhite, lineHeight: 38 },
   bigLabel:     { fontSize: 14, color: C.textSecondary, marginLeft: 10 },
