@@ -9,6 +9,12 @@ to production. Format loosely follows [Keep a Changelog](https://keepachangelog.
 ## Unreleased — Resume on mobile & Berean Standard Bible
 
 ### Added
+- **Original (Hebrew / Greek) on mobile** — the ORIG translation option
+  from the web Tour is now in the mobile app too. The same 234 curated
+  verses ship inside the app bundle (Westminster Leningrad Codex Hebrew,
+  SBLGNT Greek), render offline with right-to-left layout for Hebrew,
+  and fall back to a gentle notice for references the bundle doesn't
+  cover.
 - **Pick up where you left off (mobile)** — the Tour tab now shows a
   one-tap **Resume** card for the last verse you opened in the reader,
   matching the resume pill the web Tour has had. The entry is stored

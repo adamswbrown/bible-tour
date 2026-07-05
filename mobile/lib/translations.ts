@@ -8,6 +8,7 @@ export type Translation = {
   yvLicensed: boolean;
   esvLicensed?: boolean;
   copyrighted?: boolean; // true → no inline render, deep-link to YouVersion only
+  original?: boolean; // true → render bundled Hebrew/Greek text, no network fetch
   copyright?: string;
 };
 
@@ -63,6 +64,11 @@ export const TRANSLATIONS: Translation[] = [
   {
     id: 'asv', name: 'American Standard Version', abbr: 'ASV',
     youVersionId: 12, yvLicensed: false,
+  },
+  {
+    id: 'original', name: 'Original (Hebrew / Greek)', abbr: 'ORIG',
+    youVersionId: 1, yvLicensed: false, original: true,
+    copyright: 'Hebrew text from the Westminster Leningrad Codex via Open Scriptures (CC BY 4.0). Greek text from the SBLGNT, edited by Michael W. Holmes, with MorphGNT morphology (CC BY-SA 4.0).',
   },
 ];
 
