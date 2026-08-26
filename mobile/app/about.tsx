@@ -27,7 +27,7 @@ export default function AboutScreen() {
           url="https://berean.bible"
         />
         <Credit
-          name="Original (Hebrew / Greek)"
+          name="Original (Hebrew / Aramaic / Greek)"
           detail="Hebrew text from the Westminster Leningrad Codex via Open Scriptures (CC BY 4.0). Greek text from the SBLGNT, edited by Michael W. Holmes, with MorphGNT morphology (CC BY-SA 4.0)."
           url="https://github.com/openscriptures/morphhb"
         />

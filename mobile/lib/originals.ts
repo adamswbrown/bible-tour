@@ -1,4 +1,4 @@
-// Lookup helpers for the Original (Hebrew / Greek) translation — the
+// Lookup helpers for the Original (Hebrew / Aramaic / Greek) translation — the
 // mobile mirror of app/lib/originals.js. Data is keyed by English verse
 // ID (e.g. "GEN.12.2", "JHN.3.16"); the build script bakes in the few
 // English-to-Hebrew versification offsets, so callers always pass
@@ -7,7 +7,7 @@ import originalVerses from '../data/original-verses.json';
 import { BOOKS, type Book } from './readingPlan';
 import { toVerseIds } from './study';
 
-export type OriginalVerse = { verse: string; text: string; lang: 'hbo' | 'grc' };
+export type OriginalVerse = { verse: string; text: string; lang: 'hbo' | 'arc' | 'grc' };
 
 const ORIGINALS = originalVerses as Record<string, { lang: string; text: string }>;
 
@@ -47,7 +47,7 @@ export function getOriginalVerses(book: string, ref: string): OriginalVerse[] {
   const out: OriginalVerse[] = [];
   for (const { verseNum, verseId } of ids) {
     const hit = ORIGINALS[verseId];
-    if (hit) out.push({ verse: String(verseNum), text: hit.text, lang: hit.lang as 'hbo' | 'grc' });
+    if (hit) out.push({ verse: String(verseNum), text: hit.text, lang: hit.lang as OriginalVerse['lang'] });
   }
   return out;
 }

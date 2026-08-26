@@ -1,4 +1,4 @@
-// Lookup helpers for the Original (Hebrew/Greek) translation.
+// Lookup helpers for the Original (Hebrew / Aramaic / Greek) translation.
 // Data is keyed by English verse ID (e.g. "GEN.12.2", "JHN.3.16"); the
 // build script handles the few English-to-Hebrew versification offsets
 // so the caller doesn't need to know about them.

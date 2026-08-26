@@ -3,12 +3,19 @@
  * build-original-text.mjs
  *
  * Produces app/data/original-verses.json — one entry per verse in the
- * reading plan, in the original language (Hebrew for OT, Greek for NT).
+ * reading plan, in the original language (Hebrew or Aramaic for OT,
+ * Greek for NT).
  *
  * Shape:
  *   { "GEN.12.2": { "lang": "hbo", "text": "וְאֶֽעֶשְׂךָ֙ ..." },
+ *     "DAN.2.44": { "lang": "arc", "text": "וּֽבְיוֹמֵיה֞וֹן דִּ֧י ..." },
  *     "JHN.3.16": { "lang": "grc", "text": "Οὕτως γὰρ ἠγάπησεν ..." },
  *     ... }
+ *
+ * lang is an ISO 639-3 code: hbo (Ancient Hebrew), arc (Imperial
+ * Aramaic), grc (Ancient Greek). Aramaic is detected per verse from the
+ * OSHB morphology rather than hardcoded by reference — see
+ * extractHebrewVerse.
  *
  * Sources:
  *   - Hebrew OT: openscriptures/morphhb (Westminster Leningrad Codex,
@@ -117,17 +124,33 @@ function extractHebrewVerse(bookXml, chapter, verse) {
   const inner = bookXml.slice(start, closeIdx);
 
   const tokens = [];
-  const wordRe = /<w\b[^>]*>([\s\S]*?)<\/w>/g;
+  let hebrewWords = 0;
+  let aramaicWords = 0;
+  const wordRe = /<w\b([^>]*)>([\s\S]*?)<\/w>/g;
   let m;
   while ((m = wordRe.exec(inner)) !== null) {
-    const word = m[1].replace(/\//g, "").trim();
-    if (word) tokens.push(word);
+    const word = m[2].replace(/\//g, "").trim();
+    if (!word) continue;
+    tokens.push(word);
+    const morph = /morph="([^"]*)"/.exec(m[1]);
+    if (morph) {
+      if (morph[1].startsWith("A")) aramaicWords += 1;
+      else if (morph[1].startsWith("H")) hebrewWords += 1;
+    }
   }
   // Append soph pasuq if present.
   const sof = /<seg\s+type="x-sof-pasuq"[^>]*>([^<]*)<\/seg>/.exec(inner);
   let text = tokens.join(" ");
   if (sof && sof[1]) text += sof[1];
-  return text || null;
+  if (!text) return null;
+
+  // OSHB prefixes every morph code with the word's language: "H…" for
+  // Hebrew, "A…" for Aramaic. Daniel 2:4b-7:28, Ezra 4:8-6:18 and
+  // 7:12-26, Jeremiah 10:11 and two words of Genesis 31:47 are Aramaic.
+  // Daniel 2:4 straddles the switch, so go with whichever language owns
+  // most of the verse rather than assuming it is uniform.
+  const lang = aramaicWords > hebrewWords ? "arc" : "hbo";
+  return { text, lang };
 }
 
 // ── MorphGNT Greek parsing ─────────────────────────────────────────────
@@ -226,6 +249,7 @@ async function main() {
 
   const out = {};
   let otFound = 0, otMissing = 0, ntFound = 0, ntMissing = 0;
+  let aramaicFound = 0;
   const missing = [];
 
   // Hebrew OT.
@@ -239,9 +263,10 @@ async function main() {
       const englishKey = `${abbrev}.${id}`;
       const hebrewRef = ENGLISH_TO_HEBREW[englishKey] || id;
       const [ch, v] = hebrewRef.split(".");
-      const text = extractHebrewVerse(xml, ch, v);
-      if (text) {
-        out[englishKey] = { lang: "hbo", text };
+      const extracted = extractHebrewVerse(xml, ch, v);
+      if (extracted) {
+        out[englishKey] = { lang: extracted.lang, text: extracted.text };
+        if (extracted.lang === "arc") aramaicFound++;
         otFound++;
       } else {
         otMissing++;
@@ -287,7 +312,7 @@ async function main() {
   await writeFile(OUT, JSON.stringify(ordered), "utf8");
 
   console.log("");
-  console.log(`OT verses: ${otFound} found, ${otMissing} missing`);
+  console.log(`OT verses: ${otFound} found (${aramaicFound} Aramaic), ${otMissing} missing`);
   console.log(`NT verses: ${ntFound} found, ${ntMissing} missing`);
   console.log(`Free-text plan refs skipped: ${skippedFreetext}`);
   if (missing.length) {

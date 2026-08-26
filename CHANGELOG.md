@@ -9,6 +9,26 @@ to production. Format loosely follows [Keep a Changelog](https://keepachangelog.
 ## Unreleased — Resume on mobile & Berean Standard Bible
 
 ### Added
+- **Aramaic is now named as Aramaic.** About 1% of the Old Testament is
+  Aramaic, not Hebrew, and three verses of the tour sit inside it —
+  Daniel 2:44 and 7:13-14, all within Daniel's Aramaic section
+  (2:4b-7:28). The Original translation was already showing that text; it
+  was labelling it Hebrew. The build now reads each word's language
+  straight from the OSHB morphology (`H…` Hebrew, `A…` Aramaic) instead
+  of assuming the whole Old Testament is Hebrew, so those verses are
+  tagged `arc`, still render right-to-left, and the translation is now
+  called **Original (Hebrew / Aramaic / Greek)** on web and mobile.
+- **Interlinear link on every verse** — the verse panel now links out to
+  the word-by-word interlinear on Bible Hub, Hebrew/Aramaic for the Old
+  Testament and Greek for the New. Complements the Strong's word-tap,
+  which stays inline.
+- **Catholic reading options** — **Douay-Rheims (Challoner)**, **NABRE**
+  and **NRSV Catholic Interconfessional** join the translation picker.
+  We don't have inline rights to any of them yet, so they open in
+  YouVersion, the same way NKJV/NLT/CSB/MSG already do. Douay-Rheims
+  numbers the Psalms the Vulgate way — its Psalm 22 is the shepherd
+  psalm everyone else calls 23 — so its links are remapped rather than
+  quietly opening the wrong psalm.
 - **Original (Hebrew / Greek) on mobile** — the ORIG translation option
   from the web Tour is now in the mobile app too. The same 234 curated
   verses ship inside the app bundle (Westminster Leningrad Codex Hebrew,

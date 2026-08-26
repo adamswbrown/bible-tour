@@ -21,7 +21,7 @@ import { useLocalSearchParams, Stack, router } from 'expo-router';
 import { C } from '../constants/colors';
 import { BOOKS } from '../lib/readingPlan';
 import { fetchVerse, type VerseResult } from '../lib/api';
-import { TRANSLATIONS, getTranslation, buildYouVersionUrl, DEFAULT_TRANSLATION } from '../lib/translations';
+import { TRANSLATIONS, getTranslation, buildYouVersionUrl, buildInterlinearUrl, DEFAULT_TRANSLATION } from '../lib/translations';
 import { hasStudyForRef, getTokensForRef, getEntry } from '../lib/study';
 import { getOriginalVerses } from '../lib/originals';
 import StrongsVerse from '../components/StrongsVerse';
@@ -126,7 +126,7 @@ export default function VerseScreen() {
     setError(null);
     setResult(null);
 
-    // Original (Hebrew/Greek) renders from bundled data — no fetch.
+    // Original (Hebrew / Aramaic / Greek) renders from bundled data — no fetch.
     if (getTranslation(translation).original) {
       setLoading(false);
       return;
@@ -268,7 +268,7 @@ export default function VerseScreen() {
                 {originalVerses.map((v, i) => (
                   <Text
                     key={`${v.verse}-${i}`}
-                    style={[styles.originalVerse, v.lang === 'hbo' && styles.originalVerseRtl]}
+                    style={[styles.originalVerse, (v.lang === 'hbo' || v.lang === 'arc') && styles.originalVerseRtl]}
                   >
                     <Text style={styles.originalVerseNum}>{v.verse}{'  '}</Text>
                     {v.text}
@@ -278,7 +278,7 @@ export default function VerseScreen() {
               </>
             ) : (
               <Text style={styles.notice}>
-                The Original (Hebrew / Greek) text isn't bundled for this verse. Pick a
+                The Original (Hebrew / Aramaic / Greek) text isn't bundled for this verse. Pick a
                 different translation to read it inline.
               </Text>
             )}
@@ -333,6 +333,11 @@ export default function VerseScreen() {
             )}
           </View>
         )}
+
+        {/* Interlinear link — the full Hebrew/Aramaic/Greek apparatus,
+            which is more than we render inline. */}
+        {!loading && <InterlinearLink book={book} refStr={refParam} />}
+
         {siblingRefs.length > 1 && (
           <View style={styles.navRow}>
             <TouchableOpacity
@@ -416,6 +421,20 @@ function YouVersionButton({
   );
 }
 
+function InterlinearLink({ book, refStr }: { book: string; refStr: string }) {
+  const url = buildInterlinearUrl(book, refStr);
+  if (!url) return null;
+  return (
+    <TouchableOpacity
+      style={styles.interlinearRow}
+      onPress={() => Linking.openURL(url)}
+      accessibilityRole="link"
+    >
+      <Text style={styles.interlinearText}>Interlinear on Bible Hub ↗</Text>
+    </TouchableOpacity>
+  );
+}
+
 const styles = StyleSheet.create({
   sheet:            { flex: 1, backgroundColor: C.teal },
   container:        { flex: 1, backgroundColor: C.teal },
@@ -474,6 +493,8 @@ const styles = StyleSheet.create({
   copyright:        { fontSize: 11, color: C.textSecondary, marginTop: 24, lineHeight: 18 },
   notice:           { fontSize: 15, color: C.offWhite, lineHeight: 22, marginBottom: 16 },
   noticeHint:       { fontSize: 12, color: C.textSecondary, marginTop: 12, lineHeight: 18, fontStyle: 'italic' },
+  interlinearRow:   { marginHorizontal: 16, marginTop: 18, paddingTop: 14, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.12)' },
+  interlinearText:  { color: C.textSecondary, fontWeight: '700', fontSize: 13 },
   yvBtn:            { backgroundColor: C.yellow, paddingVertical: 14, borderRadius: 8, alignItems: 'center' },
   yvBtnText:        { color: C.tealDark, fontWeight: '700', fontSize: 14 },
   memoryBtn:        { paddingHorizontal: 12, paddingVertical: 4 },
