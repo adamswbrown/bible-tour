@@ -100,6 +100,19 @@ export const API_BOOK_NAMES = Object.fromEntries(
   BOOKS.filter(({ apiName }) => apiName).map(({ book, apiName }) => [book, apiName])
 );
 
+// Bible Hub files its interlinear pages under a slugged book name:
+// lowercase, underscores, numbered books as "1_samuel". Every book but
+// one derives straight from numericSlug — Bible Hub keeps the Song of
+// Songs under "songs", so that one is spelled out.
+const BIBLEHUB_SLUG_OVERRIDES = { "Song of Songs": "songs" };
+
+export const BIBLEHUB_SLUGS = Object.fromEntries(
+  BOOKS.map(({ book, numericSlug }) => [
+    book,
+    BIBLEHUB_SLUG_OVERRIDES[book] || numericSlug.replace(/-/g, "_"),
+  ])
+);
+
 export const BOOK_IDS = Object.fromEntries(BOOKS.map(({ book, id }) => [book, id]));
 
 export const BOOKS_BY_NAME = Object.fromEntries(BOOKS.map((entry) => [entry.book, entry]));

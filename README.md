@@ -104,6 +104,16 @@ Complementary to Eagle mode: Eagle works at the book level ("where am I in this 
 - Data is bundled at build time from [kaiserlik/kjv](https://github.com/kaiserlik/kjv) (KJV+Strong's, public domain) and [Open Scriptures](https://github.com/openscriptures/strongs) (Strong's dictionary, CC BY-SA 3.0). No network calls, works offline.
 - Tour verses only — 234 tagged references across all 66 books. Full-Bible coverage planned for v2.
 
+Every verse panel also carries an **Interlinear on Bible Hub** link — the full
+word-by-word apparatus, which is more than we render inline.
+
+The separate **Original (Hebrew / Aramaic / Greek)** translation shows the
+source text itself for all 234 tour verses. Aramaic is detected per verse from
+the OSHB morphology rather than hardcoded by reference: OSHB prefixes each
+word's morph code with its language, so Daniel 2:44 and 7:13-14 — which sit
+inside Daniel's Aramaic section (2:4b-7:28) — are tagged `arc` and rendered
+right-to-left like the Hebrew.
+
 See [DATA-SOURCES.md](./DATA-SOURCES.md) for licensing details and the build pipeline.
 
 ## Licensed translations
@@ -118,7 +128,17 @@ Currently licensed English translations available inline:
 
 Public-domain translations served inline: **KJV**, **WEB**, **ASV** (via bible-api.com).
 
-Unlicensed copyrighted translations (NKJV, NLT, CSB, MSG) link out to YouVersion instead of displaying inline.
+Translations we don't serve inline link out to YouVersion instead:
+
+- Copyrighted and unlicensed: **NKJV**, **NLT**, **CSB**, **MSG**
+- Catholic editions: **DRC** (Douay-Rheims Challoner 1752, public domain), **NABRE**, **NRSV-CI**
+
+Douay-Rheims numbers the Psalms the Vulgate/Septuagint way rather than the
+Hebrew way the reading plan uses, so its links go through a Hebrew-to-Vulgate
+psalm map (Psalms 23 → 22, 46 → 45, and so on). It also counts psalm
+superscriptions as verse 1, so a DRC psalm link opens the whole psalm rather
+than a verse number that wouldn't line up. Every other book, and every other
+translation, links straight to the reference.
 
 ## Credits
 

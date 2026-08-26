@@ -8,6 +8,7 @@ import {
   buildApiQuery,
   buildUsfmParts,
   buildYouVersionUrl,
+  buildInterlinearUrl,
 } from "./lib/translations";
 import { hasStudy, getTokens, getEntry, toVerseId } from "./lib/study";
 import { getOriginalVerses } from "./lib/originals";
@@ -170,6 +171,7 @@ function VersePanel({ book, verseRef, onClose, onNavigate, mode = "overlay" }) {
 
   const tx = TRANSLATIONS.find(t => t.id === translationId) || TRANSLATIONS[0];
   const youVersionUrl = buildYouVersionUrl(book, verseRef, tx.youVersionId);
+  const interlinearUrl = buildInterlinearUrl(book, verseRef);
 
   useEffect(() => {
     let cancelled = false;
@@ -179,7 +181,7 @@ function VersePanel({ book, verseRef, onClose, onNavigate, mode = "overlay" }) {
     setCopyright(null);
 
     if (tx.original) {
-      // Original (Hebrew/Greek) — loaded from local bundled data, no API.
+      // Original (Hebrew / Aramaic / Greek) — loaded from local bundled data, no API.
       const verses = getOriginalVerses(book, verseRef);
       if (verses.length > 0) {
         setText(verses);
@@ -433,7 +435,9 @@ function VersePanel({ book, verseRef, onClose, onNavigate, mode = "overlay" }) {
           {error === "copyrighted" && (
             <div style={ps.errorWrap}>
               <p style={ps.copyrightNote}>
-                {tx.name} is a copyrighted translation and can't be displayed inline.
+                {tx.publicDomain
+                  ? `We don\u2019t carry ${tx.name} inline yet.`
+                  : `${tx.name} is a copyrighted translation and can\u2019t be displayed inline.`}
               </p>
               <a href={youVersionUrl} target="_blank" rel="noopener noreferrer" style={ps.youVersionBtn}>
                 Read in {tx.abbr} on YouVersion
@@ -459,8 +463,8 @@ function VersePanel({ book, verseRef, onClose, onNavigate, mode = "overlay" }) {
           {error === "original-unavailable" && (
             <div style={ps.errorWrap}>
               <p style={ps.copyrightNote}>
-                The Original (Hebrew / Greek) text isn’t bundled for this
-                verse. Pick a different translation to read it inline.
+                The Original (Hebrew / Aramaic / Greek) text isn’t bundled for
+                this verse. Pick a different translation to read it inline.
               </p>
             </div>
           )}
@@ -472,7 +476,8 @@ function VersePanel({ book, verseRef, onClose, onNavigate, mode = "overlay" }) {
                 // inline). Skip for original-language text — StudyVerse
                 // is keyed off the KJV token stream and doesn't apply.
                 const useStudyInline = isKjv && !v.lang && i === 0 && studyTokens && studyTokens.length > 0;
-                const isRtl = v.lang === "hbo";
+                // Hebrew and Aramaic both read right-to-left; Greek doesn’t.
+                const isRtl = v.lang === "hbo" || v.lang === "arc";
                 const lineStyle = {
                   ...(isSidebar ? ps.verseLineSidebar : ps.verseLine),
                   ...(v.lang ? ps.verseLineOriginal : {}),
@@ -497,6 +502,24 @@ function VersePanel({ book, verseRef, onClose, onNavigate, mode = "overlay" }) {
               {copyright && (
                 <p style={ps.copyrightAttrib}>{copyright}</p>
               )}
+            </div>
+          )}
+
+          {/* Interlinear link — the full Hebrew/Aramaic/Greek apparatus,
+              which is more than we render inline. */}
+          {interlinearUrl && !loading && (
+            <div style={ps.interlinearRow}>
+              <a
+                href={interlinearUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={ps.interlinearLink}
+              >
+                Interlinear on Bible Hub
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ marginLeft: 5, verticalAlign: "middle" }} aria-hidden="true">
+                  <path d="M4.5 2H3C2.44772 2 2 2.44772 2 3V9C2 9.55228 2.44772 10 3 10H9C9.55228 10 10 9.55228 10 9V7.5M7 2H10M10 2V5M10 2L5.5 6.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </a>
             </div>
           )}
 
@@ -1842,6 +1865,19 @@ const ps = {
     color: C.done,
     textDecoration: "underline",
     fontWeight: 700,
+  },
+  interlinearRow: {
+    margin: "18px 0 0",
+    paddingTop: 14,
+    borderTop: `1px dashed rgba(27,58,75,0.18)`,
+  },
+  interlinearLink: {
+    fontSize: 13,
+    fontWeight: 700,
+    color: C.teal,
+    opacity: 0.75,
+    textDecoration: "none",
+    fontFamily: "'DM Sans',sans-serif",
   },
   originalsSection: {
     margin: "24px 0 0",
