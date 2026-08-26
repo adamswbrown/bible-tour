@@ -41,6 +41,7 @@ Submit profile is wired in [mobile/eas.json](../mobile/eas.json). Full step-by-s
 4. **Decide on `claude/sharp-driscoll-92cd28`** — merge the KJV credit refactor or close it.
 5. **Decide on the blog post draft** — commit, relocate, or delete [docs/blog-post-bible-tour-and-eagle.md](blog-post-bible-tour-and-eagle.md).
 6. **Submit iOS to App Store Connect** once #7 and #8 are done.
+   - **Carry-along change:** the default reading translation is now **NIV** (was KJV), merged in [#30](https://github.com/adamswbrown/bible-tour/pull/30). It's already live on web (Vercel), but iOS has **no OTA path** (`expo-updates` not installed), so it's baked into the bundle and won't reach devices until the next App Store build. Bump `mobile/app.json` `version` (currently `1.0.0`) before building. No standalone release needed — let it ride with this submission.
 7. **Android** — resume [docs/android-submission-steps.md](android-submission-steps.md) when Play Console clears.
 9. **Post-launch hygiene:** API quota alerts, key rotation runbook, support-email triage cadence.
 
