@@ -1,4 +1,5 @@
 import { Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import * as Updates from 'expo-updates';
 import { C } from '../constants/colors';
 
 export default function AboutScreen() {
@@ -66,10 +67,41 @@ export default function AboutScreen() {
         />
       </Section>
 
+      <BuildInfo />
+
       <Text style={styles.footer}>
         bible-tour.vercel.app · not affiliated with or endorsed by The Ten Minute Bible Hour
       </Text>
     </ScrollView>
+  );
+}
+
+// Shows which JS bundle is actually running so a specific OTA update can be
+// confirmed on-device. `Updates.*` constants are null in dev / Expo Go and
+// populated in release builds. An embedded launch means no OTA has applied yet.
+function BuildInfo() {
+  const onOta = !Updates.isEmbeddedLaunch && !!Updates.updateId;
+  return (
+    <Section title="Build">
+      <View style={styles.credit}>
+        <BuildRow label="Version" value={Updates.runtimeVersion ?? '—'} />
+        <BuildRow label="Channel" value={Updates.channel ?? 'embedded'} />
+        <BuildRow label="Update" value={onOta ? (Updates.updateId as string) : 'embedded (no OTA applied)'} />
+        <BuildRow
+          label="Published"
+          value={Updates.createdAt ? Updates.createdAt.toLocaleString() : '—'}
+        />
+      </View>
+    </Section>
+  );
+}
+
+function BuildRow({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.buildRow}>
+      <Text style={styles.buildLabel}>{label}</Text>
+      <Text style={styles.buildValue} selectable>{value}</Text>
+    </View>
   );
 }
 
@@ -111,5 +143,8 @@ const styles = StyleSheet.create({
   creditName:   { fontSize: 14, fontWeight: '600', color: C.offWhite, marginBottom: 4 },
   creditDetail: { fontSize: 12, color: C.textSecondary, lineHeight: 18 },
   creditUrl:    { fontSize: 12, color: C.yellow, marginTop: 4 },
+  buildRow:     { flexDirection: 'row', marginBottom: 6 },
+  buildLabel:   { width: 84, fontSize: 12, color: C.textSecondary },
+  buildValue:   { flex: 1, fontSize: 12, color: C.offWhite },
   footer:       { fontSize: 11, color: C.border, textAlign: 'center', marginTop: 24, lineHeight: 18 },
 });
